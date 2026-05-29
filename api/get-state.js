@@ -11,15 +11,19 @@ async function query(table) {
   return res.json();
 }
 
-export default async function handler(req, res) {
-  const [outcomes, outputs, tasks, team, configRows] = await Promise.all([
-    query('outcomes'), query('outputs'),
-    query('tasks'), query('team'), query('config')
-  ]);
-  const config = configRows[0] || {
-    cycle_start: '2026-04-01',
-    cycle_end: '2026-12-31',
-    progress_mode: 'hybrid'
-  };
-  res.status(200).json({ outcomes, outputs, tasks, team, config });
-}
+module.exports = async function handler(req, res) {
+  try {
+    const [outcomes, outputs, tasks, team, configRows] = await Promise.all([
+      query('outcomes'), query('outputs'),
+      query('tasks'), query('team'), query('config')
+    ]);
+    const config = (configRows && configRows[0]) || {
+      cycle_start: '2026-04-01',
+      cycle_end: '2026-12-31',
+      progress_mode: 'hybrid'
+    };
+    res.status(200).json({ outcomes, outputs, tasks, team, config });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+};
