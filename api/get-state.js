@@ -8,8 +8,50 @@ async function query(table) {
       Authorization: `Bearer ${SUPABASE_KEY}`
     }
   });
+  if (!res.ok) throw new Error(`Error leyendo ${table} (${res.status})`);
   return res.json();
 }
+
+// ── Mapeo: columnas de la base (snake_case) → nombres del frontend (camelCase) ──
+function mapOutcome(o) {
+  return { id: o.id, title: o.title, desc: o.description, kpis: o.kpis };
+}
+function mapOutput(o) {
+  return {
+    id: o.id,
+    outcome: o.outcome,
+    title: o.title,
+    desc: o.description,
+    meta: o.meta,
+    actual: o.actual,
+    unit: o.unit,
+    direction: o.direction,
+    owner: o.owner,
+    ciclo: o.ciclo,
+    startDate: o.start_date,
+    date: o.end_date,
+    participants: o.participants, // el frontend hace safeJSON()
+    dependency: o.dependency,
+    attachments: o.attachments,   // el frontend hace safeJSON()
+    comments: o.comments,         // el frontend hace safeJSON()
+    notes: o.notes
+  };
+}
+function mapTask(t) {
+  return {
+    id: t.id,
+    output: t.output,
+    title: t.title,
+    desc: t.description,
+    owner: t.owner,
+    priority: t.priority,
+    status: t.status,
+    start: t.start_date,
+    end: t.end_date,
+    notes: t.notes
+  };
+}
+// team: los nombres coinciden (id, name, role, email) → no necesita mapeo
 
 module.exports = async function handler(req, res) {
   try {
@@ -22,8 +64,14 @@ module.exports = async function handler(req, res) {
       cycle_end: '2026-12-31',
       progress_mode: 'hybrid'
     };
-    res.status(200).json({ outcomes, outputs, tasks, team, config });
-  } catch(e) {
+    res.status(200).json({
+      outcomes: (outcomes || []).map(mapOutcome),
+      outputs: (outputs || []).map(mapOutput),
+      tasks: (tasks || []).map(mapTask),
+      team: team || [],
+      config
+    });
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 };
