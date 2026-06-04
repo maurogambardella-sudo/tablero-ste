@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Strategy & Transformation Enablers — Tablero de Gestión</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bayer-dark: #10384F;
@@ -186,9 +187,48 @@ tbody tr:hover { background: var(--bayer-light); }
   .main { margin-left: 0; padding: 16px; max-width: 100vw; }
   .app { flex-direction: column; }
 }
+/* ── LOGIN ── */
+.hidden { display: none !important; }
+.auth-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, var(--bayer-dark) 0%, #0091DF 100%); }
+.auth-card { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-lg); width: 100%; max-width: 400px; padding: 36px 32px; }
+.auth-card .brand-mini { text-align: center; margin-bottom: 24px; }
+.auth-card .brand-mini h1 { font-size: 20px; font-weight: 700; color: var(--bayer-dark); line-height: 1.3; }
+.auth-card .brand-mini h1 .accent { color: var(--bayer-green); }
+.auth-card .brand-mini p { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.auth-field { display: flex; flex-direction: column; margin-bottom: 16px; }
+.auth-field label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.auth-field input { padding: 11px 13px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+.auth-field input:focus { border-color: var(--bayer-green); }
+.auth-btn { width: 100%; background: var(--bayer-green); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 4px; }
+.auth-btn:hover { background: var(--bayer-green-dark); }
+.auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.auth-error { background: #FEE2E2; color: #991B1B; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+.auth-error.show { display: block; }
 </style>
 </head>
 <body>
+
+<!-- Login overlay -->
+<div class="auth-overlay hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="brand-mini">
+      <h1>Strategy <span class="accent">&</span> Transformation Enablers</h1>
+      <p>SCM Conosur · Tablero PS 2030</p>
+    </div>
+    <form id="authForm" onsubmit="doLogin(event)">
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" autocomplete="username" required>
+      </div>
+      <div class="auth-field">
+        <label for="authPassword">Contraseña</label>
+        <input type="password" id="authPassword" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="auth-btn" id="authBtn">Ingresar</button>
+    </form>
+  </div>
+</div>
 
 <!-- Loading overlay -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -227,7 +267,7 @@ tbody tr:hover { background: var(--bayer-light); }
         <button class="btn btn-secondary" onclick="openConfigModal()">⚙ Configurar ciclo</button>
       </div>
       <div class="kpi-grid">
-        <div class="kpi blue"><div class="label">Outputs totales</div><div class="value" id="kpiOutputs">0</div><div class="sub">activas</div></div>
+        <div class="kpi blue"><div class="label">Outputs totales</div><div class="value" id="kpiOutputs">0</div><div class="sub">Salidas activas</div></div>
         <div class="kpi"><div class="label">Avance real</div><div class="value" id="kpiAvance">0%</div><div class="sub">Promedio outputs</div></div>
         <div class="kpi dark"><div class="label">Avance esperado</div><div class="value" id="kpiEsperado">0%</div><div class="sub">Por fechas del ciclo</div></div>
         <div class="kpi amber"><div class="label">Tasks abiertas</div><div class="value" id="kpiTasksAbiertas">0</div><div class="sub">Pendiente / en progreso</div></div>
@@ -263,7 +303,7 @@ tbody tr:hover { background: var(--bayer-light); }
     <!-- OUTPUTS -->
     <section class="page" id="page-outputs">
       <div class="page-header">
-        <div><h2>Outputs</h2><p class="meta">Productos del equipo a corto plazo.</p></div>
+        <div><h2>Outputs (Salidas)</h2><p class="meta">Productos del equipo a corto plazo.</p></div>
         <button class="btn" onclick="openOutputModal()">+ Nuevo Output</button>
       </div>
       <div class="filters">
@@ -494,11 +534,67 @@ const SEED = {
 let state = JSON.parse(JSON.stringify(SEED));
 let isSaving = false;
 
+// ─── AUTH (Supabase) ──────────────────────────────────────────────────────────
+const SB_URL  = "https://gzwhodlleluvaziwsemq.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6d2hvZGxsZWx1dmF6aXdzZW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTc1OTUsImV4cCI6MjA5NTQ3MzU5NX0.b_uBQdtrSAWO__UD8WkvowKqrggh7gmyM1zJG--z4sY";
+const sb = window.supabase.createClient(SB_URL, SB_ANON);
+let authToken = null;
+
+// Agrega el token del usuario a las llamadas a la API.
+function authHeaders(extra) {
+  return Object.assign({ Authorization: `Bearer ${authToken}` }, extra || {});
+}
+function showApp() {
+  document.getElementById('authOverlay').classList.add('hidden');
+}
+function showLogin() {
+  showLoading(false);
+  document.getElementById('authOverlay').classList.remove('hidden');
+}
+// Arranque: si ya hay sesión activa, entra directo; si no, muestra el login.
+async function initApp() {
+  showLoading(true);
+  const { data } = await sb.auth.getSession();
+  if (data && data.session) {
+    authToken = data.session.access_token;
+    document.getElementById('userEmailLabel').textContent = data.session.user.email || '';
+    showApp();
+    loadFromAPI();
+  } else {
+    showLogin();
+  }
+}
+async function doLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authBtn');
+  const errBox = document.getElementById('authError');
+  errBox.classList.remove('show');
+  btn.disabled = true; btn.textContent = 'Ingresando…';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Ingresar';
+  if (error) {
+    errBox.textContent = 'Email o contraseña incorrectos.';
+    errBox.classList.add('show');
+    return;
+  }
+  authToken = data.session.access_token;
+  document.getElementById('userEmailLabel').textContent = data.user.email || '';
+  document.getElementById('authPassword').value = '';
+  showApp();
+  loadFromAPI();
+}
+async function doLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
 // ─── API: CARGA DESDE SUPABASE ────────────────────────────────────────────────
 async function loadFromAPI() {
   showLoading(true);
   try {
-    const res = await fetch('/api/get-state');
+    const res = await fetch('/api/get-state', { headers: authHeaders() });
     if (!res.ok) throw new Error('API error');
     const data = await res.json();
     if (data.outcomes && data.outcomes.length > 0) {
@@ -538,7 +634,7 @@ async function saveState() {
   try {
     const res = await fetch('/api/save-state', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(state)
     });
     if (!res.ok) throw new Error('Save error');
@@ -900,7 +996,7 @@ async function resetDemo(){
 function renderAll(){initFilters();renderDashboard();renderOutcomes();renderOutputs();renderTasks();renderTeam();}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-loadFromAPI();
+initApp();
 </script>
 </body>
 </html>
