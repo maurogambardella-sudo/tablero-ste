@@ -8,6 +8,7 @@ function sbHeaders(extra) {
   }, extra || {});
 }
 
+// Inserta o actualiza por id (no borra nada).
 async function upsert(table, rows) {
   if (!rows || !rows.length) return;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
@@ -15,7 +16,7 @@ async function upsert(table, rows) {
     headers: sbHeaders({ 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }),
     body: JSON.stringify(rows)
   });
-  // IMPORTANTE: si falla, lo hacemos explotar para que el frontend muestre "Sin conexión"
+  // Si falla, lo hacemos explotar para que el frontend muestre "Sin conexión"
   // en vez de creer que guardó bien (ese era el bug original).
   if (!res.ok) {
     const detail = await res.text();
@@ -23,11 +24,19 @@ async function upsert(table, rows) {
   }
 }
 
-async function deleteAll(table) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=neq.null`, {
-    method: 'DELETE',
-    headers: sbHeaders()
-  });
+// Borra SOLO las filas cuyo id ya no está en keepIds.
+// Si keepIds está vacío (se borró todo en la app), limpia la tabla entera.
+async function deleteRemoved(table, keepIds) {
+  let url;
+  if (!keepIds || !keepIds.length) {
+    url = `${SUPABASE_URL}/rest/v1/${table}?id=neq.null`;
+  } else {
+    const list = keepIds
+      .map(id => '"' + String(id).replace(/"/g, '\\"') + '"')
+      .join(',');
+    url = `${SUPABASE_URL}/rest/v1/${table}?id=not.in.(${encodeURIComponent(list)})`;
+  }
+  const res = await fetch(url, { method: 'DELETE', headers: sbHeaders() });
   if (!res.ok) {
     const detail = await res.text();
     throw new Error(`Error limpiando ${table} (${res.status}): ${detail}`);
@@ -94,16 +103,17 @@ module.exports = async function handler(req, res) {
   try {
     const { outcomes = [], outputs = [], tasks = [], team = [], config = {} } = req.body;
 
-    await Promise.all([
-      deleteAll('outcomes'), deleteAll('outputs'),
-      deleteAll('tasks'), deleteAll('team')
-    ]);
+    const outcomeRows = outcomes.map(mapOutcome);
+    const outputRows = outputs.map(mapOutput);
+    const taskRows = tasks.map(mapTask);
+    const teamRows = team.map(mapMember);
 
+    // 1) Primero insertar/actualizar todo (la base NUNCA queda vacía).
     await Promise.all([
-      upsert('outcomes', outcomes.map(mapOutcome)),
-      upsert('outputs', outputs.map(mapOutput)),
-      upsert('tasks', tasks.map(mapTask)),
-      upsert('team', team.map(mapMember)),
+      upsert('outcomes', outcomeRows),
+      upsert('outputs', outputRows),
+      upsert('tasks', taskRows),
+      upsert('team', teamRows),
       upsert('config', [{
         id: 1,
         cycle_start: config.cycleStart,
@@ -112,8 +122,17 @@ module.exports = async function handler(req, res) {
       }])
     ]);
 
+    // 2) Luego borrar SOLO lo que el usuario eliminó en la app.
+    await Promise.all([
+      deleteRemoved('outcomes', outcomeRows.map(r => r.id)),
+      deleteRemoved('outputs', outputRows.map(r => r.id)),
+      deleteRemoved('tasks', taskRows.map(r => r.id)),
+      deleteRemoved('team', teamRows.map(r => r.id))
+    ]);
+
     res.status(200).json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 };
+
