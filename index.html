@@ -255,7 +255,9 @@ tbody tr:hover { background: var(--bayer-light); }
       <button class="secondary" onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
       <button class="secondary" onclick="resetDemo()">↻ Reset demo</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-      <p style="margin-top:8px" id="syncStatus">● Conectado</p>
+      <button class="secondary" onclick="doLogout()">⎋ Cerrar sesión</button>
+      <p style="margin-top:8px;word-break:break-all" id="userEmailLabel"></p>
+      <p style="margin-top:4px" id="syncStatus">● Conectado</p>
     </div>
   </aside>
 
@@ -551,13 +553,18 @@ function showLogin() {
   showLoading(false);
   document.getElementById('authOverlay').classList.remove('hidden');
 }
+// Muestra el email del usuario en la barra (sin romper si el elemento no existe).
+function setUserEmail(email) {
+  const lbl = document.getElementById('userEmailLabel');
+  if (lbl) lbl.textContent = email || '';
+}
 // Arranque: si ya hay sesión activa, entra directo; si no, muestra el login.
 async function initApp() {
   showLoading(true);
   const { data } = await sb.auth.getSession();
   if (data && data.session) {
     authToken = data.session.access_token;
-    document.getElementById('userEmailLabel').textContent = data.session.user.email || '';
+    setUserEmail(data.session.user.email);
     showApp();
     loadFromAPI();
   } else {
@@ -580,7 +587,7 @@ async function doLogin(e) {
     return;
   }
   authToken = data.session.access_token;
-  document.getElementById('userEmailLabel').textContent = data.user.email || '';
+  setUserEmail(data.user.email);
   document.getElementById('authPassword').value = '';
   showApp();
   loadFromAPI();
