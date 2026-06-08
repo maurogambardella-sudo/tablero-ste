@@ -594,7 +594,14 @@ async function doLogout() {
 async function loadFromAPI() {
   showLoading(true);
   try {
-    const res = await fetch('/api/get-state', { headers: authHeaders() });
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    let res;
+    try {
+      res = await fetch('/api/get-state', { headers: authHeaders(), signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) throw new Error('API error');
     const data = await res.json();
     if (data.outcomes && data.outcomes.length > 0) {
@@ -632,11 +639,19 @@ async function saveState() {
   if (isSaving) return;
   isSaving = true;
   try {
-    const res = await fetch('/api/save-state', {
-      method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(state)
-    });
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    let res;
+    try {
+      res = await fetch('/api/save-state', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(state),
+        signal: ctrl.signal
+      });
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) throw new Error('Save error');
     setSyncStatus(true);
   } catch(e) {
