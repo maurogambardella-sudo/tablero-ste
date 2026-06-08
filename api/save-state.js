@@ -1,6 +1,25 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
+// ── Cerradura: verifica que quien llama tenga una sesión válida ──
+// Lee el token "Bearer" que manda el frontend y le pregunta a Supabase
+// "¿este usuario inició sesión de verdad?". Si no, devuelve null.
+async function getUserFromRequest(req) {
+  const auth = req.headers.authorization || req.headers.Authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (!token) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return null;
+    const user = await res.json();
+    return user && user.id ? user : null;
+  } catch {
+    return null;
+  }
+}
+
 function sbHeaders(extra) {
   return Object.assign({
     apikey: SUPABASE_KEY,
@@ -135,4 +154,3 @@ module.exports = async function handler(req, res) {
     res.status(500).json({ error: e.message });
   }
 };
-
