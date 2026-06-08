@@ -204,6 +204,10 @@ tbody tr:hover { background: var(--bayer-light); }
 .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .auth-error { background: #FEE2E2; color: #991B1B; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
 .auth-error.show { display: block; }
+.auth-info { background: #D1FAE5; color: #065F46; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+.auth-info.show { display: block; }
+.auth-link { width: 100%; background: transparent; color: var(--bayer-blue); border: none; padding: 12px 0 0; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; text-align: center; }
+.auth-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -217,6 +221,7 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
     <form id="authForm" onsubmit="doLogin(event)">
       <div class="auth-error" id="authError"></div>
+      <div class="auth-info" id="authInfo"></div>
       <div class="auth-field">
         <label for="authEmail">Email</label>
         <input type="email" id="authEmail" autocomplete="username" required>
@@ -226,6 +231,30 @@ tbody tr:hover { background: var(--bayer-light); }
         <input type="password" id="authPassword" autocomplete="current-password" required>
       </div>
       <button type="submit" class="auth-btn" id="authBtn">Ingresar</button>
+      <button type="button" class="auth-link" onclick="doForgotPassword()">¿Olvidaste tu contraseña?</button>
+    </form>
+  </div>
+</div>
+
+<!-- Recovery overlay: cargar contraseña nueva al volver desde el mail -->
+<div class="auth-overlay hidden" id="recoveryOverlay">
+  <div class="auth-card">
+    <div class="brand-mini">
+      <h1>Nueva contraseña</h1>
+      <p>Ingresá tu nueva contraseña para entrar.</p>
+    </div>
+    <form id="recoveryForm" onsubmit="doSetNewPassword(event)">
+      <div class="auth-error" id="recoveryError"></div>
+      <div class="auth-info" id="recoveryInfo"></div>
+      <div class="auth-field">
+        <label for="recoveryPassword">Nueva contraseña</label>
+        <input type="password" id="recoveryPassword" autocomplete="new-password" minlength="6" required>
+      </div>
+      <div class="auth-field">
+        <label for="recoveryPassword2">Repetir contraseña</label>
+        <input type="password" id="recoveryPassword2" autocomplete="new-password" minlength="6" required>
+      </div>
+      <button type="submit" class="auth-btn" id="recoveryBtn">Guardar y entrar</button>
     </form>
   </div>
 </div>
@@ -558,9 +587,23 @@ function setUserEmail(email) {
   const lbl = document.getElementById('userEmailLabel');
   if (lbl) lbl.textContent = email || '';
 }
+function showRecovery() {
+  showLoading(false);
+  document.getElementById('authOverlay').classList.add('hidden');
+  document.getElementById('recoveryOverlay').classList.remove('hidden');
+}
 // Arranque: si ya hay sesión activa, entra directo; si no, muestra el login.
 async function initApp() {
   showLoading(true);
+  // Si el usuario vuelve desde el mail de "recuperar contraseña", mostrar el
+  // formulario para cargar la clave nueva (en vez de entrar al tablero).
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') showRecovery();
+  });
+  if ((window.location.hash || '').includes('type=recovery')) {
+    showRecovery();
+    return;
+  }
   const { data } = await sb.auth.getSession();
   if (data && data.session) {
     authToken = data.session.access_token;
@@ -595,6 +638,63 @@ async function doLogin(e) {
 async function doLogout() {
   await sb.auth.signOut();
   location.reload();
+}
+// Envía el mail con el link para blanquear la contraseña.
+async function doForgotPassword() {
+  const email = document.getElementById('authEmail').value.trim();
+  const errBox = document.getElementById('authError');
+  const infoBox = document.getElementById('authInfo');
+  errBox.classList.remove('show'); infoBox.classList.remove('show');
+  if (!email) {
+    errBox.textContent = 'Escribí tu email arriba y volvé a tocar el link.';
+    errBox.classList.add('show');
+    return;
+  }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+  if (error) {
+    errBox.textContent = 'No se pudo enviar el mail. Probá de nuevo en un momento.';
+    errBox.classList.add('show');
+    return;
+  }
+  infoBox.textContent = 'Te enviamos un mail para restablecer la contraseña. Revisá tu bandeja (y la carpeta de spam).';
+  infoBox.classList.add('show');
+}
+// Guarda la contraseña nueva cuando el usuario vuelve desde el mail.
+async function doSetNewPassword(e) {
+  e.preventDefault();
+  const p1 = document.getElementById('recoveryPassword').value;
+  const p2 = document.getElementById('recoveryPassword2').value;
+  const errBox = document.getElementById('recoveryError');
+  const btn = document.getElementById('recoveryBtn');
+  errBox.classList.remove('show');
+  if (p1 !== p2) {
+    errBox.textContent = 'Las dos contraseñas no coinciden.';
+    errBox.classList.add('show');
+    return;
+  }
+  if (p1.length < 6) {
+    errBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+    errBox.classList.add('show');
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  btn.disabled = false; btn.textContent = 'Guardar y entrar';
+  if (error) {
+    errBox.textContent = 'No se pudo guardar. El link puede haber vencido; pedí uno nuevo.';
+    errBox.classList.add('show');
+    return;
+  }
+  // Limpia el link de la dirección y entra al tablero.
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  const { data } = await sb.auth.getSession();
+  if (data && data.session) {
+    authToken = data.session.access_token;
+    setUserEmail(data.session.user.email);
+  }
+  document.getElementById('recoveryOverlay').classList.add('hidden');
+  showApp();
+  loadFromAPI();
 }
 
 // ─── API: CARGA DESDE SUPABASE ────────────────────────────────────────────────
