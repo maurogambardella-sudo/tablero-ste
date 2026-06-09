@@ -27,6 +27,44 @@ function sbHeaders(extra) {
   }, extra || {});
 }
 
+// Busca el perfil del usuario (rol + equipo). Sin fila → "consulta" (solo ver).
+async function getProfile(email) {
+  if (!email) return { email: '', role: 'consulta', team: '' };
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=*`,
+      { headers: sbHeaders() }
+    );
+    if (!res.ok) return { email, role: 'consulta', team: '' };
+    const rows = await res.json();
+    if (rows && rows[0]) {
+      return { email, role: rows[0].role || 'consulta', team: rows[0].team || '' };
+    }
+    return { email, role: 'consulta', team: '' };
+  } catch {
+    return { email, role: 'consulta', team: '' };
+  }
+}
+
+// Borra filas SOLO dentro de un equipo (para editores). Nunca toca otros equipos.
+async function deleteRemovedScoped(table, team, keepIds) {
+  const teamFilter = `team=eq.${encodeURIComponent(team)}`;
+  let url;
+  if (!keepIds || !keepIds.length) {
+    url = `${SUPABASE_URL}/rest/v1/${table}?${teamFilter}`;
+  } else {
+    const list = keepIds
+      .map(id => '"' + String(id).replace(/"/g, '\\"') + '"')
+      .join(',');
+    url = `${SUPABASE_URL}/rest/v1/${table}?${teamFilter}&id=not.in.(${encodeURIComponent(list)})`;
+  }
+  const res = await fetch(url, { method: 'DELETE', headers: sbHeaders() });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Error limpiando ${table} (${res.status}): ${detail}`);
+  }
+}
+
 // Inserta o actualiza por id (no borra nada).
 async function upsert(table, rows) {
   if (!rows || !rows.length) return;
@@ -82,6 +120,7 @@ function mapOutput(o) {
     unit: o.unit ?? '',
     direction: o.direction ?? '',
     owner: o.owner ?? '',
+    team: o.team ?? '',
     ciclo: o.ciclo ?? '',
     start_date: o.startDate ?? '',
     end_date: o.date ?? '',
@@ -99,6 +138,7 @@ function mapTask(t) {
     title: t.title ?? '',
     description: t.desc ?? '',
     owner: t.owner ?? '',
+    team: t.team ?? '',
     priority: t.priority ?? '',
     status: t.status ?? '',
     start_date: t.start ?? '',
@@ -120,8 +160,44 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
+    // ── Verificar quién es y qué rol tiene ──
+    const user = await getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'No autorizado' });
+    const me = await getProfile((user.email || '').toLowerCase());
+
+    // Consulta: no puede guardar nada.
+    if (me.role === 'consulta') {
+      return res.status(403).json({ error: 'Tu usuario es de solo consulta: no podés guardar cambios.' });
+    }
+
     const { outcomes = [], outputs = [], tasks = [], team = [], config = {} } = req.body;
 
+    // ── EDITOR: solo puede tocar outputs y tasks de SU equipo ──
+    if (me.role === 'editor') {
+      if (!me.team) {
+        return res.status(403).json({ error: 'Tu usuario editor no tiene un equipo asignado.' });
+      }
+      // Tomar solo lo de su equipo y forzar el equipo (no puede reasignar a otro).
+      const outputRows = outputs
+        .filter(o => o.team === me.team)
+        .map(o => { const r = mapOutput(o); r.team = me.team; return r; });
+      const taskRows = tasks
+        .filter(t => t.team === me.team)
+        .map(t => { const r = mapTask(t); r.team = me.team; return r; });
+
+      await Promise.all([
+        upsert('outputs', outputRows),
+        upsert('tasks', taskRows)
+      ]);
+      // Borrar solo lo de su equipo que el editor eliminó (nunca otros equipos).
+      await Promise.all([
+        deleteRemovedScoped('outputs', me.team, outputRows.map(r => r.id)),
+        deleteRemovedScoped('tasks', me.team, taskRows.map(r => r.id))
+      ]);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ── ADMIN: puede todo (comportamiento completo) ──
     const outcomeRows = outcomes.map(mapOutcome);
     const outputRows = outputs.map(mapOutput);
     const taskRows = tasks.map(mapTask);
