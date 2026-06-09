@@ -31,6 +31,26 @@ async function query(table) {
   return res.json();
 }
 
+// Busca el perfil del usuario (rol + equipo). Si no tiene fila, queda como
+// "consulta" (solo ver) por seguridad.
+async function getProfile(email) {
+  if (!email) return { email: '', role: 'consulta', team: '' };
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=*`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    if (!res.ok) return { email, role: 'consulta', team: '' };
+    const rows = await res.json();
+    if (rows && rows[0]) {
+      return { email, role: rows[0].role || 'consulta', team: rows[0].team || '' };
+    }
+    return { email, role: 'consulta', team: '' };
+  } catch {
+    return { email, role: 'consulta', team: '' };
+  }
+}
+
 // ── Mapeo: columnas de la base (snake_case) → nombres del frontend (camelCase) ──
 function mapOutcome(o) {
   return { id: o.id, title: o.title, desc: o.description, kpis: o.kpis };
@@ -46,6 +66,7 @@ function mapOutput(o) {
     unit: o.unit,
     direction: o.direction,
     owner: o.owner,
+    team: o.team,
     ciclo: o.ciclo,
     startDate: o.start_date,
     date: o.end_date,
@@ -63,6 +84,7 @@ function mapTask(t) {
     title: t.title,
     desc: t.description,
     owner: t.owner,
+    team: t.team,
     priority: t.priority,
     status: t.status,
     start: t.start_date,
@@ -77,6 +99,8 @@ module.exports = async function handler(req, res) {
     const user = await getUserFromRequest(req);
     if (!user) return res.status(401).json({ error: 'No autorizado' });
 
+    const me = await getProfile((user.email || '').toLowerCase());
+
     const [outcomes, outputs, tasks, team, configRows] = await Promise.all([
       query('outcomes'), query('outputs'),
       query('tasks'), query('team'), query('config')
@@ -87,6 +111,7 @@ module.exports = async function handler(req, res) {
       progress_mode: 'hybrid'
     };
     res.status(200).json({
+      me,
       outcomes: (outcomes || []).map(mapOutcome),
       outputs: (outputs || []).map(mapOutput),
       tasks: (tasks || []).map(mapTask),
