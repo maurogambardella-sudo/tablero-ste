@@ -208,6 +208,8 @@ tbody tr:hover { background: var(--bayer-light); }
 .auth-info.show { display: block; }
 .auth-link { width: 100%; background: transparent; color: var(--bayer-blue); border: none; padding: 12px 0 0; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; text-align: center; }
 .auth-link:hover { text-decoration: underline; }
+.auth-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); margin-bottom: 16px; cursor: pointer; user-select: none; }
+.auth-check input { width: 16px; height: 16px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -230,6 +232,7 @@ tbody tr:hover { background: var(--bayer-light); }
         <label for="authPassword">Contraseña</label>
         <input type="password" id="authPassword" autocomplete="current-password" required>
       </div>
+      <label class="auth-check"><input type="checkbox" id="keepSession"> Mantener sesión iniciada</label>
       <button type="submit" class="auth-btn" id="authBtn">Ingresar</button>
       <button type="button" class="auth-link" onclick="doForgotPassword()">¿Olvidaste tu contraseña?</button>
     </form>
@@ -571,6 +574,38 @@ const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const sb = window.supabase.createClient(SB_URL, SB_ANON);
 let authToken = null;
 
+// ─── CIERRE POR INACTIVIDAD ───────────────────────────────────────────────────
+// Si NO se tilda "Mantener sesión iniciada", la sesión se cierra sola tras
+// este tiempo sin actividad (mover el mouse, teclear, hacer clic, etc.).
+const INACTIVITY_MINUTES = 60;
+const KEEP_SESSION_EVENTS = ['mousemove','keydown','click','scroll','touchstart'];
+let inactivityTimer = null;
+let inactivityReset = null;
+function keepSessionOn() { return localStorage.getItem('keepSession') === '1'; }
+function stopInactivityWatch() {
+  clearTimeout(inactivityTimer);
+  if (inactivityReset) {
+    KEEP_SESSION_EVENTS.forEach(ev => document.removeEventListener(ev, inactivityReset));
+    inactivityReset = null;
+  }
+}
+function startInactivityWatch() {
+  stopInactivityWatch();
+  if (keepSessionOn()) return; // eligió mantener sesión → no se cierra por tiempo
+  inactivityReset = () => {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(autoLogout, INACTIVITY_MINUTES * 60 * 1000);
+  };
+  KEEP_SESSION_EVENTS.forEach(ev => document.addEventListener(ev, inactivityReset, { passive: true }));
+  inactivityReset();
+}
+async function autoLogout() {
+  stopInactivityWatch();
+  try { await sb.auth.signOut(); } catch {}
+  alert('Tu sesión se cerró por seguridad tras ' + INACTIVITY_MINUTES + ' minutos de inactividad. Volvé a iniciar sesión.');
+  location.reload();
+}
+
 // Agrega el token del usuario a las llamadas a la API.
 function authHeaders(extra) {
   return Object.assign({ Authorization: `Bearer ${authToken}` }, extra || {});
@@ -610,6 +645,7 @@ async function initApp() {
     setUserEmail(data.session.user.email);
     showApp();
     loadFromAPI();
+    startInactivityWatch();
   } else {
     showLogin();
   }
@@ -629,13 +665,19 @@ async function doLogin(e) {
     errBox.classList.add('show');
     return;
   }
+  // Guardar la preferencia del casillero "Mantener sesión iniciada".
+  const keep = document.getElementById('keepSession');
+  localStorage.setItem('keepSession', (keep && keep.checked) ? '1' : '0');
   authToken = data.session.access_token;
   setUserEmail(data.user.email);
   document.getElementById('authPassword').value = '';
   showApp();
   loadFromAPI();
+  startInactivityWatch();
 }
 async function doLogout() {
+  localStorage.removeItem('keepSession');
+  stopInactivityWatch();
   await sb.auth.signOut();
   location.reload();
 }
@@ -695,6 +737,7 @@ async function doSetNewPassword(e) {
   document.getElementById('recoveryOverlay').classList.add('hidden');
   showApp();
   loadFromAPI();
+  startInactivityWatch();
 }
 
 // ─── API: CARGA DESDE SUPABASE ────────────────────────────────────────────────
