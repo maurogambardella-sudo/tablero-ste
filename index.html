@@ -284,11 +284,12 @@ tbody tr:hover { background: var(--bayer-light); }
     </nav>
     <div class="footer">
       <button onclick="exportData()">⬇ Exportar JSON</button>
-      <button class="secondary" onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
-      <button class="secondary" onclick="resetDemo()">↻ Reset demo</button>
+      <button class="secondary" id="btnImport" onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
+      <button class="secondary" id="btnReset" onclick="resetDemo()">↻ Reset demo</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
       <button class="secondary" onclick="doLogout()">⎋ Cerrar sesión</button>
       <p style="margin-top:8px;word-break:break-all" id="userEmailLabel"></p>
+      <p style="margin-top:2px;font-weight:700;color:var(--bayer-green)" id="roleBadge"></p>
       <p style="margin-top:4px" id="syncStatus">● Conectado</p>
     </div>
   </aside>
@@ -298,7 +299,7 @@ tbody tr:hover { background: var(--bayer-light); }
     <section class="page active" id="page-dashboard">
       <div class="page-header">
         <div><h2>Dashboard</h2><p class="meta">Resumen ejecutivo · Ciclo <span id="cycleLabel"></span> · Actualizado <span id="todayDate"></span></p></div>
-        <button class="btn btn-secondary" onclick="openConfigModal()">⚙ Configurar ciclo</button>
+        <button class="btn btn-secondary" id="btnConfigCycle" onclick="openConfigModal()">⚙ Configurar ciclo</button>
       </div>
       <div class="kpi-grid">
         <div class="kpi blue"><div class="label">Outputs totales</div><div class="value" id="kpiOutputs">0</div><div class="sub">Salidas activas</div></div>
@@ -329,7 +330,7 @@ tbody tr:hover { background: var(--bayer-light); }
     <section class="page" id="page-outcomes">
       <div class="page-header">
         <div><h2>Outcomes PS 2030</h2><p class="meta">Resultados a largo plazo · Norte estratégico de SCM Conosur</p></div>
-        <button class="btn" onclick="openOutcomeModal()">+ Nuevo Outcome</button>
+        <button class="btn" id="btnNewOutcome" onclick="openOutcomeModal()">+ Nuevo Outcome</button>
       </div>
       <div id="outcomesContainer"></div>
     </section>
@@ -338,17 +339,18 @@ tbody tr:hover { background: var(--bayer-light); }
     <section class="page" id="page-outputs">
       <div class="page-header">
         <div><h2>Outputs (Salidas)</h2><p class="meta">Productos del equipo a corto plazo.</p></div>
-        <button class="btn" onclick="openOutputModal()">+ Nuevo Output</button>
+        <button class="btn" id="btnNewOutput" onclick="openOutputModal()">+ Nuevo Output</button>
       </div>
       <div class="filters">
         <input type="text" id="outputSearch" placeholder="🔍 Buscar..." oninput="renderOutputs()">
         <select id="outputFilterOutcome" onchange="renderOutputs()"><option value="">Todos los outcomes</option></select>
+        <select id="outputFilterTeam" onchange="renderOutputs()"><option value="">Todos los equipos</option></select>
         <select id="outputFilterStatus" onchange="renderOutputs()"><option value="">Todos los estados</option><option>No iniciado</option><option>En progreso</option><option>En riesgo</option><option>Completado</option><option>Bloqueado</option></select>
         <select id="outputFilterCiclo" onchange="renderOutputs()"><option value="">Todos los ciclos</option><option>Q1 2026</option><option>Q2 2026</option><option>Q3 2026</option><option>Q4 2026</option></select>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Outcome</th><th>Output</th><th>KPI / Meta</th><th>Avance</th><th>Estado</th><th>Owner</th><th>Participantes</th><th>Dependencia</th><th>Ciclo</th><th>Fecha obj.</th><th>Notas</th><th></th></tr></thead>
+          <thead><tr><th>ID</th><th>Outcome</th><th>Equipo</th><th>Output</th><th>KPI / Meta</th><th>Avance</th><th>Estado</th><th>Owner</th><th>Participantes</th><th>Dependencia</th><th>Ciclo</th><th>Fecha obj.</th><th>Notas</th><th></th></tr></thead>
           <tbody id="outputsTbody"></tbody>
         </table>
       </div>
@@ -360,16 +362,17 @@ tbody tr:hover { background: var(--bayer-light); }
         <div><h2>Tasks (Tareas)</h2><p class="meta">Acciones que producen los outputs. Vista tabla o Kanban.</p></div>
         <div style="display:flex;gap:10px;align-items:center;">
           <div class="view-toggle"><button id="taskViewTable" class="active" onclick="setTaskView('table')">Tabla</button><button id="taskViewKanban" onclick="setTaskView('kanban')">Kanban</button></div>
-          <button class="btn" onclick="openTaskModal()">+ Nueva Task</button>
+          <button class="btn" id="btnNewTask" onclick="openTaskModal()">+ Nueva Task</button>
         </div>
       </div>
       <div class="filters">
         <input type="text" id="taskSearch" placeholder="🔍 Buscar..." oninput="renderTasks()">
         <select id="taskFilterOutput" onchange="renderTasks()"><option value="">Todos los outputs</option></select>
+        <select id="taskFilterTeam" onchange="renderTasks()"><option value="">Todos los equipos</option></select>
         <select id="taskFilterOwner" onchange="renderTasks()"><option value="">Todos los responsables</option></select>
         <select id="taskFilterPriority" onchange="renderTasks()"><option value="">Todas las prioridades</option><option>Alta</option><option>Media</option><option>Baja</option></select>
       </div>
-      <div id="tasksTableView"><div class="table-wrap"><table><thead><tr><th>ID</th><th>Output</th><th>Tarea</th><th>Responsable</th><th>Prioridad</th><th>Estado</th><th>Avance</th><th>Fecha fin</th><th></th></tr></thead><tbody id="tasksTbody"></tbody></table></div></div>
+      <div id="tasksTableView"><div class="table-wrap"><table><thead><tr><th>ID</th><th>Output</th><th>Equipo</th><th>Tarea</th><th>Responsable</th><th>Prioridad</th><th>Estado</th><th>Avance</th><th>Fecha fin</th><th></th></tr></thead><tbody id="tasksTbody"></tbody></table></div></div>
       <div id="tasksKanbanView" style="display:none"><div class="kanban" id="kanbanBoard"></div></div>
     </section>
 
@@ -377,7 +380,7 @@ tbody tr:hover { background: var(--bayer-light); }
     <section class="page" id="page-team">
       <div class="page-header">
         <div><h2>Equipo</h2><p class="meta">Miembros del equipo y carga de trabajo.</p></div>
-        <button class="btn" onclick="openMemberModal()">+ Agregar miembro</button>
+        <button class="btn" id="btnNewMember" onclick="openMemberModal()">+ Agregar miembro</button>
       </div>
       <div class="card"><div class="table-wrap"><table><thead><tr><th>Miembro</th><th>Rol</th><th>Email</th><th>Outputs (owner)</th><th>Tasks abiertas</th><th>Tasks completadas</th><th></th></tr></thead><tbody id="teamTbody"></tbody></table></div></div>
     </section>
@@ -405,6 +408,7 @@ tbody tr:hover { background: var(--bayer-light); }
       <div class="form-grid">
         <div class="form-group full"><label>Output (título)</label><input type="text" id="outputTitle"></div>
         <div class="form-group"><label>Outcome</label><select id="outputOutcome"></select></div>
+        <div class="form-group"><label>Equipo</label><select id="outputTeam"></select></div>
         <div class="form-group"><label>Ciclo</label><select id="outputCiclo"><option>Q1 2026</option><option>Q2 2026</option><option>Q3 2026</option><option>Q4 2026</option></select></div>
         <div class="form-group full"><label>Descripción / KPI</label><textarea id="outputDesc"></textarea></div>
         <div class="form-group"><label>Meta</label><input type="number" step="any" id="outputMeta"></div>
@@ -438,7 +442,7 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="outputDeleteBtn" onclick="deleteOutput()" style="margin-right:auto;display:none">Eliminar</button>
-      <button class="btn btn-secondary" onclick="closeModal('outputModal')">Cancelar</button>
+      <button class="btn btn-secondary" data-keep="1" onclick="closeModal('outputModal')">Cancelar</button>
       <button class="btn" onclick="saveOutput()">Guardar</button>
     </div>
   </div>
@@ -452,6 +456,7 @@ tbody tr:hover { background: var(--bayer-light); }
       <div class="form-grid">
         <div class="form-group full"><label>Tarea (título)</label><input type="text" id="taskTitle"></div>
         <div class="form-group"><label>Output</label><select id="taskOutput"></select></div>
+        <div class="form-group"><label>Equipo</label><select id="taskTeam"></select></div>
         <div class="form-group"><label>Responsable</label><select id="taskOwner"></select></div>
         <div class="form-group"><label>Prioridad</label><select id="taskPriority"><option>Alta</option><option>Media</option><option>Baja</option></select></div>
         <div class="form-group"><label>Estado</label><select id="taskStatus"><option>Pendiente</option><option>En progreso</option><option>Completada</option><option>Bloqueada</option></select></div>
@@ -464,7 +469,7 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="taskDeleteBtn" onclick="deleteTask()" style="margin-right:auto;display:none">Eliminar</button>
-      <button class="btn btn-secondary" onclick="closeModal('taskModal')">Cancelar</button>
+      <button class="btn btn-secondary" data-keep="1" onclick="closeModal('taskModal')">Cancelar</button>
       <button class="btn" onclick="saveTask()">Guardar</button>
     </div>
   </div>
@@ -483,7 +488,7 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="memberDeleteBtn" onclick="deleteMember()" style="margin-right:auto;display:none">Eliminar</button>
-      <button class="btn btn-secondary" onclick="closeModal('memberModal')">Cancelar</button>
+      <button class="btn btn-secondary" data-keep="1" onclick="closeModal('memberModal')">Cancelar</button>
       <button class="btn" onclick="saveMember()">Guardar</button>
     </div>
   </div>
@@ -503,7 +508,7 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="outcomeDeleteBtn" onclick="deleteOutcome()" style="margin-right:auto;display:none">Eliminar</button>
-      <button class="btn btn-secondary" onclick="closeModal('outcomeModal')">Cancelar</button>
+      <button class="btn btn-secondary" data-keep="1" onclick="closeModal('outcomeModal')">Cancelar</button>
       <button class="btn" onclick="saveOutcome()">Guardar</button>
     </div>
   </div>
@@ -567,6 +572,19 @@ const SEED = {
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = JSON.parse(JSON.stringify(SEED));
 let isSaving = false;
+
+// ─── EQUIPOS Y ROL DEL USUARIO ────────────────────────────────────────────────
+const TEAMS = ['Demand Planning CP','Demand Planning Maíz','Impo & Expo','Customer Service','Strategy & Transformation'];
+// Rol del usuario logueado. Por defecto "consulta" (solo ver) hasta que el
+// servidor confirme quién es. El backend SIEMPRE vuelve a verificar el rol.
+let currentUser = { email:'', role:'consulta', team:'' };
+function isAdmin()  { return currentUser.role === 'admin'; }
+function isEditor() { return currentUser.role === 'editor'; }
+function isViewer() { return currentUser.role === 'consulta'; }
+function canCreate() { return isAdmin() || isEditor(); }
+function canEditStructure() { return isAdmin(); } // outcomes, equipo, config
+function canEditOutput(o) { if (isAdmin()) return true; if (isEditor()) return !!o && o.team === currentUser.team; return false; }
+function canEditTask(t)   { if (isAdmin()) return true; if (isEditor()) return !!t && t.team === currentUser.team; return false; }
 
 // ─── AUTH (Supabase) ──────────────────────────────────────────────────────────
 const SB_URL  = "https://gzwhodlleluvaziwsemq.supabase.co";
@@ -754,6 +772,9 @@ async function loadFromAPI() {
     }
     if (!res.ok) throw new Error('API error');
     const data = await res.json();
+    if (data.me) {
+      currentUser = { email: data.me.email || '', role: data.me.role || 'consulta', team: data.me.team || '' };
+    }
     if (data.outcomes && data.outcomes.length > 0) {
       state.outcomes = data.outcomes;
       state.outputs = (data.outputs || []).map(o => ({
@@ -970,6 +991,8 @@ function openOutcomeModal(id){
   document.getElementById('outcomeDeleteBtn').style.display=isEdit?'inline-block':'none';
   if(isEdit){const oc=state.outcomes.find(x=>x.id===id);document.getElementById('outcomeId').value=oc.id;document.getElementById('outcomeIdInput').value=oc.id;document.getElementById('outcomeIdInput').disabled=true;document.getElementById('outcomeTitle').value=oc.title||'';document.getElementById('outcomeDesc').value=oc.desc||'';document.getElementById('outcomeKpis').value=oc.kpis||'';}
   else{document.getElementById('outcomeId').value='';document.getElementById('outcomeIdInput').disabled=false;const nums=state.outcomes.map(x=>parseInt(String(x.id).replace(/\D/g,''),10)||0);document.getElementById('outcomeIdInput').value='OC'+((nums.length?Math.max(...nums):0)+1);['outcomeTitle','outcomeDesc','outcomeKpis'].forEach(i=>document.getElementById(i).value='');}
+  setModalEditable('outcomeModal', isAdmin());
+  document.getElementById('outcomeDeleteBtn').style.display=(isEdit&&isAdmin())?'inline-block':'none';
   document.getElementById('outcomeModal').classList.add('show');
 }
 async function saveOutcome(){
@@ -1020,8 +1043,9 @@ function renderOutputs(){
   const tbody=document.getElementById('outputsTbody');
   const search=document.getElementById('outputSearch').value.toLowerCase();
   const fOc=document.getElementById('outputFilterOutcome').value,fSt=document.getElementById('outputFilterStatus').value,fCi=document.getElementById('outputFilterCiclo').value;
-  const rows=state.outputs.filter(o=>{if(search&&!(o.title.toLowerCase().includes(search)||o.id.toLowerCase().includes(search)||(o.desc||'').toLowerCase().includes(search)))return false;if(fOc&&o.outcome!==fOc)return false;if(fSt&&calcStatus(o)!==fSt)return false;if(fCi&&o.ciclo!==fCi)return false;return true;});
-  if(!rows.length){tbody.innerHTML=`<tr><td colspan="13" class="empty">No hay outputs que coincidan.</td></tr>`;return;}
+  const fTeamEl=document.getElementById('outputFilterTeam');const fTeam=fTeamEl?fTeamEl.value:'';
+  const rows=state.outputs.filter(o=>{if(search&&!(o.title.toLowerCase().includes(search)||o.id.toLowerCase().includes(search)||(o.desc||'').toLowerCase().includes(search)))return false;if(fOc&&o.outcome!==fOc)return false;if(fTeam&&(o.team||'')!==fTeam)return false;if(fSt&&calcStatus(o)!==fSt)return false;if(fCi&&o.ciclo!==fCi)return false;return true;});
+  if(!rows.length){tbody.innerHTML=`<tr><td colspan="14" class="empty">No hay outputs que coincidan.</td></tr>`;return;}
   tbody.innerHTML=rows.map(o=>{
     const st=calcStatus(o),real=Math.round(calcKpiProgress(o)*100),exp=Math.round(calcExpected(o)*100),d=real-exp;
     const dc=d>5?'delta-pos':d<-5?'delta-neg':'delta-zero',ds=d>0?'+':'';
@@ -1029,24 +1053,37 @@ function renderOutputs(){
     const partHtml=part.length?part.map(p=>`<span class="pill" style="background:#E0E7FF;color:#3730A3;margin:1px 2px;display:inline-block;font-size:10px">${p}</span>`).join(''):'<em style="color:var(--text-muted)">—</em>';
     const ac=(o.attachments||[]).length,cc=(o.comments||[]).length;
     const ni=[];if(ac)ni.push(`📎 ${ac}`);if(cc)ni.push(`💬 ${cc}`);
-    return `<tr onclick="openOutputModal('${o.id}')"><td><strong>${o.id}</strong></td><td><span class="pill" style="background:#10384F;color:white">${o.outcome||'—'}</span></td><td><strong>${o.title}</strong><br><span style="font-size:11px;color:var(--text-muted)">${o.desc||''}</span></td><td>${o.actual??'—'} / ${o.meta??'—'} ${o.unit||''}</td><td><div class="inline-progress"><div class="bar"><div class="fill" style="width:${Math.min(real,100)}%"></div></div><span class="text">${real}%</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Esp: ${exp}% <span class="${dc}">(${ds}${d}%)</span></div></td><td><span class="pill ${pillClass(st)}">${st}</span></td><td>${o.owner||'<em style="color:var(--text-muted)">Sin asignar</em>'}</td><td style="max-width:160px">${partHtml}</td><td style="max-width:160px;font-size:11px">${o.dependency||'<em style="color:var(--text-muted)">—</em>'}</td><td>${o.ciclo||''}</td><td>${o.date||''}<br><span style="font-size:10px;color:var(--text-muted)">${o.startDate?'desde '+o.startDate:''}</span></td><td style="font-size:11px;white-space:nowrap">${ni.length?ni.join(' · '):'—'}</td><td><button class="btn-icon" onclick="event.stopPropagation();openOutputModal('${o.id}')">✎</button></td></tr>`;
+    const teamHtml=o.team?`<span class="pill" style="background:#E0E7FF;color:#3730A3;font-size:10px">${o.team}</span>`:'<em style="color:var(--text-muted)">—</em>';
+    const pencil=canEditOutput(o)?`<button class="btn-icon" onclick="event.stopPropagation();openOutputModal('${o.id}')">✎</button>`:'';
+    return `<tr onclick="openOutputModal('${o.id}')"><td><strong>${o.id}</strong></td><td><span class="pill" style="background:#10384F;color:white">${o.outcome||'—'}</span></td><td style="max-width:140px">${teamHtml}</td><td><strong>${o.title}</strong><br><span style="font-size:11px;color:var(--text-muted)">${o.desc||''}</span></td><td>${o.actual??'—'} / ${o.meta??'—'} ${o.unit||''}</td><td><div class="inline-progress"><div class="bar"><div class="fill" style="width:${Math.min(real,100)}%"></div></div><span class="text">${real}%</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Esp: ${exp}% <span class="${dc}">(${ds}${d}%)</span></div></td><td><span class="pill ${pillClass(st)}">${st}</span></td><td>${o.owner||'<em style="color:var(--text-muted)">Sin asignar</em>'}</td><td style="max-width:160px">${partHtml}</td><td style="max-width:160px;font-size:11px">${o.dependency||'<em style="color:var(--text-muted)">—</em>'}</td><td>${o.ciclo||''}</td><td>${o.date||''}<br><span style="font-size:10px;color:var(--text-muted)">${o.startDate?'desde '+o.startDate:''}</span></td><td style="font-size:11px;white-space:nowrap">${ni.length?ni.join(' · '):'—'}</td><td>${pencil}</td></tr>`;
   }).join('');
+}
+function teamOptionsHtml(){
+  return '<option value="">— Sin equipo —</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
 }
 function openOutputModal(id){
   const isEdit=!!id;
   document.getElementById('outputModalTitle').textContent=isEdit?'Editar Output':'Nuevo Output';
   document.getElementById('outputDeleteBtn').style.display=isEdit?'inline-block':'none';
   document.getElementById('outputOutcome').innerHTML=state.outcomes.map(oc=>`<option value="${oc.id}">${oc.id} — ${oc.title}</option>`).join('');
+  document.getElementById('outputTeam').innerHTML=teamOptionsHtml();
   document.getElementById('outputOwner').innerHTML='<option value="">Sin asignar</option>'+state.team.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
-  if(isEdit){const o=state.outputs.find(x=>x.id===id);document.getElementById('outputId').value=o.id;document.getElementById('outputTitle').value=o.title;document.getElementById('outputOutcome').value=o.outcome;document.getElementById('outputCiclo').value=o.ciclo||'Q2 2026';document.getElementById('outputDesc').value=o.desc||'';document.getElementById('outputMeta').value=o.meta??'';document.getElementById('outputActual').value=o.actual??'';document.getElementById('outputUnit').value=o.unit||'';document.getElementById('outputDirection').value=o.direction||'Mayor';document.getElementById('outputOwner').value=o.owner||'';document.getElementById('outputDependency').value=o.dependency||'';document.getElementById('outputStartDate').value=o.startDate||'';document.getElementById('outputDate').value=o.date||'';document.getElementById('outputNotes').value=o.notes||'';_draftPart=Array.isArray(o.participants)?o.participants.slice():[];_draftAttach=Array.isArray(o.attachments)?JSON.parse(JSON.stringify(o.attachments)):[];_draftComments=Array.isArray(o.comments)?JSON.parse(JSON.stringify(o.comments)):[];}
-  else{document.getElementById('outputId').value='';['outputTitle','outputDesc','outputMeta','outputActual','outputUnit','outputStartDate','outputDate','outputNotes','outputDependency'].forEach(i=>document.getElementById(i).value='');document.getElementById('outputDirection').value='Mayor';document.getElementById('outputCiclo').value='Q2 2026';document.getElementById('outputStartDate').value=state.config.cycleStart||'';_draftPart=[];_draftAttach=[];_draftComments=[];}
+  if(isEdit){const o=state.outputs.find(x=>x.id===id);document.getElementById('outputId').value=o.id;document.getElementById('outputTitle').value=o.title;document.getElementById('outputOutcome').value=o.outcome;document.getElementById('outputCiclo').value=o.ciclo||'Q2 2026';document.getElementById('outputDesc').value=o.desc||'';document.getElementById('outputMeta').value=o.meta??'';document.getElementById('outputActual').value=o.actual??'';document.getElementById('outputUnit').value=o.unit||'';document.getElementById('outputDirection').value=o.direction||'Mayor';document.getElementById('outputOwner').value=o.owner||'';document.getElementById('outputTeam').value=o.team||'';document.getElementById('outputDependency').value=o.dependency||'';document.getElementById('outputStartDate').value=o.startDate||'';document.getElementById('outputDate').value=o.date||'';document.getElementById('outputNotes').value=o.notes||'';_draftPart=Array.isArray(o.participants)?o.participants.slice():[];_draftAttach=Array.isArray(o.attachments)?JSON.parse(JSON.stringify(o.attachments)):[];_draftComments=Array.isArray(o.comments)?JSON.parse(JSON.stringify(o.comments)):[];}
+  else{document.getElementById('outputId').value='';['outputTitle','outputDesc','outputMeta','outputActual','outputUnit','outputStartDate','outputDate','outputNotes','outputDependency'].forEach(i=>document.getElementById(i).value='');document.getElementById('outputDirection').value='Mayor';document.getElementById('outputCiclo').value='Q2 2026';document.getElementById('outputStartDate').value=state.config.cycleStart||'';document.getElementById('outputTeam').value=isEditor()?currentUser.team:'';_draftPart=[];_draftAttach=[];_draftComments=[];}
   ['outputAttachName','outputAttachUrl','outputCommentText'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   renderParticipantsBox();renderAttachmentsList();renderCommentsList();
+  // Permisos: ¿puede editar este output?
+  const itemObj=isEdit?state.outputs.find(x=>x.id===id):null;
+  const editable=isEdit?canEditOutput(itemObj):canCreate();
+  setModalEditable('outputModal', editable);
+  // El editor no puede cambiar el equipo (siempre el suyo).
+  if(editable&&isEditor()){const tsel=document.getElementById('outputTeam');if(tsel)tsel.disabled=true;}
+  document.getElementById('outputDeleteBtn').style.display=(isEdit&&editable)?'inline-block':'none';
   document.getElementById('outputModal').classList.add('show');
 }
 async function saveOutput(){
   const id=document.getElementById('outputId').value;
-  const o={id:id||nextId('OUT',state.outputs),title:document.getElementById('outputTitle').value.trim(),outcome:document.getElementById('outputOutcome').value,ciclo:document.getElementById('outputCiclo').value,desc:document.getElementById('outputDesc').value,meta:parseFloat(document.getElementById('outputMeta').value)||0,actual:parseFloat(document.getElementById('outputActual').value)||0,unit:document.getElementById('outputUnit').value,direction:document.getElementById('outputDirection').value,owner:document.getElementById('outputOwner').value,dependency:document.getElementById('outputDependency').value.trim(),participants:_draftPart.slice(),attachments:JSON.parse(JSON.stringify(_draftAttach)),comments:JSON.parse(JSON.stringify(_draftComments)),startDate:document.getElementById('outputStartDate').value,date:document.getElementById('outputDate').value,notes:document.getElementById('outputNotes').value};
+  const o={id:id||nextId('OUT',state.outputs),title:document.getElementById('outputTitle').value.trim(),outcome:document.getElementById('outputOutcome').value,team:document.getElementById('outputTeam').value,ciclo:document.getElementById('outputCiclo').value,desc:document.getElementById('outputDesc').value,meta:parseFloat(document.getElementById('outputMeta').value)||0,actual:parseFloat(document.getElementById('outputActual').value)||0,unit:document.getElementById('outputUnit').value,direction:document.getElementById('outputDirection').value,owner:document.getElementById('outputOwner').value,dependency:document.getElementById('outputDependency').value.trim(),participants:_draftPart.slice(),attachments:JSON.parse(JSON.stringify(_draftAttach)),comments:JSON.parse(JSON.stringify(_draftComments)),startDate:document.getElementById('outputStartDate').value,date:document.getElementById('outputDate').value,notes:document.getElementById('outputNotes').value};
   if(!o.title){alert('Ingresá un título');return;}
   if(id){const idx=state.outputs.findIndex(x=>x.id===id);state.outputs[idx]=o;}else state.outputs.push(o);
   await saveState();closeModal('outputModal');renderAll();toast(id?'Output actualizado':'Output creado');
@@ -1065,11 +1102,12 @@ function setTaskView(v){taskView=v;document.getElementById('taskViewTable').clas
 function renderTasks(){
   const search=document.getElementById('taskSearch').value.toLowerCase();
   const fO=document.getElementById('taskFilterOutput').value,fOw=document.getElementById('taskFilterOwner').value,fP=document.getElementById('taskFilterPriority').value;
-  const rows=state.tasks.filter(t=>{if(search&&!(t.title.toLowerCase().includes(search)||t.id.toLowerCase().includes(search)||(t.desc||'').toLowerCase().includes(search)))return false;if(fO&&t.output!==fO)return false;if(fOw&&t.owner!==fOw)return false;if(fP&&t.priority!==fP)return false;return true;});
+  const fTeamEl=document.getElementById('taskFilterTeam');const fTeam=fTeamEl?fTeamEl.value:'';
+  const rows=state.tasks.filter(t=>{if(search&&!(t.title.toLowerCase().includes(search)||t.id.toLowerCase().includes(search)||(t.desc||'').toLowerCase().includes(search)))return false;if(fO&&t.output!==fO)return false;if(fTeam&&(t.team||'')!==fTeam)return false;if(fOw&&t.owner!==fOw)return false;if(fP&&t.priority!==fP)return false;return true;});
   if(taskView==='table'){
     const tbody=document.getElementById('tasksTbody');
-    if(!rows.length){tbody.innerHTML=`<tr><td colspan="9" class="empty">No hay tasks que coincidan.</td></tr>`;return;}
-    tbody.innerHTML=rows.map(t=>{const ov=isOverdue(t),pr=calcTaskProgress(t);return `<tr onclick="openTaskModal('${t.id}')"><td><strong>${t.id}</strong></td><td><span class="pill" style="background:#0091DF;color:white">${t.output}</span></td><td><strong>${t.title}</strong><br><span style="font-size:11px;color:var(--text-muted)">${t.desc||''}</span></td><td>${t.owner||'<em style="color:var(--text-muted)">Sin asignar</em>'}</td><td><span class="pill ${pillClass(t.priority)}">${t.priority}</span></td><td><span class="pill ${pillClass(t.status)}">${t.status}</span></td><td><div class="inline-progress"><div class="bar"><div class="fill" style="width:${pr}%"></div></div><span class="text">${pr}%</span></div></td><td ${ov?'style="color:var(--red-alert);font-weight:700"':''}>${t.end||''}${ov?' ⚠':''}</td><td><button class="btn-icon" onclick="event.stopPropagation();openTaskModal('${t.id}')">✎</button></td></tr>`;}).join('');
+    if(!rows.length){tbody.innerHTML=`<tr><td colspan="10" class="empty">No hay tasks que coincidan.</td></tr>`;return;}
+    tbody.innerHTML=rows.map(t=>{const ov=isOverdue(t),pr=calcTaskProgress(t);const teamHtml=t.team?`<span class="pill" style="background:#E0E7FF;color:#3730A3;font-size:10px">${t.team}</span>`:'<em style="color:var(--text-muted)">—</em>';const pencil=canEditTask(t)?`<button class="btn-icon" onclick="event.stopPropagation();openTaskModal('${t.id}')">✎</button>`:'';return `<tr onclick="openTaskModal('${t.id}')"><td><strong>${t.id}</strong></td><td><span class="pill" style="background:#0091DF;color:white">${t.output}</span></td><td style="max-width:140px">${teamHtml}</td><td><strong>${t.title}</strong><br><span style="font-size:11px;color:var(--text-muted)">${t.desc||''}</span></td><td>${t.owner||'<em style="color:var(--text-muted)">Sin asignar</em>'}</td><td><span class="pill ${pillClass(t.priority)}">${t.priority}</span></td><td><span class="pill ${pillClass(t.status)}">${t.status}</span></td><td><div class="inline-progress"><div class="bar"><div class="fill" style="width:${pr}%"></div></div><span class="text">${pr}%</span></div></td><td ${ov?'style="color:var(--red-alert);font-weight:700"':''}>${t.end||''}${ov?' ⚠':''}</td><td>${pencil}</td></tr>`;}).join('');
   } else {
     const board=document.getElementById('kanbanBoard');
     const cols=['Pendiente','En progreso','Completada','Bloqueada'];
@@ -1081,15 +1119,23 @@ function openTaskModal(id){
   document.getElementById('taskModalTitle').textContent=isEdit?'Editar Task':'Nueva Task';
   document.getElementById('taskDeleteBtn').style.display=isEdit?'inline-block':'none';
   document.getElementById('taskOutput').innerHTML='<option value="">— Seleccionar —</option>'+state.outputs.map(o=>`<option value="${o.id}">${o.id} — ${o.title}</option>`).join('');
+  document.getElementById('taskTeam').innerHTML=teamOptionsHtml();
   document.getElementById('taskOwner').innerHTML='<option value="">Sin asignar</option>'+state.team.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
-  if(isEdit){const t=state.tasks.find(x=>x.id===id);document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskOutput').value=t.output||'';document.getElementById('taskOwner').value=t.owner||'';document.getElementById('taskPriority').value=t.priority||'Media';document.getElementById('taskStatus').value=t.status||'Pendiente';document.getElementById('taskStart').value=t.start||'';document.getElementById('taskEnd').value=t.end||'';document.getElementById('taskProgress').value=calcTaskProgress(t);document.getElementById('taskDesc').value=t.desc||'';document.getElementById('taskNotes').value=t.notes||'';}
-  else{document.getElementById('taskId').value='';['taskTitle','taskDesc','taskNotes','taskStart','taskEnd'].forEach(i=>document.getElementById(i).value='');document.getElementById('taskPriority').value='Media';document.getElementById('taskStatus').value='Pendiente';document.getElementById('taskProgress').value=0;}
+  if(isEdit){const t=state.tasks.find(x=>x.id===id);document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskOutput').value=t.output||'';document.getElementById('taskTeam').value=t.team||'';document.getElementById('taskOwner').value=t.owner||'';document.getElementById('taskPriority').value=t.priority||'Media';document.getElementById('taskStatus').value=t.status||'Pendiente';document.getElementById('taskStart').value=t.start||'';document.getElementById('taskEnd').value=t.end||'';document.getElementById('taskProgress').value=calcTaskProgress(t);document.getElementById('taskDesc').value=t.desc||'';document.getElementById('taskNotes').value=t.notes||'';}
+  else{document.getElementById('taskId').value='';['taskTitle','taskDesc','taskNotes','taskStart','taskEnd'].forEach(i=>document.getElementById(i).value='');document.getElementById('taskPriority').value='Media';document.getElementById('taskStatus').value='Pendiente';document.getElementById('taskProgress').value=0;document.getElementById('taskTeam').value=isEditor()?currentUser.team:'';}
   ['taskStart','taskEnd','taskStatus'].forEach(fid=>{const el=document.getElementById(fid);el.oninput=el.onchange=()=>{document.getElementById('taskProgress').value=calcTaskProgress({status:document.getElementById('taskStatus').value,start:document.getElementById('taskStart').value,end:document.getElementById('taskEnd').value});};});
+  // Permisos: ¿puede editar esta task?
+  const itemObj=isEdit?state.tasks.find(x=>x.id===id):null;
+  const editable=isEdit?canEditTask(itemObj):canCreate();
+  setModalEditable('taskModal', editable);
+  document.getElementById('taskProgress').disabled=true; // siempre calculado
+  if(editable&&isEditor()){const tsel=document.getElementById('taskTeam');if(tsel)tsel.disabled=true;}
+  document.getElementById('taskDeleteBtn').style.display=(isEdit&&editable)?'inline-block':'none';
   document.getElementById('taskModal').classList.add('show');
 }
 async function saveTask(){
   const id=document.getElementById('taskId').value;
-  const t={id:id||nextId('T',state.tasks),title:document.getElementById('taskTitle').value.trim(),output:document.getElementById('taskOutput').value,owner:document.getElementById('taskOwner').value,priority:document.getElementById('taskPriority').value,status:document.getElementById('taskStatus').value,start:document.getElementById('taskStart').value,end:document.getElementById('taskEnd').value,desc:document.getElementById('taskDesc').value,notes:document.getElementById('taskNotes').value};
+  const t={id:id||nextId('T',state.tasks),title:document.getElementById('taskTitle').value.trim(),output:document.getElementById('taskOutput').value,team:document.getElementById('taskTeam').value,owner:document.getElementById('taskOwner').value,priority:document.getElementById('taskPriority').value,status:document.getElementById('taskStatus').value,start:document.getElementById('taskStart').value,end:document.getElementById('taskEnd').value,desc:document.getElementById('taskDesc').value,notes:document.getElementById('taskNotes').value};
   t.progress=calcTaskProgress(t);
   if(!t.title){alert('Ingresá un título');return;}
   if(id){const idx=state.tasks.findIndex(x=>x.id===id);state.tasks[idx]=t;}else state.tasks.push(t);
@@ -1113,6 +1159,8 @@ function openMemberModal(id){
   document.getElementById('memberDeleteBtn').style.display=isEdit?'inline-block':'none';
   if(isEdit){const m=state.team.find(x=>x.id===id);document.getElementById('memberId').value=m.id;document.getElementById('memberName').value=m.name;document.getElementById('memberRole').value=m.role||'';document.getElementById('memberEmail').value=m.email||'';}
   else{document.getElementById('memberId').value='';['memberName','memberRole','memberEmail'].forEach(i=>document.getElementById(i).value='');}
+  setModalEditable('memberModal', isAdmin());
+  document.getElementById('memberDeleteBtn').style.display=(isEdit&&isAdmin())?'inline-block':'none';
   document.getElementById('memberModal').classList.add('show');
 }
 async function saveMember(){
@@ -1138,6 +1186,9 @@ function initFilters(){
   document.getElementById('outputFilterOutcome').innerHTML='<option value="">Todos los outcomes</option>'+state.outcomes.map(oc=>`<option value="${oc.id}">${oc.id} — ${oc.title}</option>`).join('');
   document.getElementById('taskFilterOutput').innerHTML='<option value="">Todos los outputs</option>'+state.outputs.map(o=>`<option value="${o.id}">${o.id} — ${o.title}</option>`).join('');
   document.getElementById('taskFilterOwner').innerHTML='<option value="">Todos los responsables</option>'+state.team.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+  const teamOpts='<option value="">Todos los equipos</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
+  const oft=document.getElementById('outputFilterTeam');if(oft){const v=oft.value;oft.innerHTML=teamOpts;oft.value=v;}
+  const tft=document.getElementById('taskFilterTeam');if(tft){const v=tft.value;tft.innerHTML=teamOpts;tft.value=v;}
 }
 
 // ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
@@ -1158,7 +1209,46 @@ async function resetDemo(){
 }
 
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
-function renderAll(){initFilters();renderDashboard();renderOutcomes();renderOutputs();renderTasks();renderTeam();}
+function renderAll(){initFilters();renderDashboard();renderOutcomes();renderOutputs();renderTasks();renderTeam();applyRolePermissions();}
+
+// ─── PERMISOS SEGÚN ROL ───────────────────────────────────────────────────────
+// Acomoda la interfaz: oculta botones que el usuario no puede usar.
+// (La seguridad de verdad la hace el servidor; esto es para que no se confunda.)
+function applyRolePermissions(){
+  const showIf = (id, cond) => { const el = document.getElementById(id); if (el) el.style.display = cond ? '' : 'none'; };
+  // Botón "+ Nuevo Output" y "+ Nueva Task": admin y editor.
+  showIf('btnNewOutput', canCreate());
+  showIf('btnNewTask',   canCreate());
+  // Cosas de estructura: solo admin.
+  showIf('btnNewOutcome',  canEditStructure());
+  showIf('btnNewMember',   canEditStructure());
+  showIf('btnConfigCycle', canEditStructure());
+  // Botones destructivos del pie: solo admin.
+  showIf('btnImport', isAdmin());
+  showIf('btnReset',  isAdmin());
+  // Cartelito de rol en la barra lateral.
+  const badge = document.getElementById('roleBadge');
+  if (badge) {
+    const labels = { admin:'Administrador', editor:'Editor · '+(currentUser.team||'sin equipo'), consulta:'Solo consulta' };
+    badge.textContent = labels[currentUser.role] || 'Solo consulta';
+  }
+}
+// Deshabilita/activa todos los campos de un modal y oculta Guardar/Eliminar
+// cuando el usuario no puede editar ese item.
+function setModalEditable(modalId, editable){
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.querySelectorAll('input, select, textarea, button').forEach(el => {
+    if (el.classList.contains('btn-icon')) return; // la X de cerrar siempre activa
+    if (el.dataset.alwaysOn === '1') return;
+    if (el.tagName === 'BUTTON') {
+      const keep = el.dataset.keep === '1'; // botón Cancelar
+      if (!keep) el.style.display = editable ? '' : 'none';
+    } else {
+      el.disabled = !editable;
+    }
+  });
+}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 initApp();
