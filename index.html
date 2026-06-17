@@ -405,6 +405,7 @@ tbody tr:hover { background: var(--bayer-light); }
     <section class="page" id="page-admin">
       <div class="page-header">
         <div><h2>Administración de usuarios</h2><p class="meta">Crear usuarios, asignar rol y equipo · Solo Admin</p></div>
+        <button class="btn btn-secondary" onclick="document.getElementById('importUsersModal').classList.add('show')">⬆ Importar masivo</button>
         <button class="btn" onclick="openUserModal()">+ Agregar usuario</button>
       </div>
       <div class="card"><div class="table-wrap"><table><thead><tr><th>Email</th><th>Rol</th><th>Equipo</th><th></th></tr></thead><tbody id="usersTbody"><tr><td colspan="4" class="empty">Cargando…</td></tr></tbody></table></div></div>
@@ -564,8 +565,8 @@ tbody tr:hover { background: var(--bayer-light); }
       <div class="form-grid">
         <div class="form-group full"><label>Email</label><input type="email" id="userEmail" placeholder="persona@bayer.com"></div>
         <div class="form-group full" id="userPasswordRow"><label id="userPasswordLabel">Contraseña inicial</label><input type="text" id="userPassword" placeholder="Mínimo 6 caracteres"></div>
-        <div class="form-group"><label>Rol</label><select id="userRole" onchange="onUserRoleChange()"><option value="consulta">Consulta (solo ver)</option><option value="editor">Editor (su equipo)</option><option value="admin">Admin (todo)</option></select></div>
-        <div class="form-group" id="userTeamRow"><label>Equipo</label><select id="userTeam"></select></div>
+        <div class="form-group full"><label>Rol</label><select id="userRole" onchange="onUserRoleChange()"><option value="consulta">Consulta (solo ver)</option><option value="editor">Editor (su equipo)</option><option value="admin">Admin (todo)</option></select></div>
+        <div class="form-group full" id="userTeamRow" style="display:none"><label>Equipo <span style="color:var(--red-alert)">*</span></label><select id="userTeam"></select></div>
       </div>
       <p style="font-size:12px;color:var(--text-muted);margin-top:10px" id="userHint"></p>
     </div>
@@ -573,6 +574,31 @@ tbody tr:hover { background: var(--bayer-light); }
       <button class="btn btn-danger btn-sm" id="userDeleteBtn" onclick="deleteUser()" style="margin-right:auto;display:none">Eliminar</button>
       <button class="btn btn-secondary" onclick="closeModal('userModal')">Cancelar</button>
       <button class="btn" id="userSaveBtn" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal importación masiva -->
+<div class="modal-overlay" id="importUsersModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><h3>Importar usuarios (masivo)</h3><button class="btn-icon" onclick="closeModal('importUsersModal')">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Pegá una lista de usuarios, uno por línea, con este formato:<br><strong>email , rol , equipo</strong><br><br>
+      <span style="font-size:12px">Roles válidos: <code>admin</code> · <code>editor</code> · <code>consulta</code><br>Equipo: solo obligatorio si el rol es <code>editor</code></span></p>
+      <p style="font-size:12px;margin-bottom:6px;color:var(--text-muted)">Ejemplo:</p>
+      <pre style="font-size:12px;background:#F3F4F6;padding:10px;border-radius:6px;margin-bottom:14px">ana.garcia@bayer.com , editor , Customer Service
+pedro.lopez@bayer.com , consulta ,
+laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
+      <div class="form-group full" style="margin-bottom:10px">
+        <label>Contraseña inicial para todos</label>
+        <input type="text" id="importPassword" placeholder="Mínimo 6 caracteres — todos usarán esta clave">
+      </div>
+      <textarea id="importUsersList" placeholder="Pegá la lista acá…" style="width:100%;min-height:140px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:monospace;resize:vertical"></textarea>
+      <div id="importUsersResult" style="margin-top:12px;font-size:13px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('importUsersModal')">Cerrar</button>
+      <button class="btn" id="importUsersBtn" onclick="importUsers()">Importar</button>
     </div>
   </div>
 </div>
@@ -1298,7 +1324,7 @@ function renderUsers(){
 }
 function onUserRoleChange(){
   const role=document.getElementById('userRole').value;
-  document.getElementById('userTeamRow').style.display=role==='editor'?'':'none';
+  document.getElementById('userTeamRow').style.display=role==='editor'?'flex':'none';
 }
 function openUserModal(email){
   const isEdit=!!email;
@@ -1361,6 +1387,46 @@ async function adminAction(payload){
   const data=await res.json().catch(()=>({}));
   if(!res.ok)throw new Error(data.error||('error '+res.status));
   return data;
+}
+async function importUsers(){
+  const password=document.getElementById('importPassword').value.trim();
+  const raw=document.getElementById('importUsersList').value;
+  const resultBox=document.getElementById('importUsersResult');
+  const btn=document.getElementById('importUsersBtn');
+  resultBox.innerHTML='';
+  if(password.length<6){alert('La contraseña inicial debe tener al menos 6 caracteres');return;}
+  // Parsear líneas: email , rol , equipo
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
+  if(!lines.length){alert('No hay usuarios para importar');return;}
+  btn.disabled=true;btn.textContent='Importando…';
+  const results=[];
+  for(const line of lines){
+    const parts=line.split(',').map(p=>p.trim());
+    const email=(parts[0]||'').toLowerCase();
+    const role=(parts[1]||'consulta').toLowerCase();
+    const team=parts[2]||'';
+    if(!email){results.push({email:'(vacío)',ok:false,msg:'Email vacío'});continue;}
+    if(!['admin','editor','consulta'].includes(role)){results.push({email,ok:false,msg:'Rol inválido: '+role});continue;}
+    if(role==='editor'&&!team){results.push({email,ok:false,msg:'Editor sin equipo asignado'});continue;}
+    try{
+      await adminAction({action:'create',email,password,role,team});
+      results.push({email,ok:true,msg:'Creado'});
+    }catch(e){
+      // Si ya existe, intentamos solo actualizar el perfil
+      try{
+        await adminAction({action:'update',email,role,team});
+        results.push({email,ok:true,msg:'Ya existía — perfil actualizado'});
+      }catch(e2){
+        results.push({email,ok:false,msg:e.message});
+      }
+    }
+  }
+  btn.disabled=false;btn.textContent='Importar';
+  const ok=results.filter(r=>r.ok).length;
+  const fail=results.filter(r=>!r.ok).length;
+  resultBox.innerHTML=`<p style="font-weight:700;margin-bottom:8px;color:${fail?'var(--red-alert)':'var(--green-ok)'}">✔ ${ok} importados${fail?' · ✖ '+fail+' con error':''}</p>`
+    +results.map(r=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center"><span style="color:${r.ok?'var(--green-ok)':'var(--red-alert)'}">${r.ok?'✔':'✖'}</span><strong>${r.email}</strong><span style="color:var(--text-muted)">${r.msg}</span></div>`).join('');
+  if(ok>0) await loadUsers();
 }
 
 // ─── MODALS ───────────────────────────────────────────────────────────────────
