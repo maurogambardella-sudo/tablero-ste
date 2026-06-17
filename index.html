@@ -297,6 +297,7 @@ tbody tr:hover { background: var(--bayer-light); }
         <div class="nav-sub" id="navSubTasks"></div>
       </div>
       <a class="nav-link" data-page="team"><span class="icon">👥</span> Equipo</a>
+      <a class="nav-link" id="navAdmin" data-page="admin" style="display:none"><span class="icon">🔐</span> Administración</a>
       <a class="nav-link" data-page="guide"><span class="icon">📖</span> Guía</a>
     </nav>
     <div class="footer">
@@ -398,6 +399,15 @@ tbody tr:hover { background: var(--bayer-light); }
         <button class="btn" id="btnNewMember" onclick="openMemberModal()">+ Agregar miembro</button>
       </div>
       <div class="card"><div class="table-wrap"><table><thead><tr><th>Miembro</th><th>Rol</th><th>Email</th><th>Outputs (owner)</th><th>Tasks abiertas</th><th>Tasks completadas</th><th></th></tr></thead><tbody id="teamTbody"></tbody></table></div></div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="page" id="page-admin">
+      <div class="page-header">
+        <div><h2>Administración de usuarios</h2><p class="meta">Crear usuarios, asignar rol y equipo · Solo Admin</p></div>
+        <button class="btn" onclick="openUserModal()">+ Agregar usuario</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table><thead><tr><th>Email</th><th>Rol</th><th>Equipo</th><th></th></tr></thead><tbody id="usersTbody"><tr><td colspan="4" class="empty">Cargando…</td></tr></tbody></table></div></div>
     </section>
 
     <!-- GUIDE -->
@@ -542,6 +552,27 @@ tbody tr:hover { background: var(--bayer-light); }
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('configModal')">Cancelar</button>
       <button class="btn" onclick="saveConfig()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="userModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3 id="userModalTitle">Nuevo usuario</h3><button class="btn-icon" onclick="closeModal('userModal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="userEditEmail">
+      <div class="form-grid">
+        <div class="form-group full"><label>Email</label><input type="email" id="userEmail" placeholder="persona@bayer.com"></div>
+        <div class="form-group full" id="userPasswordRow"><label id="userPasswordLabel">Contraseña inicial</label><input type="text" id="userPassword" placeholder="Mínimo 6 caracteres"></div>
+        <div class="form-group"><label>Rol</label><select id="userRole" onchange="onUserRoleChange()"><option value="consulta">Consulta (solo ver)</option><option value="editor">Editor (su equipo)</option><option value="admin">Admin (todo)</option></select></div>
+        <div class="form-group" id="userTeamRow"><label>Equipo</label><select id="userTeam"></select></div>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:10px" id="userHint"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="userDeleteBtn" onclick="deleteUser()" style="margin-right:auto;display:none">Eliminar</button>
+      <button class="btn btn-secondary" onclick="closeModal('userModal')">Cancelar</button>
+      <button class="btn" id="userSaveBtn" onclick="saveUser()">Guardar</button>
     </div>
   </div>
 </div>
@@ -933,6 +964,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     link.classList.add('active');
     document.getElementById('page-'+page).classList.add('active');
+    if(page==='admin') loadUsers();
   });
 });
 // Construye los submenús por equipo dentro de Outputs y Tasks.
@@ -1238,6 +1270,99 @@ async function deleteMember(){
   await saveState();closeModal('memberModal');renderAll();toast('Miembro eliminado');
 }
 
+// ─── ADMINISTRACIÓN DE USUARIOS ───────────────────────────────────────────────
+let adminUsers=[];
+const ROLE_LABELS={admin:'Admin',editor:'Editor',consulta:'Consulta'};
+async function loadUsers(){
+  if(!isAdmin())return;
+  const tb=document.getElementById('usersTbody');
+  tb.innerHTML='<tr><td colspan="4" class="empty">Cargando…</td></tr>';
+  try{
+    const res=await fetch('/api/admin-users',{headers:authHeaders()});
+    if(!res.ok)throw new Error('error');
+    const data=await res.json();
+    adminUsers=data.users||[];
+    renderUsers();
+  }catch(e){
+    tb.innerHTML='<tr><td colspan="4" class="empty">No se pudieron cargar los usuarios.</td></tr>';
+  }
+}
+function renderUsers(){
+  const tb=document.getElementById('usersTbody');
+  if(!adminUsers.length){tb.innerHTML='<tr><td colspan="4" class="empty">No hay usuarios cargados.</td></tr>';return;}
+  tb.innerHTML=adminUsers.map(u=>{
+    const roleColor=u.role==='admin'?'#10384F':u.role==='editor'?'#0091DF':'#9CA3AF';
+    const team=u.team?`<span class="pill" style="background:#E0E7FF;color:#3730A3;font-size:10px">${u.team}</span>`:'<em style="color:var(--text-muted)">—</em>';
+    return `<tr onclick="openUserModal('${(u.email||'').replace(/'/g,"\\'")}')"><td><strong>${u.email}</strong></td><td><span class="pill" style="background:${roleColor};color:white">${ROLE_LABELS[u.role]||u.role}</span></td><td>${team}</td><td><button class="btn-icon" onclick="event.stopPropagation();openUserModal('${(u.email||'').replace(/'/g,"\\'")}')">✎</button></td></tr>`;
+  }).join('');
+}
+function onUserRoleChange(){
+  const role=document.getElementById('userRole').value;
+  document.getElementById('userTeamRow').style.display=role==='editor'?'':'none';
+}
+function openUserModal(email){
+  const isEdit=!!email;
+  document.getElementById('userModalTitle').textContent=isEdit?'Editar usuario':'Nuevo usuario';
+  document.getElementById('userTeam').innerHTML='<option value="">— Elegí equipo —</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('userDeleteBtn').style.display=isEdit?'inline-block':'none';
+  const emailInput=document.getElementById('userEmail');
+  if(isEdit){
+    const u=adminUsers.find(x=>(x.email||'').toLowerCase()===email.toLowerCase())||{};
+    document.getElementById('userEditEmail').value=u.email||email;
+    emailInput.value=u.email||email; emailInput.disabled=true;
+    document.getElementById('userRole').value=u.role||'consulta';
+    document.getElementById('userTeam').value=u.team||'';
+    document.getElementById('userPassword').value='';
+    document.getElementById('userPasswordLabel').textContent='Nueva contraseña (opcional)';
+    document.getElementById('userHint').textContent='Dejá la contraseña vacía si no querés cambiarla. Cambiá el rol o el equipo y guardá.';
+  }else{
+    document.getElementById('userEditEmail').value='';
+    emailInput.value=''; emailInput.disabled=false;
+    document.getElementById('userRole').value='consulta';
+    document.getElementById('userTeam').value='';
+    document.getElementById('userPassword').value='';
+    document.getElementById('userPasswordLabel').textContent='Contraseña inicial';
+    document.getElementById('userHint').textContent='Le ponés una contraseña inicial; después la persona puede cambiarla con "¿Olvidaste tu contraseña?".';
+  }
+  onUserRoleChange();
+  document.getElementById('userModal').classList.add('show');
+}
+async function saveUser(){
+  const isEdit=!!document.getElementById('userEditEmail').value;
+  const email=document.getElementById('userEmail').value.trim();
+  const role=document.getElementById('userRole').value;
+  const team=role==='editor'?document.getElementById('userTeam').value:'';
+  const password=document.getElementById('userPassword').value;
+  if(!email){alert('Ingresá el email');return;}
+  if(role==='editor'&&!team){alert('Elegí el equipo del editor');return;}
+  if(!isEdit&&password.length<6){alert('La contraseña inicial debe tener al menos 6 caracteres');return;}
+  const btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Guardando…';
+  try{
+    if(!isEdit){
+      await adminAction({action:'create',email,password,role,team});
+    }else{
+      await adminAction({action:'update',email,role,team});
+      if(password)await adminAction({action:'password',email,password});
+    }
+    closeModal('userModal');await loadUsers();toast(isEdit?'Usuario actualizado':'Usuario creado');
+  }catch(e){alert('No se pudo guardar: '+e.message);}
+  btn.disabled=false;btn.textContent='Guardar';
+}
+async function deleteUser(){
+  const email=document.getElementById('userEditEmail').value;if(!email)return;
+  if(!confirm('¿Eliminar el usuario '+email+'? Perderá el acceso por completo.'))return;
+  try{
+    await adminAction({action:'delete',email});
+    closeModal('userModal');await loadUsers();toast('Usuario eliminado');
+  }catch(e){alert('No se pudo eliminar: '+e.message);}
+}
+async function adminAction(payload){
+  const res=await fetch('/api/admin-users',{method:'POST',headers:authHeaders({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||('error '+res.status));
+  return data;
+}
+
 // ─── MODALS ───────────────────────────────────────────────────────────────────
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
@@ -1284,6 +1409,8 @@ function applyRolePermissions(){
   // Botones destructivos del pie: solo admin.
   showIf('btnImport', isAdmin());
   showIf('btnReset',  isAdmin());
+  // Menú de Administración: solo admin.
+  showIf('navAdmin', isAdmin());
   // Cartelito de rol en la barra lateral.
   const badge = document.getElementById('roleBadge');
   if (badge) {
