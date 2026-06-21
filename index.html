@@ -296,6 +296,19 @@ tbody tr:hover { background: var(--bayer-light); }
         <a class="nav-parent" data-group="tasks"><span class="icon">✅</span> Tasks <span class="nav-caret">▸</span></a>
         <div class="nav-sub" id="navSubTasks"></div>
       </div>
+      <div class="nav-group">
+  <a class="nav-parent" data-group="forms">
+    <span class="icon">📝</span>
+    Formularios
+    <span class="nav-caret">▶</span>
+  </a>
+  <div class="nav-sub" id="navSubForms">
+    <a data-page="forms-initiatives">Nuevas iniciativas / proyectos</a>
+    <a data-page="forms-communication">Comunicación</a>
+    <a data-page="forms-evaluation">Evaluación</a>
+    <a data-page="forms-dashboard">Panel ejecutivo</a>
+  </div>
+</div>
       <a class="nav-link" data-page="team"><span class="icon">👥</span> Equipo</a>
       <a class="nav-link" id="navAdmin" data-page="admin" style="display:none"><span class="icon">🔐</span> Administración</a>
       <a class="nav-link" data-page="guide"><span class="icon">📖</span> Guía</a>
@@ -391,7 +404,173 @@ tbody tr:hover { background: var(--bayer-light); }
       <div id="tasksTableView"><div class="table-wrap"><table><thead><tr><th>ID</th><th>Output</th><th>Equipo</th><th>Tarea</th><th>Responsable</th><th>Prioridad</th><th>Estado</th><th>Avance</th><th>Fecha fin</th><th></th></tr></thead><tbody id="tasksTbody"></tbody></table></div></div>
       <div id="tasksKanbanView" style="display:none"><div class="kanban" id="kanbanBoard"></div></div>
     </section>
+<!-- FORMULARIOS: INICIATIVAS -->
+<section class="page" id="page-forms-initiatives">
+  <div class="page-header">
+    <div>
+      <h2>Nuevas iniciativas / proyectos</h2>
+      <p class="meta">Canal para capturar ideas, mejoras, automatizaciones y proyectos del equipo.</p>
+    </div>
+    <button class="btn" onclick="openRequestModal('initiative')">Nueva iniciativa</button>
+  </div>
 
+  <div class="filters">
+    <input type="text" id="initiativeSearch" placeholder="Buscar..." oninput="renderInitiativesPage()">
+    <select id="initiativeStatusFilter" onchange="renderInitiativesPage()">
+      <option value="">Todos los estados</option>
+      <option>Recibido</option>
+      <option>En evaluación</option>
+      <option>Requiere más info</option>
+      <option>Priorizado</option>
+      <option>Aprobado</option>
+      <option>Descartado</option>
+    </select>
+    <select id="initiativePriorityFilter" onchange="renderInitiativesPage()">
+      <option value="">Todas las prioridades</option>
+      <option>Alta</option>
+      <option>Media</option>
+      <option>Baja</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Categoría</th>
+          <th>Solicitante</th>
+          <th>Estado</th>
+          <th>Prioridad</th>
+          <th>Fecha objetivo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="initiativesTbody">
+        <tr><td colspan="8" class="empty">Todavía no hay iniciativas cargadas.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FORMULARIOS: COMUNICACION -->
+<section class="page" id="page-forms-communication">
+  <div class="page-header">
+    <div>
+      <h2>Comunicación</h2>
+      <p class="meta">Pedidos de comunicación interna, campañas, piezas y temas a difundir.</p>
+    </div>
+    <button class="btn" onclick="openRequestModal('communication')">Nuevo pedido</button>
+  </div>
+
+  <div class="filters">
+    <input type="text" id="communicationSearch" placeholder="Buscar..." oninput="renderCommunicationPage()">
+    <select id="communicationStatusFilter" onchange="renderCommunicationPage()">
+      <option value="">Todos los estados</option>
+      <option>Recibido</option>
+      <option>En evaluación</option>
+      <option>Requiere más info</option>
+      <option>Priorizado</option>
+      <option>Aprobado</option>
+      <option>Descartado</option>
+    </select>
+    <select id="communicationChannelFilter" onchange="renderCommunicationPage()">
+      <option value="">Todos los canales</option>
+      <option>Email</option>
+      <option>Teams</option>
+      <option>Cartelera</option>
+      <option>Evento</option>
+      <option>Otro</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Audiencia</th>
+          <th>Canal</th>
+          <th>Estado</th>
+          <th>Prioridad</th>
+          <th>Fecha requerida</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="communicationTbody">
+        <tr><td colspan="8" class="empty">Todavía no hay pedidos de comunicación cargados.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FORMULARIOS: EVALUACION -->
+<section class="page" id="page-forms-evaluation">
+  <div class="page-header">
+    <div>
+      <h2>Evaluación</h2>
+      <p class="meta">Backlog consolidado para revisión, scoring y priorización.</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi blue"><div class="label">Solicitudes abiertas</div><div class="value" id="kpiReqOpen">0</div><div class="sub">Pendientes de resolución</div></div>
+    <div class="kpi"><div class="label">En evaluación</div><div class="value" id="kpiReqEval">0</div><div class="sub">Asignadas al squad</div></div>
+    <div class="kpi amber"><div class="label">Alta prioridad</div><div class="value" id="kpiReqHigh">0</div><div class="sub">Requieren foco</div></div>
+    <div class="kpi dark"><div class="label">Aprobadas</div><div class="value" id="kpiReqApproved">0</div><div class="sub">Listas para avanzar</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Título</th>
+          <th>Estado</th>
+          <th>Impacto</th>
+          <th>Esfuerzo</th>
+          <th>Urgencia</th>
+          <th>Prioridad sugerida</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="evaluationTbody">
+        <tr><td colspan="9" class="empty">Todavía no hay solicitudes para evaluar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FORMULARIOS: PANEL EJECUTIVO -->
+<section class="page" id="page-forms-dashboard">
+  <div class="page-header">
+    <div>
+      <h2>Panel ejecutivo</h2>
+      <p class="meta">Vista consolidada de intake, embudo y priorización.</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi blue"><div class="label">Total solicitudes</div><div class="value" id="kpiReqTotal">0</div><div class="sub">Iniciativas + comunicación</div></div>
+    <div class="kpi"><div class="label">Iniciativas</div><div class="value" id="kpiReqInitiatives">0</div><div class="sub">Ideas y proyectos</div></div>
+    <div class="kpi amber"><div class="label">Comunicación</div><div class="value" id="kpiReqCommunication">0</div><div class="sub">Pedidos del equipo</div></div>
+    <div class="kpi dark"><div class="label">% priorizadas</div><div class="value" id="kpiReqPrioritized">0%</div><div class="sub">Sobre el total recibido</div></div>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Volumen por tipo</div></div>
+      <div class="empty">El gráfico se activará cuando carguemos datos.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Estado de solicitudes</div></div>
+      <div class="empty">El gráfico se activará cuando carguemos datos.</div>
+    </div>
+  </div>
+</section>
     <!-- TEAM -->
     <section class="page" id="page-team">
       <div class="page-header">
@@ -602,7 +781,127 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="requestModal">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-header">
+      <h3 id="requestModalTitle">Nueva solicitud</h3>
+      <button class="btn-icon" onclick="closeModal('requestModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="requestId">
+      <input type="hidden" id="requestType">
 
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Título</label>
+          <input type="text" id="requestTitle">
+        </div>
+
+        <div class="form-group full">
+          <label>Descripción</label>
+          <textarea id="requestDescription"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="requestCategory">
+            <option value="">Seleccionar</option>
+            <option>Innovación</option>
+            <option>Digital</option>
+            <option>Procesos</option>
+            <option>Proyecto</option>
+            <option>Comunicación interna</option>
+            <option>Comunicación externa</option>
+            <option>Otro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha objetivo / requerida</label>
+          <input type="date" id="requestTargetDate">
+        </div>
+
+        <div class="form-group">
+          <label>Solicitante</label>
+          <input type="text" id="requestRequester">
+        </div>
+
+        <div class="form-group">
+          <label>Email solicitante</label>
+          <input type="email" id="requestRequesterEmail">
+        </div>
+
+        <div class="form-group">
+          <label>Impacto</label>
+          <select id="requestImpact">
+            <option value="1">1 - Bajo</option>
+            <option value="2">2</option>
+            <option value="3" selected>3 - Medio</option>
+            <option value="4">4</option>
+            <option value="5">5 - Alto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Esfuerzo</label>
+          <select id="requestEffort">
+            <option value="1">1 - Bajo</option>
+            <option value="2">2</option>
+            <option value="3" selected>3 - Medio</option>
+            <option value="4">4</option>
+            <option value="5">5 - Alto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Urgencia</label>
+          <select id="requestUrgency">
+            <option value="1">1 - Baja</option>
+            <option value="2">2</option>
+            <option value="3" selected>3 - Media</option>
+            <option value="4">4</option>
+            <option value="5">5 - Alta</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Prioridad sugerida</label>
+          <input type="text" id="requestSuggestedPriority" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
+        </div>
+
+        <div class="form-group full" id="initiativeFields">
+          <label>Sponsor / área impulsora</label>
+          <input type="text" id="requestSponsor" placeholder="Solo para iniciativas / proyectos">
+        </div>
+
+        <div class="form-group full" id="communicationFields" style="display:none;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Audiencia</label>
+              <input type="text" id="requestAudience" placeholder="Solo para comunicación">
+            </div>
+            <div class="form-group">
+              <label>Canal</label>
+              <select id="requestChannel">
+                <option value="">Seleccionar</option>
+                <option>Email</option>
+                <option>Teams</option>
+                <option>Cartelera</option>
+                <option>Evento</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
+      <button class="btn" onclick="saveRequest()">Guardar</button>
+    </div>
+  </div>
+</div>
+  
 <div class="toast" id="toast"></div>
 
 <script>
@@ -644,7 +943,7 @@ const SEED = {
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = JSON.parse(JSON.stringify(SEED));
 let isSaving = false;
-
+let requests = [];
 // ─── EQUIPOS Y ROL DEL USUARIO ────────────────────────────────────────────────
 const TEAMS = ['Demand Planning CP','Demand Planning Maíz','Impo & Expo','Customer Service','Strategy & Transformation'];
 // Rol del usuario logueado. Por defecto "consulta" (solo ver) hasta que el
