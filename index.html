@@ -984,6 +984,8 @@ const SEED = {
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = JSON.parse(JSON.stringify(SEED));
+  if (!state.requests) state.requests = [];
+let requests = state.requests;
 let isSaving = false;
 let requests = [];
 // ─── EQUIPOS Y ROL DEL USUARIO ────────────────────────────────────────────────
@@ -2014,13 +2016,15 @@ async function resetDemo(){
 }
 
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
-function renderAll()function renderAll() {
+function renderAll() {
   initFilters();
   renderDashboard();
   renderOutcomes();
   renderOutputs();
   renderTasks();
   renderTeam();
+
+  requests = state.requests || [];
 
   renderInitiativesPage();
   renderCommunicationPage();
