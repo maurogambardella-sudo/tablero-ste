@@ -305,8 +305,8 @@ tbody tr:hover { background: var(--bayer-light); }
   <div class="nav-sub" id="navSubForms">
     <a class="nav-link" data-page="forms-initiatives">Nuevas iniciativas / proyectos</a>
     <a class="nav-link" data-page="forms-communication">Comunicación</a>
-    <a class="nav-link" data-page="forms-evaluation">Evaluación</a>
-    <a class="nav-link" data-page="forms-dashboard">Panel ejecutivo</a>
+    <a class="nav-link admin-only" data-page="forms-evaluation" style="display:none;">Evaluación</a>
+    <a class="nav-link admin-only" data-page="forms-dashboard" style="display:none;">Panel ejecutivo</a>
   </div>
 </div>
       <a class="nav-link" data-page="team"><span class="icon">👥</span> Equipo</a>
@@ -406,105 +406,119 @@ tbody tr:hover { background: var(--bayer-light); }
     </section>
 <!-- FORMULARIOS: INICIATIVAS -->
 <section class="page" id="page-forms-initiatives">
-  <div class="page-header">
-    <div>
-      <h2>Nuevas iniciativas / proyectos</h2>
-      <p class="meta">Canal para capturar ideas, mejoras, automatizaciones y proyectos del equipo.</p>
-    </div>
-    <button class="btn" onclick="openRequestModal('initiative')">Nueva iniciativa</button>
-  </div>
-
-  <div class="filters">
-    <input type="text" id="initiativeSearch" placeholder="Buscar..." oninput="renderInitiativesPage()">
-    <select id="initiativeStatusFilter" onchange="renderInitiativesPage()">
-      <option value="">Todos los estados</option>
-      <option>Recibido</option>
-      <option>En evaluación</option>
-      <option>Requiere más info</option>
-      <option>Priorizado</option>
-      <option>Aprobado</option>
-      <option>Descartado</option>
-    </select>
-    <select id="initiativePriorityFilter" onchange="renderInitiativesPage()">
-      <option value="">Todas las prioridades</option>
-      <option>Alta</option>
-      <option>Media</option>
-      <option>Baja</option>
-    </select>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Título</th>
-          <th>Categoría</th>
-          <th>Solicitante</th>
-          <th>Estado</th>
-          <th>Prioridad</th>
-          <th>Fecha objetivo</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="initiativesTbody">
-        <tr><td colspan="8" class="empty">Todavía no hay iniciativas cargadas.</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
+        <div class="page-header">
+          <div>
+            <h2>Nuevas iniciativas / proyectos</h2>
+            <p class="meta">Canal para capturar ideas, mejoras, automatizaciones y proyectos del equipo.</p>
+          </div>
+          <button class="btn" onclick="openRequestModal('initiative')">Nueva iniciativa</button>
+        </div>
+        <div class="filters">
+          <input type="text" id="initiativeSearch" placeholder="Buscar..." oninput="renderInitiativesPage()">
+          <select id="initiativeStatusFilter" onchange="renderInitiativesPage()">
+            <option>Todos los estados</option>
+            <option>Recibido</option>
+            <option>En evaluación</option>
+            <option>Requiere más info</option>
+            <option>Priorizado</option>
+            <option>Aprobado</option>
+            <option>Descartado</option>
+          </select>
+          <select id="initiativePriorityFilter" onchange="renderInitiativesPage()">
+            <option>Todas las prioridades</option>
+            <option>Alta</option>
+            <option>Media</option>
+            <option>Baja</option>
+          </select>
+          <select id="initiativeTeamFilter" onchange="renderInitiativesPage()">
+            <option>Todos los equipos</option>
+            <option>Customer Service</option>
+            <option>Demand Planning CP</option>
+            <option>Demand Planning Maiz</option>
+            <option>Impo & Expo</option>
+            <option>Strategy & Transformation</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Categoría</th>
+                <th>Equipo</th>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Prioridad sugerida</th>
+                <th>Fecha objetivo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="initiativesTbody">
+              <tr><td colspan="9" class="empty">Todavía no hay iniciativas cargadas.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
 <!-- FORMULARIOS: COMUNICACION -->
 <section class="page" id="page-forms-communication">
-  <div class="page-header">
-    <div>
-      <h2>Comunicación</h2>
-      <p class="meta">Pedidos de comunicación interna, campañas, piezas y temas a difundir.</p>
-    </div>
-    <button class="btn" onclick="openRequestModal('communication')">Nuevo pedido</button>
-  </div>
-
-  <div class="filters">
-    <input type="text" id="communicationSearch" placeholder="Buscar..." oninput="renderCommunicationPage()">
-    <select id="communicationStatusFilter" onchange="renderCommunicationPage()">
-      <option value="">Todos los estados</option>
-      <option>Recibido</option>
-      <option>En evaluación</option>
-      <option>Requiere más info</option>
-      <option>Priorizado</option>
-      <option>Aprobado</option>
-      <option>Descartado</option>
-    </select>
-    <select id="communicationChannelFilter" onchange="renderCommunicationPage()">
-      <option value="">Todos los canales</option>
-      <option>Email</option>
-      <option>Teams</option>
-      <option>Cartelera</option>
-      <option>Evento</option>
-      <option>Otro</option>
-    </select>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Título</th>
-          <th>Audiencia</th>
-          <th>Canal</th>
-          <th>Estado</th>
-          <th>Prioridad</th>
-          <th>Fecha requerida</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="communicationTbody">
-        <tr><td colspan="8" class="empty">Todavía no hay pedidos de comunicación cargados.</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
+        <div class="page-header">
+          <div>
+            <h2>Comunicación</h2>
+            <p class="meta">Pedidos de comunicación interna, campañas, piezas y temas a difundir.</p>
+          </div>
+          <button class="btn" onclick="openRequestModal('communication')">Nuevo pedido</button>
+        </div>
+        <div class="filters">
+          <input type="text" id="communicationSearch" placeholder="Buscar..." oninput="renderCommunicationPage()">
+          <select id="communicationStatusFilter" onchange="renderCommunicationPage()">
+            <option>Todos los estados</option>
+            <option>Recibido</option>
+            <option>En evaluación</option>
+            <option>Requiere más info</option>
+            <option>Priorizado</option>
+            <option>Aprobado</option>
+            <option>Descartado</option>
+          </select>
+          <select id="communicationChannelFilter" onchange="renderCommunicationPage()">
+            <option>Todos los canales</option>
+            <option>Email</option>
+            <option>Teams</option>
+            <option>Cartelera</option>
+            <option>Evento</option>
+            <option>Presentación</option>
+            <option>Otro</option>
+          </select>
+          <select id="communicationTeamFilter" onchange="renderCommunicationPage()">
+            <option>Todos los equipos</option>
+            <option>Customer Service</option>
+            <option>Demand Planning CP</option>
+            <option>Demand Planning Maiz</option>
+            <option>Impo & Expo</option>
+            <option>Strategy & Transformation</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Equipo</th>
+                <th>Audiencia</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Fecha requerida</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="communicationTbody">
+              <tr><td colspan="8" class="empty">Todavía no hay pedidos de comunicación cargados.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
 <!-- FORMULARIOS: EVALUACION -->
 <section class="page" id="page-forms-evaluation">
@@ -881,7 +895,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               <input type="text" id="requestAudience" placeholder="Solo para comunicación">
             </div>
             <div class="form-group">
-              <label>Canal</label>
+              <label>Categoría de comunicación</label>
               <select id="requestChannel">
                 <option value="">Seleccionar</option>
                 <option>Email</option>
@@ -902,7 +916,181 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
   </div>
 </div>
   
-<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="requestDetailModal">
+      <div class="modal" style="max-width:760px;">
+        <div class="modal-header"><h3 id="requestDetailTitle">Detalle de solicitud</h3><button class="btn-icon" onclick="closeModal('requestDetailModal')">✕</button></div>
+        <div class="modal-body" id="requestDetailBody"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('requestDetailModal')">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="requestEvalModal">
+      <div class="modal" style="max-width:860px;">
+        <div class="modal-header"><h3 id="requestEvalTitle">Evaluar solicitud</h3><button class="btn-icon" onclick="closeModal('requestEvalModal')">✕</button></div>
+        <div class="modal-body">
+          <input type="hidden" id="evalRequestId">
+          <div id="evalRequestSummary" style="margin-bottom:16px;"></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="evalStatus">
+                <option>Recibido</option>
+                <option>En evaluación</option>
+                <option>Requiere más info</option>
+                <option>Priorizado</option>
+                <option>Aprobado</option>
+                <option>Descartado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Esfuerzo</label>
+              <select id="evalEffort">
+                <option value="">Sin definir</option>
+                <option>Baja</option>
+                <option>Media</option>
+                <option>Alta</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Responsable</label>
+              <select id="evalAssignedOwner"></select>
+            </div>
+            <div class="form-group">
+              <label>Si se aprueba, convertir en</label>
+              <select id="evalApprovalOutcome">
+                <option>Definir despues</option>
+                <option>Output</option>
+                <option>Task</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Comentario / devolución al solicitante</label>
+              <textarea id="evalComment" placeholder="Este comentario luego podrá enviarse por mail y/o Teams"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('requestEvalModal')">Cancelar</button>
+          <button class="btn" onclick="saveRequestEvaluation()">Guardar evaluación</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="requestModal">
+      <div class="modal" style="max-width:820px;">
+        <div class="modal-header"><h3 id="requestModalTitle">Nueva solicitud</h3><button class="btn-icon" onclick="closeModal('requestModal')">✕</button></div>
+        <div class="modal-body">
+          <input type="hidden" id="requestType">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Título</label>
+              <input type="text" id="requestTitle">
+            </div>
+            <div class="form-group">
+              <label>Equipo</label>
+              <select id="requestTeam">
+                <option>Customer Service</option>
+                <option>Demand Planning CP</option>
+                <option>Demand Planning Maiz</option>
+                <option>Impo & Expo</option>
+                <option>Strategy & Transformation</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestCategoryGroup">
+              <label>Categoría</label>
+              <select id="requestCategory">
+                <option>Digital</option>
+                <option>Procesos</option>
+                <option>Automatizacion</option>
+                <option>Innovacion</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Descripción</label>
+              <textarea id="requestDescription"></textarea>
+            </div>
+            <div class="form-group" id="requestImpactGroup">
+              <label>Impacto</label>
+              <select id="requestImpact">
+                <option>Baja</option>
+                <option>Media</option>
+                <option>Alta</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestUrgencyGroup">
+              <label>Urgencia</label>
+              <select id="requestUrgency">
+                <option>Baja</option>
+                <option>Media</option>
+                <option>Alta</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestAudienceGroup" style="display:none;">
+              <label>Audiencia</label>
+              <input type="text" id="requestAudience">
+            </div>
+            <div class="form-group" id="requestChannelGroup" style="display:none;">
+              <label>Categoría de comunicación</label>
+              <select id="requestChannel">
+                <option>Portada SCM</option>
+                <option>Kick-off del mes</option>
+                <option>Operación & resultados</option>
+                <option>Personas & cultura</option>
+                <option>Información útil</option>
+                <option>Eventos</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestFormatGroup" style="display:none;">
+              <label>Formato sugerido</label>
+              <select id="requestFormat">
+                <option>Plantilla Canva</option>
+                <option>Mail breve</option>
+                <option>Dashboard + resumen</option>
+                <option>Video</option>
+                <option>Plantilla Canva / Whatsapp</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestMetricGroup" style="display:none;">
+              <label>Métrica principal</label>
+              <select id="requestMetric">
+                <option>Likes</option>
+                <option>Quiz</option>
+                <option>Tasa apertura mails</option>
+                <option>Ingresos a SharePoint</option>
+                <option>Participación / engagement</option>
+                <option>No definida</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha objetivo / requerida</label>
+              <input type="date" id="requestTargetDate">
+            </div>
+            <div class="form-group full" id="requestSuggestedOwnerGroup" style="display:none;">
+              <label>Responsable / referencia sugerida</label>
+              <input type="text" id="requestSuggestedOwner" placeholder="Ej: Focal Squad Com / Strategy & Transformation / Staff">
+            </div>
+            <div class="form-group">
+              <label>Prioridad sugerida</label>
+              <input type="text" id="requestPrioritySuggested" readonly style="background:#F3F4F6; color:var(--text-muted); cursor:not-allowed;">
+            </div>
+          </div>
+          <div style="margin-top:14px; padding:12px; border-radius:8px; background:#F8FAFC; border:1px solid var(--border); font-size:12px; color:var(--text-muted);">
+            Al guardar, la solicitud quedará lista para futura integración con SharePoint y para envío de mail/Teams al solicitante y al aprobador inicial (mauro.gambardella@bayer.com).
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
+          <button class="btn" onclick="saveRequest()">Guardar solicitud</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
 
 <script>
 // ─── SEED DATA ───────────────────────────────────────────────────────────────
@@ -1715,7 +1903,7 @@ function renderCommunicationPage() {
       <td>${r.id}</td>
       <td>${r.title}</td>
       <td>${r.audience || '-'}</td>
-      <td>${r.channel || '-'}</td>
+      <td>${r.category || r.channel || '-'}</td>
       <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
       <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
       <td>${r.targetDate || '-'}</td>
