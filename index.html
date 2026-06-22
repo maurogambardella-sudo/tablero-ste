@@ -938,6 +938,48 @@ const SEED = {
     { id:'T-007', output:'OUT-05', title:'Skills assessment del equipo', desc:'Mapeo de competencias actuales vs. requeridas', owner:'', priority:'Alta', status:'Pendiente', progress:0, start:'2026-05-01', end:'2026-06-15', notes:'' },
     { id:'T-008', output:'OUT-08', title:'Set up retrospectiva trimestral Q2', desc:'Agendar y preparar canvas', owner:'Mauro Gambardella', priority:'Media', status:'Pendiente', progress:0, start:'2026-06-15', end:'2026-06-30', notes:'' }
   ]
+  requests = [
+  {
+    id: 'REQ-001',
+    type: 'initiative',
+    title: 'Automatizar seguimiento de pedidos críticos',
+    description: 'Crear un flujo digital para visibilidad y alertas de pedidos sensibles.',
+    category: 'Digital',
+    requester: 'Mauro Gambardella',
+    requesterEmail: 'mauro.gambardella@bayer.com',
+    status: 'Recibido',
+    priority: 'Media',
+    targetDate: '2026-07-15',
+    sponsor: 'Supply Chain Conosur',
+    audience: '',
+    channel: '',
+    impact: 4,
+    effort: 3,
+    urgency: 4,
+    suggestedPriority: 'Alta',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'REQ-002',
+    type: 'communication',
+    title: 'Comunicar iniciativa de mejora de OTIF',
+    description: 'Difundir al equipo el avance, objetivo y próximos hitos de la iniciativa.',
+    category: 'Comunicación interna',
+    requester: 'Mauro Gambardella',
+    requesterEmail: 'mauro.gambardella@bayer.com',
+    status: 'En evaluación',
+    priority: 'Media',
+    targetDate: '2026-07-05',
+    sponsor: '',
+    audience: 'Equipo SCM Conosur',
+    channel: 'Teams',
+    impact: 3,
+    effort: 2,
+    urgency: 3,
+    suggestedPriority: 'Media',
+    createdAt: new Date().toISOString()
+  }
+];
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1532,6 +1574,221 @@ function renderTasks(){
     board.innerHTML=cols.map(col=>{const items=rows.filter(t=>t.status===col);return `<div class="kanban-col"><div class="kanban-col-header"><span>${col}</span><span class="count">${items.length}</span></div>${items.map(t=>`<div class="kanban-card priority-${(t.priority||'').toLowerCase()}" onclick="openTaskModal('${t.id}')"><div class="title">${t.title}</div><div style="font-size:11px;color:var(--text-muted)">${t.id} · ${t.output}</div><div class="meta"><span>${t.owner||'—'}</span><span class="${isOverdue(t)?'due-overdue':''}">${t.end||''}${isOverdue(t)?' ⚠':''}</span></div></div>`).join('')||'<div class="empty" style="padding:20px;font-size:11px">Sin tareas</div>'}</div>`;}).join('');
   }
 }
+
+  function nextRequestId() {
+  const max = requests.reduce((acc, r) => {
+    const n = parseInt(String(r.id || '').replace('REQ-', ''), 10);
+    return Number.isFinite(n) ? Math.max(acc, n) : acc;
+  }, 0);
+  return 'REQ-' + String(max + 1).padStart(3, '0');
+}
+
+function calculateSuggestedPriority(impact, effort, urgency) {
+  const score = Number(impact || 0) + Number(urgency || 0) - Number(effort || 0);
+  if (score >= 6) return 'Alta';
+  if (score >= 3) return 'Media';
+  return 'Baja';
+}
+
+function openRequestModal(type) {
+  document.getElementById('requestModal').classList.add('show');
+  document.getElementById('requestId').value = '';
+  document.getElementById('requestType').value = type;
+  document.getElementById('requestModalTitle').textContent = type === 'communication'
+    ? 'Nuevo pedido de comunicación'
+    : 'Nueva iniciativa / proyecto';
+
+  document.getElementById('requestTitle').value = '';
+  document.getElementById('requestDescription').value = '';
+  document.getElementById('requestCategory').value = '';
+  document.getElementById('requestTargetDate').value = '';
+  document.getElementById('requestRequester').value = '';
+  document.getElementById('requestRequesterEmail').value = '';
+  document.getElementById('requestImpact').value = '3';
+  document.getElementById('requestEffort').value = '3';
+  document.getElementById('requestUrgency').value = '3';
+  document.getElementById('requestSuggestedPriority').value = 'Media';
+  document.getElementById('requestSponsor').value = '';
+  document.getElementById('requestAudience').value = '';
+  document.getElementById('requestChannel').value = '';
+
+  document.getElementById('initiativeFields').style.display = type === 'initiative' ? 'block' : 'none';
+  document.getElementById('communicationFields').style.display = type === 'communication' ? 'block' : 'none';
+}
+
+function saveRequest() {
+  const type = document.getElementById('requestType').value;
+  const impact = Number(document.getElementById('requestImpact').value || 0);
+  const effort = Number(document.getElementById('requestEffort').value || 0);
+  const urgency = Number(document.getElementById('requestUrgency').value || 0);
+  const suggestedPriority = calculateSuggestedPriority(impact, effort, urgency);
+
+  const item = {
+    id: nextRequestId(),
+    type,
+    title: document.getElementById('requestTitle').value.trim(),
+    description: document.getElementById('requestDescription').value.trim(),
+    category: document.getElementById('requestCategory').value,
+    requester: document.getElementById('requestRequester').value.trim(),
+    requesterEmail: document.getElementById('requestRequesterEmail').value.trim(),
+    status: 'Recibido',
+    priority: suggestedPriority,
+    targetDate: document.getElementById('requestTargetDate').value,
+    sponsor: document.getElementById('requestSponsor').value.trim(),
+    audience: document.getElementById('requestAudience').value.trim(),
+    channel: document.getElementById('requestChannel').value,
+    impact,
+    effort,
+    urgency,
+    suggestedPriority,
+    createdAt: new Date().toISOString()
+  };
+
+  if (!item.title) {
+    showToast('Completá al menos el título.');
+    return;
+  }
+
+  requests.unshift(item);
+  closeModal('requestModal');
+  renderInitiativesPage();
+  renderCommunicationPage();
+  renderEvaluationPage();
+  renderFormsDashboard();
+  showToast('Solicitud guardada correctamente.');
+}
+
+function renderInitiativesPage() {
+  const tbody = document.getElementById('initiativesTbody');
+  if (!tbody) return;
+
+  const q = (document.getElementById('initiativeSearch')?.value || '').toLowerCase();
+  const status = document.getElementById('initiativeStatusFilter')?.value || '';
+  const priority = document.getElementById('initiativePriorityFilter')?.value || '';
+
+  const rows = requests.filter(r => r.type === 'initiative')
+    .filter(r => !q || [r.id, r.title, r.category, r.requester].join(' ').toLowerCase().includes(q))
+    .filter(r => !status || r.status === status)
+    .filter(r => !priority || r.priority === priority);
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay iniciativas para mostrar.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td>${r.title}</td>
+      <td>${r.category || '-'}</td>
+      <td>${r.requester || '-'}</td>
+      <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
+      <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
+      <td>${r.targetDate || '-'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewRequest('${r.id}')">Ver</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderCommunicationPage() {
+  const tbody = document.getElementById('communicationTbody');
+  if (!tbody) return;
+
+  const q = (document.getElementById('communicationSearch')?.value || '').toLowerCase();
+  const status = document.getElementById('communicationStatusFilter')?.value || '';
+  const channel = document.getElementById('communicationChannelFilter')?.value || '';
+
+  const rows = requests.filter(r => r.type === 'communication')
+    .filter(r => !q || [r.id, r.title, r.audience, r.channel].join(' ').toLowerCase().includes(q))
+    .filter(r => !status || r.status === status)
+    .filter(r => !channel || r.channel === channel);
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay pedidos de comunicación para mostrar.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td>${r.title}</td>
+      <td>${r.audience || '-'}</td>
+      <td>${r.channel || '-'}</td>
+      <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
+      <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
+      <td>${r.targetDate || '-'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewRequest('${r.id}')">Ver</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderEvaluationPage() {
+  const tbody = document.getElementById('evaluationTbody');
+  if (!tbody) return;
+
+  const openCount = requests.filter(r => !['Aprobado', 'Descartado'].includes(r.status)).length;
+  const evalCount = requests.filter(r => r.status === 'En evaluación').length;
+  const highCount = requests.filter(r => r.priority === 'Alta').length;
+  const approvedCount = requests.filter(r => r.status === 'Aprobado').length;
+
+  const elOpen = document.getElementById('kpiReqOpen'); if (elOpen) elOpen.textContent = openCount;
+  const elEval = document.getElementById('kpiReqEval'); if (elEval) elEval.textContent = evalCount;
+  const elHigh = document.getElementById('kpiReqHigh'); if (elHigh) elHigh.textContent = highCount;
+  const elApproved = document.getElementById('kpiReqApproved'); if (elApproved) elApproved.textContent = approvedCount;
+
+  if (!requests.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No hay solicitudes para evaluar.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = requests.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td>${r.type === 'communication' ? 'Comunicación' : 'Iniciativa'}</td>
+      <td>${r.title}</td>
+      <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
+      <td>${r.impact ?? '-'}</td>
+      <td>${r.effort ?? '-'}</td>
+      <td>${r.urgency ?? '-'}</td>
+      <td><span class="pill pill-${slugify(r.suggestedPriority || r.priority)}">${r.suggestedPriority || r.priority}</span></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="viewRequest('${r.id}')">Ver</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderFormsDashboard() {
+  const total = requests.length;
+  const initiatives = requests.filter(r => r.type === 'initiative').length;
+  const communication = requests.filter(r => r.type === 'communication').length;
+  const prioritized = total ? Math.round((requests.filter(r => ['Priorizado', 'Aprobado'].includes(r.status)).length / total) * 100) : 0;
+
+  const a = document.getElementById('kpiReqTotal'); if (a) a.textContent = total;
+  const b = document.getElementById('kpiReqInitiatives'); if (b) b.textContent = initiatives;
+  const c = document.getElementById('kpiReqCommunication'); if (c) c.textContent = communication;
+  const d = document.getElementById('kpiReqPrioritized'); if (d) d.textContent = prioritized + '%';
+}
+
+function viewRequest(id) {
+  const item = requests.find(r => r.id === id);
+  if (!item) return;
+  alert(
+    'ID: ' + item.id + '\n' +
+    'Tipo: ' + (item.type === 'communication' ? 'Comunicación' : 'Iniciativa') + '\n' +
+    'Título: ' + item.title + '\n' +
+    'Estado: ' + item.status + '\n' +
+    'Prioridad: ' + item.priority + '\n\n' +
+    (item.description || 'Sin descripción')
+  );
+}
+
+function slugify(v) {
+  return String(v || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 function openTaskModal(id){
   const isEdit=!!id;
   document.getElementById('taskModalTitle').textContent=isEdit?'Editar Task':'Nueva Task';
@@ -1757,7 +2014,21 @@ async function resetDemo(){
 }
 
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
-function renderAll(){initFilters();renderDashboard();renderOutcomes();renderOutputs();renderTasks();renderTeam();applyRolePermissions();}
+function renderAll()function renderAll() {
+  initFilters();
+  renderDashboard();
+  renderOutcomes();
+  renderOutputs();
+  renderTasks();
+  renderTeam();
+
+  renderInitiativesPage();
+  renderCommunicationPage();
+  renderEvaluationPage();
+  renderFormsDashboard();
+
+  applyRolePermissions();
+}
 
 // ─── PERMISOS SEGÚN ROL ───────────────────────────────────────────────────────
 // Acomoda la interfaz: oculta botones que el usuario no puede usar.
@@ -1801,6 +2072,17 @@ function setModalEditable(modalId, editable){
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
+  ['requestImpact', 'requestEffort', 'requestUrgency'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('change', () => {
+      const impact = Number(document.getElementById('requestImpact').value || 0);
+      const effort = Number(document.getElementById('requestEffort').value || 0);
+      const urgency = Number(document.getElementById('requestUrgency').value || 0);
+      document.getElementById('requestSuggestedPriority').value = calculateSuggestedPriority(impact, effort, urgency);
+    });
+  }
+});
 buildTeamNav();
 initApp();
 </script>
