@@ -1698,13 +1698,11 @@ function openRequestModal(type) {
   document.getElementById('requestModalTitle').textContent = type === 'communication'
     ? 'Nuevo pedido de comunicación'
     : 'Nueva iniciativa / proyecto';
-  const isCommunication = type === 'communication';
-  const categoryLabel = document.querySelector('label[for="requestCategory"]') || document.querySelector('#requestCategory')?.closest('.form-group')?.querySelector('label');
-  if (categoryLabel) categoryLabel.textContent = isCommunication ? 'Categoría de comunicación *' : 'Categoría *';
+ 
 
   document.getElementById('requestTitle').value = '';
   document.getElementById('requestDescription').value = '';
-  document.getElementById('requestCategory').value = type === 'communication' ? '' : '';
+  document.getElementById('requestCategory').value = '';
   document.getElementById('requestTargetDate').value = '';
   document.getElementById('requestRequester').value = currentUser.email ? (currentUser.email.split('@')[0].replace('.', ' ')) : '';
   document.getElementById('requestRequesterEmail').value = currentUser.email || '';
