@@ -454,7 +454,9 @@ tbody tr:hover { background: var(--bayer-light); }
                 <th></th>
               </tr>
             </thead>
-            <tbody id="initiativesTbody"></tbody>
+            <tbody id="initiativesTbody">
+              <tr><td colspan="9" class="empty">Todavía no hay iniciativas cargadas.</td></tr>
+            </tbody>
           </table>
         </div>
       </section>
@@ -479,14 +481,13 @@ tbody tr:hover { background: var(--bayer-light); }
             <option>Aprobado</option>
             <option>Descartado</option>
           </select>
-          <select id="communicationCategoryFilter" onchange="renderCommunicationPage()">
-            <option>Todas las categorías</option>
-            <option>Portada SCM</option>
-            <option>Kick-off del mes</option>
-            <option>Operación & resultados</option>
-            <option>Personas & cultura</option>
-            <option>Información útil</option>
-            <option>Eventos</option>
+          <select id="communicationChannelFilter" onchange="renderCommunicationPage()">
+            <option>Todos los canales</option>
+            <option>Email</option>
+            <option>Teams</option>
+            <option>Cartelera</option>
+            <option>Evento</option>
+            <option>Presentación</option>
             <option>Otro</option>
           </select>
           <select id="communicationTeamFilter" onchange="renderCommunicationPage()">
@@ -505,50 +506,57 @@ tbody tr:hover { background: var(--bayer-light); }
                 <th>ID</th>
                 <th>Título</th>
                 <th>Equipo</th>
+                <th>Audiencia</th>
                 <th>Categoría</th>
                 <th>Estado</th>
                 <th>Fecha requerida</th>
                 <th></th>
               </tr>
             </thead>
-            <tbody id="communicationTbody"></tbody>
+            <tbody id="communicationTbody">
+              <tr><td colspan="8" class="empty">Todavía no hay pedidos de comunicación cargados.</td></tr>
+            </tbody>
           </table>
         </div>
       </section>
 
 <!-- FORMULARIOS: EVALUACION -->
 <section class="page" id="page-forms-evaluation">
-        <div class="page-header">
-          <div>
-            <h2>Evaluación</h2>
-            <p class="meta">Backlog consolidado para revisión, scoring, priorización y devolución al solicitante. Vista para aprobadores/admin.</p>
-          </div>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi-card"><span>Abiertas</span><strong id="kpiReqOpen">0</strong></div>
-          <div class="kpi-card"><span>En evaluación</span><strong id="kpiReqEval">0</strong></div>
-          <div class="kpi-card"><span>Prioridad alta</span><strong id="kpiReqHigh">0</strong></div>
-          <div class="kpi-card"><span>Aprobadas</span><strong id="kpiReqApproved">0</strong></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tipo</th>
-                <th>Título</th>
-                <th>Estado</th>
-                <th>Impacto</th>
-                <th>Esfuerzo</th>
-                <th>Urgencia</th>
-                <th>Prioridad</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="evaluationTbody"></tbody>
-          </table>
-        </div>
-      </section>
+  <div class="page-header">
+    <div>
+      <h2>Evaluación</h2>
+      <p class="meta">Backlog consolidado para revisión, scoring y priorización.</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi blue"><div class="label">Solicitudes abiertas</div><div class="value" id="kpiReqOpen">0</div><div class="sub">Pendientes de resolución</div></div>
+    <div class="kpi"><div class="label">En evaluación</div><div class="value" id="kpiReqEval">0</div><div class="sub">Asignadas al squad</div></div>
+    <div class="kpi amber"><div class="label">Alta prioridad</div><div class="value" id="kpiReqHigh">0</div><div class="sub">Requieren foco</div></div>
+    <div class="kpi dark"><div class="label">Aprobadas</div><div class="value" id="kpiReqApproved">0</div><div class="sub">Listas para avanzar</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Título</th>
+          <th>Estado</th>
+          <th>Impacto</th>
+          <th>Esfuerzo</th>
+          <th>Urgencia</th>
+          <th>Prioridad sugerida</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="evaluationTbody">
+        <tr><td colspan="9" class="empty">Todavía no hay solicitudes para evaluar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <!-- FORMULARIOS: PANEL EJECUTIVO -->
 <section class="page" id="page-forms-dashboard">
@@ -787,7 +795,118 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
     </div>
   </div>
 </div>
-</div>
+<div class="modal-overlay" id="requestModal">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-header">
+      <h3 id="requestModalTitle">Nueva solicitud</h3>
+      <button class="btn-icon" onclick="closeModal('requestModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="requestId">
+      <input type="hidden" id="requestType">
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Título</label>
+          <input type="text" id="requestTitle">
+        </div>
+
+        <div class="form-group full">
+          <label>Descripción</label>
+          <textarea id="requestDescription"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="requestCategory">
+            <option value="">Seleccionar</option>
+            <option>Innovación</option>
+            <option>Digital</option>
+            <option>Procesos</option>
+            <option>Proyecto</option>
+            <option>Comunicación interna</option>
+            <option>Comunicación externa</option>
+            <option>Otro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha objetivo / requerida</label>
+          <input type="date" id="requestTargetDate">
+        </div>
+
+        <div class="form-group">
+          <label>Solicitante</label>
+          <input type="text" id="requestRequester">
+        </div>
+
+        <div class="form-group">
+          <label>Email solicitante</label>
+          <input type="email" id="requestRequesterEmail">
+        </div>
+
+        <div class="form-group">
+          <label>Impacto</label>
+          <select id="requestImpact">
+            <option value="1">1 - Bajo</option>
+            <option value="2">2</option>
+            <option value="3" selected>3 - Medio</option>
+            <option value="4">4</option>
+            <option value="5">5 - Alto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Esfuerzo</label>
+          <select id="requestEffort">
+            <option value="1">1 - Bajo</option>
+            <option value="2">2</option>
+            <option value="3" selected>3 - Medio</option>
+            <option value="4">4</option>
+            <option value="5">5 - Alto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Urgencia</label>
+          <select id="requestUrgency">
+            <option value="1">1 - Baja</option>
+            <option value="2">2</option>
+            <option value="3" selected>3 - Media</option>
+            <option value="4">4</option>
+            <option value="5">5 - Alta</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Prioridad sugerida</label>
+          <input type="text" id="requestSuggestedPriority" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
+        </div>
+
+        <div class="form-group full" id="initiativeFields">
+          <label>Sponsor / área impulsora</label>
+          <input type="text" id="requestSponsor" placeholder="Solo para iniciativas / proyectos">
+        </div>
+
+        <div class="form-group full" id="communicationFields" style="display:none;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Audiencia</label>
+              <input type="text" id="requestAudience" placeholder="Solo para comunicación">
+            </div>
+            <div class="form-group">
+              <label>Categoría de comunicación</label>
+              <select id="requestChannel">
+                <option value="">Seleccionar</option>
+                <option>Email</option>
+                <option>Teams</option>
+                <option>Cartelera</option>
+                <option>Evento</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -797,12 +916,13 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
   </div>
 </div>
   
-
-    <div class="modal-overlay" id="requestDetailModal">
+<div class="modal-overlay" id="requestDetailModal">
       <div class="modal" style="max-width:760px;">
         <div class="modal-header"><h3 id="requestDetailTitle">Detalle de solicitud</h3><button class="btn-icon" onclick="closeModal('requestDetailModal')">✕</button></div>
         <div class="modal-body" id="requestDetailBody"></div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('requestDetailModal')">Cerrar</button></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('requestDetailModal')">Cerrar</button>
+        </div>
       </div>
     </div>
 
@@ -813,40 +933,160 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <input type="hidden" id="evalRequestId">
           <div id="evalRequestSummary" style="margin-bottom:16px;"></div>
           <div class="form-grid">
-            <div class="form-group"><label>Estado</label><select id="evalStatus"><option>Recibido</option><option>En evaluación</option><option>Requiere más info</option><option>Priorizado</option><option>Aprobado</option><option>Descartado</option></select></div>
-            <div class="form-group"><label>Esfuerzo</label><select id="evalEffort"><option value="">Sin definir</option><option>Baja</option><option>Media</option><option>Alta</option></select></div>
-            <div class="form-group"><label>Responsable</label><select id="evalAssignedOwner"></select></div>
-            <div class="form-group"><label>Si se aprueba, convertir en</label><select id="evalApprovalOutcome"><option>Definir despues</option><option>Output</option><option>Task</option></select></div>
-            <div class="form-group full"><label>Comentario / devolución al solicitante</label><textarea id="evalComment"></textarea></div>
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="evalStatus">
+                <option>Recibido</option>
+                <option>En evaluación</option>
+                <option>Requiere más info</option>
+                <option>Priorizado</option>
+                <option>Aprobado</option>
+                <option>Descartado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Esfuerzo</label>
+              <select id="evalEffort">
+                <option value="">Sin definir</option>
+                <option>Baja</option>
+                <option>Media</option>
+                <option>Alta</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Responsable</label>
+              <select id="evalAssignedOwner"></select>
+            </div>
+            <div class="form-group">
+              <label>Si se aprueba, convertir en</label>
+              <select id="evalApprovalOutcome">
+                <option>Definir despues</option>
+                <option>Output</option>
+                <option>Task</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Comentario / devolución al solicitante</label>
+              <textarea id="evalComment" placeholder="Este comentario luego podrá enviarse por mail y/o Teams"></textarea>
+            </div>
           </div>
         </div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('requestEvalModal')">Cancelar</button><button class="btn" onclick="saveRequestEvaluation()">Guardar evaluación</button></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('requestEvalModal')">Cancelar</button>
+          <button class="btn" onclick="saveRequestEvaluation()">Guardar evaluación</button>
+        </div>
       </div>
     </div>
 
     <div class="modal-overlay" id="requestModal">
-      <div class="modal" style="max-width:860px;">
+      <div class="modal" style="max-width:820px;">
         <div class="modal-header"><h3 id="requestModalTitle">Nueva solicitud</h3><button class="btn-icon" onclick="closeModal('requestModal')">✕</button></div>
         <div class="modal-body">
           <input type="hidden" id="requestType">
           <div class="form-grid">
-            <div class="form-group full"><label>Título *</label><input type="text" id="requestTitle" required></div>
-            <div class="form-group"><label>Equipo del solicitante *</label><select id="requestTeam" required><option>Customer Service</option><option>Demand Planning CP</option><option>Demand Planning Maiz</option><option>Impo & Expo</option><option>Strategy & Transformation</option></select></div>
-            <div class="form-group" id="requestCategoryGroup"><label>Categoría *</label><select id="requestCategory"><option>Digital</option><option>Procesos</option><option>Automatizacion</option><option>Innovacion</option><option>Otro</option></select></div>
-            <div class="form-group full"><label>Descripción *</label><textarea id="requestDescription" required></textarea></div>
-            <div class="form-group" id="requestImpactGroup"><label>Impacto *</label><select id="requestImpact"><option>Baja</option><option>Media</option><option>Alta</option></select></div>
-            <div class="form-group" id="requestUrgencyGroup"><label>Urgencia *</label><select id="requestUrgency"><option>Baja</option><option>Media</option><option>Alta</option></select></div>
-            <div class="form-group" id="requestAudienceGroup" style="display:none;"><label>Audiencia *</label><input type="text" id="requestAudience"></div>
-            <div class="form-group" id="requestChannelGroup" style="display:none;"><label>Categoría de comunicación *</label><select id="requestChannel"><option>Portada SCM</option><option>Kick-off del mes</option><option>Operación & resultados</option><option>Personas & cultura</option><option>Información útil</option><option>Eventos</option><option>Otro</option></select></div>
-            <div class="form-group" id="requestFormatGroup" style="display:none;"><label>Formato sugerido *</label><select id="requestFormat"><option>Plantilla Canva</option><option>Mail breve</option><option>Dashboard + resumen</option><option>Video</option><option>Plantilla Canva / Whatsapp</option><option>Otro</option></select></div>
-            <div class="form-group" id="requestMetricGroup" style="display:none;"><label>Métrica principal *</label><select id="requestMetric"><option>Likes</option><option>Quiz</option><option>Tasa apertura mails</option><option>Ingresos a SharePoint</option><option>Participación / engagement</option><option>No definida</option></select></div>
-            <div class="form-group"><label>Fecha objetivo / requerida *</label><input type="date" id="requestTargetDate" required></div>
-            <div class="form-group"><label>Sponsor</label><input type="text" id="requestSponsor" placeholder="Opcional"></div>
-            <div class="form-group full" id="requestSuggestedOwnerGroup" style="display:none;"><label>Responsable / referencia sugerida *</label><input type="text" id="requestSuggestedOwner" placeholder="Ej: Focal Squad Com / Strategy & Transformation / Staff"></div>
-            <div class="form-group"><label>Prioridad sugerida</label><input type="text" id="requestPrioritySuggested" readonly style="background:#F3F4F6; color:var(--text-muted);"></div>
+            <div class="form-group full">
+              <label>Título</label>
+              <input type="text" id="requestTitle">
+            </div>
+            <div class="form-group">
+              <label>Equipo</label>
+              <select id="requestTeam">
+                <option>Customer Service</option>
+                <option>Demand Planning CP</option>
+                <option>Demand Planning Maiz</option>
+                <option>Impo & Expo</option>
+                <option>Strategy & Transformation</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestCategoryGroup">
+              <label>Categoría</label>
+              <select id="requestCategory">
+                <option>Digital</option>
+                <option>Procesos</option>
+                <option>Automatizacion</option>
+                <option>Innovacion</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Descripción</label>
+              <textarea id="requestDescription"></textarea>
+            </div>
+            <div class="form-group" id="requestImpactGroup">
+              <label>Impacto</label>
+              <select id="requestImpact">
+                <option>Baja</option>
+                <option>Media</option>
+                <option>Alta</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestUrgencyGroup">
+              <label>Urgencia</label>
+              <select id="requestUrgency">
+                <option>Baja</option>
+                <option>Media</option>
+                <option>Alta</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestAudienceGroup" style="display:none;">
+              <label>Audiencia</label>
+              <input type="text" id="requestAudience">
+            </div>
+            <div class="form-group" id="requestChannelGroup" style="display:none;">
+              <label>Categoría de comunicación</label>
+              <select id="requestChannel">
+                <option>Portada SCM</option>
+                <option>Kick-off del mes</option>
+                <option>Operación & resultados</option>
+                <option>Personas & cultura</option>
+                <option>Información útil</option>
+                <option>Eventos</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestFormatGroup" style="display:none;">
+              <label>Formato sugerido</label>
+              <select id="requestFormat">
+                <option>Plantilla Canva</option>
+                <option>Mail breve</option>
+                <option>Dashboard + resumen</option>
+                <option>Video</option>
+                <option>Plantilla Canva / Whatsapp</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group" id="requestMetricGroup" style="display:none;">
+              <label>Métrica principal</label>
+              <select id="requestMetric">
+                <option>Likes</option>
+                <option>Quiz</option>
+                <option>Tasa apertura mails</option>
+                <option>Ingresos a SharePoint</option>
+                <option>Participación / engagement</option>
+                <option>No definida</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha objetivo / requerida</label>
+              <input type="date" id="requestTargetDate">
+            </div>
+            <div class="form-group full" id="requestSuggestedOwnerGroup" style="display:none;">
+              <label>Responsable / referencia sugerida</label>
+              <input type="text" id="requestSuggestedOwner" placeholder="Ej: Focal Squad Com / Strategy & Transformation / Staff">
+            </div>
+            <div class="form-group">
+              <label>Prioridad sugerida</label>
+              <input type="text" id="requestPrioritySuggested" readonly style="background:#F3F4F6; color:var(--text-muted); cursor:not-allowed;">
+            </div>
+          </div>
+          <div style="margin-top:14px; padding:12px; border-radius:8px; background:#F8FAFC; border:1px solid var(--border); font-size:12px; color:var(--text-muted);">
+            Al guardar, la solicitud quedará lista para futura integración con SharePoint y para envío de mail/Teams al solicitante y al aprobador inicial (mauro.gambardella@bayer.com).
           </div>
         </div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button><button class="btn" onclick="saveRequest()">Guardar solicitud</button></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
+          <button class="btn" onclick="saveRequest()">Guardar solicitud</button>
+        </div>
       </div>
     </div>
 
@@ -1540,6 +1780,65 @@ function calculateSuggestedPriority(impact, effort, urgency) {
   return 'Baja';
 }
 
+function openRequestModal(type) {
+  document.getElementById('requestModal').classList.add('show');
+  document.getElementById('requestId').value = '';
+  document.getElementById('requestType').value = type;
+  document.getElementById('requestModalTitle').textContent = type === 'communication'
+    ? 'Nuevo pedido de comunicación'
+    : 'Nueva iniciativa / proyecto';
+
+  document.getElementById('requestTitle').value = '';
+  document.getElementById('requestDescription').value = '';
+  document.getElementById('requestCategory').value = '';
+  document.getElementById('requestTargetDate').value = '';
+  document.getElementById('requestRequester').value = '';
+  document.getElementById('requestRequesterEmail').value = '';
+  document.getElementById('requestImpact').value = '3';
+  document.getElementById('requestEffort').value = '3';
+  document.getElementById('requestUrgency').value = '3';
+  document.getElementById('requestSuggestedPriority').value = 'Media';
+  document.getElementById('requestSponsor').value = '';
+  document.getElementById('requestAudience').value = '';
+  document.getElementById('requestChannel').value = '';
+
+  document.getElementById('initiativeFields').style.display = type === 'initiative' ? 'block' : 'none';
+  document.getElementById('communicationFields').style.display = type === 'communication' ? 'block' : 'none';
+}
+
+function saveRequest() {
+  const type = document.getElementById('requestType').value;
+  const impact = Number(document.getElementById('requestImpact').value || 0);
+  const effort = Number(document.getElementById('requestEffort').value || 0);
+  const urgency = Number(document.getElementById('requestUrgency').value || 0);
+  const suggestedPriority = calculateSuggestedPriority(impact, effort, urgency);
+
+  const item = {
+    id: nextRequestId(),
+    type,
+    title: document.getElementById('requestTitle').value.trim(),
+    description: document.getElementById('requestDescription').value.trim(),
+    category: document.getElementById('requestCategory').value,
+    requester: document.getElementById('requestRequester').value.trim(),
+    requesterEmail: document.getElementById('requestRequesterEmail').value.trim(),
+    status: 'Recibido',
+    priority: suggestedPriority,
+    targetDate: document.getElementById('requestTargetDate').value,
+    sponsor: document.getElementById('requestSponsor').value.trim(),
+    audience: document.getElementById('requestAudience').value.trim(),
+    channel: document.getElementById('requestChannel').value,
+    impact,
+    effort,
+    urgency,
+    suggestedPriority,
+    createdAt: new Date().toISOString()
+  };
+
+  if (!item.title) {
+    showToast('Completá al menos el título.');
+    return;
+  }
+
   requests.unshift(item);
   closeModal('requestModal');
   renderInitiativesPage();
@@ -1548,6 +1847,24 @@ function calculateSuggestedPriority(impact, effort, urgency) {
   renderFormsDashboard();
   showToast('Solicitud guardada correctamente.');
 }
+
+function renderInitiativesPage() {
+  const tbody = document.getElementById('initiativesTbody');
+  if (!tbody) return;
+
+  const q = (document.getElementById('initiativeSearch')?.value || '').toLowerCase();
+  const status = document.getElementById('initiativeStatusFilter')?.value || '';
+  const priority = document.getElementById('initiativePriorityFilter')?.value || '';
+
+  const rows = requests.filter(r => r.type === 'initiative')
+    .filter(r => !q || [r.id, r.title, r.category, r.requester].join(' ').toLowerCase().includes(q))
+    .filter(r => !status || r.status === status)
+    .filter(r => !priority || r.priority === priority);
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay iniciativas para mostrar.</td></tr>';
+    return;
+  }
 
   tbody.innerHTML = rows.map(r => `
     <tr>
@@ -1563,12 +1880,30 @@ function calculateSuggestedPriority(impact, effort, urgency) {
   `).join('');
 }
 
+function renderCommunicationPage() {
+  const tbody = document.getElementById('communicationTbody');
+  if (!tbody) return;
+
+  const q = (document.getElementById('communicationSearch')?.value || '').toLowerCase();
+  const status = document.getElementById('communicationStatusFilter')?.value || '';
+  const channel = document.getElementById('communicationChannelFilter')?.value || '';
+
+  const rows = requests.filter(r => r.type === 'communication')
+    .filter(r => !q || [r.id, r.title, r.audience, r.channel].join(' ').toLowerCase().includes(q))
+    .filter(r => !status || r.status === status)
+    .filter(r => !channel || r.channel === channel);
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay pedidos de comunicación para mostrar.</td></tr>';
+    return;
+  }
+
   tbody.innerHTML = rows.map(r => `
     <tr>
       <td>${r.id}</td>
       <td>${r.title}</td>
       <td>${r.audience || '-'}</td>
-      <td>${r.channel || '-'}</td>
+      <td>${r.category || r.channel || '-'}</td>
       <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
       <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
       <td>${r.targetDate || '-'}</td>
@@ -1576,6 +1911,25 @@ function calculateSuggestedPriority(impact, effort, urgency) {
     </tr>
   `).join('');
 }
+
+function renderEvaluationPage() {
+  const tbody = document.getElementById('evaluationTbody');
+  if (!tbody) return;
+
+  const openCount = requests.filter(r => !['Aprobado', 'Descartado'].includes(r.status)).length;
+  const evalCount = requests.filter(r => r.status === 'En evaluación').length;
+  const highCount = requests.filter(r => r.priority === 'Alta').length;
+  const approvedCount = requests.filter(r => r.status === 'Aprobado').length;
+
+  const elOpen = document.getElementById('kpiReqOpen'); if (elOpen) elOpen.textContent = openCount;
+  const elEval = document.getElementById('kpiReqEval'); if (elEval) elEval.textContent = evalCount;
+  const elHigh = document.getElementById('kpiReqHigh'); if (elHigh) elHigh.textContent = highCount;
+  const elApproved = document.getElementById('kpiReqApproved'); if (elApproved) elApproved.textContent = approvedCount;
+
+  if (!requests.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No hay solicitudes para evaluar.</td></tr>';
+    return;
+  }
 
   tbody.innerHTML = requests.map(r => `
     <tr>
@@ -1590,6 +1944,18 @@ function calculateSuggestedPriority(impact, effort, urgency) {
       <td><button class="btn btn-secondary btn-sm" onclick="viewRequest('${r.id}')">Ver</button></td>
     </tr>
   `).join('');
+}
+
+function renderFormsDashboard() {
+  const total = requests.length;
+  const initiatives = requests.filter(r => r.type === 'initiative').length;
+  const communication = requests.filter(r => r.type === 'communication').length;
+  const prioritized = total ? Math.round((requests.filter(r => ['Priorizado', 'Aprobado'].includes(r.status)).length / total) * 100) : 0;
+
+  const a = document.getElementById('kpiReqTotal'); if (a) a.textContent = total;
+  const b = document.getElementById('kpiReqInitiatives'); if (b) b.textContent = initiatives;
+  const c = document.getElementById('kpiReqCommunication'); if (c) c.textContent = communication;
+  const d = document.getElementById('kpiReqPrioritized'); if (d) d.textContent = prioritized + '%';
 }
 
 function viewRequest(id) {
