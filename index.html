@@ -819,11 +819,12 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <label>Categoría de comunicación <span class="required-star">*</span></label>
           <select id="requestCategory">
             <option value="">Seleccionar</option>
-            <option>Digital</option>
-            <option>Procesos</option>
-            <option>Automatización</option>
-            <option>Innovación</option>
-            <option>Otro</option>
+            <!-- luego las opciones reales -->
+            <option value="Digital">Digital</option>
+            <option value="Procesos">Procesos</option>
+            <option value="Automatizaciones">Automatización</option>
+            <option value="Innovación">Innovación</option>
+            <option value="Otro">Otro</option>
           </select>
         </div>
 
@@ -846,11 +847,12 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <label>Equipo del solicitante <span class="required-star">*</span></label>
           <select id="requestRequesterTeam" required>
             <option value="">-Seleccionar-</option>
-            <option>Customer Service</option>
-            <option>Demand Planning CP</option>
-            <option>Demand Planning Maiz</option>
-            <option>Impo & Expo</option>
-            <option>Strategy & Transformation</option>
+            <!-- luego las opciones reales -->
+            <option value="Customer Service">Customer Service</option>
+            <option value="Demand Planning CP">Demand Planning CP</option>
+            <option value="Demand Planning Maiz">Demand Planning Maiz</option>
+            <option value="Impo & Expo">Impo & Expo</option>
+            <option value="Strategy & Transformation">Strategy & Transformation</option>
           </select>
         </div>
 
@@ -858,9 +860,10 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <label>Impacto <span class="required-star">*</span></label>
           <select id="requestImpact" required>
             <option value="">-Seleccionar-</option>
-            <option>Baja</option>
-            <option>Media</option>
-            <option>Alta</option>
+            <!-- luego las opciones reales -->
+            <option value="Baja">Baja</option>
+            <option value="Media">Media</option>
+            <option value="Alta">Alta</option>
           </select>
         </div>
         <div class="form-group">
@@ -871,9 +874,10 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <label>Urgencia <span class="required-star">*</span></label>
           <select id="requestUrgency" required>
             <option value="">-Seleccionar-</option>
-            <option>Baja</option>
-            <option>Media</option>
-            <option>Alta</option>
+            <!-- luego las opciones reales -->
+            <option value="Baja">Baja</option>
+            <option value="Media">Media</option>
+            <option value="Alta">Alta</option>
           </select>
         </div>
 
@@ -894,16 +898,17 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               <input type="text" id="requestAudience" placeholder="Solo para comunicación">
             </div>
             <div class="form-group">
-              <label>Categoría</label>
-              <select id="requestChannel">
+              <label>Categoría de comunicación <span class="required-star">*</span></label>
+              <select id="requestChannel" required>
                 <option value="">Seleccionar</option>
-                <option>Portada SCM</option>
-                <option>Kick-off del mes</option>
-                <option>Operación & resultados</option>
-                <option>Personas & cultura</option>
-                <option>Información útil</option>
-                <option>Eventos</option>
-                <option>Otro</option>
+                <!-- luego las opciones reales -->
+                <option value="Portada SCM">Portada SCM</option>
+                <option value="Kick-off del mes">Kick-off del mes</option>
+                <option value="Operación & resultados">Operación & resultados</option>
+                <option value="Personas & cultura">Personas & cultura</option>
+                <option value="Información útil">Información útil</option>
+                <option value="Eventos">Eventos</option>
+                <option value="Otro">Otro</option>
               </select>
             </div>
           </div>
