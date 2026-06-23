@@ -221,6 +221,10 @@ tbody tr:hover { background: var(--bayer-light); }
 .auth-link:hover { text-decoration: underline; }
 .auth-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); margin-bottom: 16px; cursor: pointer; user-select: none; }
 .auth-check input { width: 16px; height: 16px; cursor: pointer; }
+
+.required-star{color:#DC2626;font-weight:700;margin-left:2px;}
+.field-error{border-color:#DC2626 !important; box-shadow:0 0 0 1px rgba(220,38,38,.15);}
+
 </style>
 </head>
 <body>
@@ -668,7 +672,7 @@ tbody tr:hover { background: var(--bayer-light); }
         <div class="form-group"><label>% Avance</label><input type="number" id="taskProgress" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed"></div>
         <div class="form-group"><label>Fecha inicio</label><input type="date" id="taskStart"></div>
         <div class="form-group"><label>Fecha fin objetivo</label><input type="date" id="taskEnd"></div>
-        <div class="form-group full"><label>Descripción *</label><textarea id="taskDesc"></textarea></div>
+        <div class="form-group full"><label>Descripción <span class="required-star">*</span></label><textarea id="taskDesc"></textarea></div>
         <div class="form-group full"><label>Notas</label><textarea id="taskNotes"></textarea></div>
       </div>
     </div>
@@ -706,7 +710,7 @@ tbody tr:hover { background: var(--bayer-light); }
       <input type="hidden" id="outcomeId">
       <div class="form-grid">
         <div class="form-group"><label>ID (ej: OC5)</label><input type="text" id="outcomeIdInput"></div>
-        <div class="form-group"><label>Título *</label><input type="text" id="outcomeTitle"></div>
+        <div class="form-group"><label>Título <span class="required-star">*</span></label><input type="text" id="outcomeTitle"></div>
         <div class="form-group full"><label>Descripción</label><textarea id="outcomeDesc"></textarea></div>
         <div class="form-group full"><label>KPIs asociados</label><input type="text" id="outcomeKpis"></div>
       </div>
@@ -803,7 +807,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
 
         <div class="form-group">
-          <label>Categoría de comunicación *</label>
+          <label>Categoría de comunicación <span class="required-star">*</span></label>
           <select id="requestCategory">
             <option value="">Seleccionar</option>
             <option>Digital</option>
@@ -815,22 +819,22 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
 
         <div class="form-group">
-          <label>Fecha objetivo / requerida *</label>
+          <label>Fecha objetivo / requerida <span class="required-star">*</span></label>
           <input type="date" id="requestTargetDate" required>
         </div>
 
         <div class="form-group">
-          <label>Solicitante *</label>
+          <label>Solicitante <span class="required-star">*</span></label>
           <input type="text" id="requestRequester" required>
         </div>
 
         <div class="form-group">
-          <label>Email solicitante *</label>
+          <label>Email solicitante <span class="required-star">*</span></label>
           <input type="email" id="requestRequesterEmail" required>
         </div>
 
         <div class="form-group">
-          <label>Equipo del solicitante *</label>
+          <label>Equipo del solicitante <span class="required-star">*</span></label>
           <select id="requestRequesterTeam" required>
             <option value="">Seleccionar</option>
             <option>Customer Service</option>
@@ -842,7 +846,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
 
         <div class="form-group">
-          <label>Impacto *</label>
+          <label>Impacto <span class="required-star">*</span></label>
           <select id="requestImpact">
             <option>Baja</option>
             <option selected>Media</option>
@@ -854,7 +858,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <input type="text" value="Lo completa el equipo aprobador en Evaluación" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
         </div>
 <div class="form-group">
-          <label>Urgencia *</label>
+          <label>Urgencia <span class="required-star">*</span></label>
           <select id="requestUrgency">
             <option>Baja</option>
             <option selected>Media</option>
@@ -875,7 +879,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         <div class="form-group full" id="communicationFields" style="display:none;">
           <div class="form-grid">
             <div class="form-group">
-              <label>Audiencia *</label>
+              <label>Audiencia <span class="required-star">*</span></label>
               <input type="text" id="requestAudience" placeholder="Solo para comunicación">
             </div>
             <div class="form-group">
@@ -902,6 +906,77 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
   </div>
 </div>
   
+
+<div class="modal-overlay" id="requestDetailModal">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-header">
+      <h3 id="requestDetailTitle">Detalle de solicitud</h3>
+      <button class="btn-icon" onclick="closeModal('requestDetailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="requestDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('requestDetailModal')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="requestEvaluationModal">
+  <div class="modal" style="max-width:920px;">
+    <div class="modal-header">
+      <h3 id="requestEvaluationTitle">Evaluación de solicitud</h3>
+      <button class="btn-icon" onclick="closeModal('requestEvaluationModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="evaluationRequestId">
+      <div id="evaluationRequestSummary" style="margin-bottom:16px;"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Aprobador</label>
+          <input type="text" id="evaluationApprover" value="mauro.gambardella@bayer.com">
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="evaluationStatus">
+            <option>Recibido</option>
+            <option>En evaluación</option>
+            <option>Requiere más info</option>
+            <option>Priorizado</option>
+            <option>Aprobado</option>
+            <option>Descartado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Esfuerzo</label>
+          <select id="evaluationEffort">
+            <option value="">Sin definir</option>
+            <option>Baja</option>
+            <option>Media</option>
+            <option>Alta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Acción</label>
+          <select id="evaluationDecision">
+            <option>Sin definir</option>
+            <option>Aprobar</option>
+            <option>Rechazar</option>
+            <option>Solicitar más info</option>
+            <option>Priorizar</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Comentario para el solicitante</label>
+          <textarea id="evaluationComment" placeholder="Devolución, pedido de más información o motivo de aprobación/rechazo"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('requestEvaluationModal')">Cancelar</button>
+      <button class="btn" onclick="saveRequestEvaluation()">Guardar evaluación</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1626,68 +1701,153 @@ function openRequestModal(type) {
   document.getElementById('communicationFields').style.display = type === 'communication' ? 'block' : 'none';
 }
 
+
+function clearRequestFieldErrors(){
+  ['requestTitle','requestDescription','requestCategory','requestTargetDate','requestRequester','requestRequesterEmail','requestRequesterTeam','requestImpact','requestUrgency','requestAudience'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.classList.remove('field-error');
+  });
+}
+function canManageRequest(r){
+  const email = (currentUser?.email || '').toLowerCase();
+  return isAdmin() || ((r.requesterEmail || '').toLowerCase() === email);
+}
+function editRequest(id){
+  const r = requests.find(x => x.id === id); if(!r) return;
+  openRequestModal(r.type);
+  document.getElementById('requestId').value = r.id;
+  document.getElementById('requestTitle').value = r.title || '';
+  document.getElementById('requestDescription').value = r.description || '';
+  document.getElementById('requestCategory').value = r.category || '';
+  document.getElementById('requestTargetDate').value = (r.targetDate || '').slice(0,10);
+  document.getElementById('requestRequester').value = r.requester || '';
+  document.getElementById('requestRequesterEmail').value = r.requesterEmail || '';
+  document.getElementById('requestRequesterTeam').value = r.requesterTeam || r.team || '';
+  document.getElementById('requestImpact').value = r.impact || 'Media';
+  document.getElementById('requestUrgency').value = r.urgency || 'Media';
+  document.getElementById('requestSponsor').value = r.sponsor || '';
+  document.getElementById('requestAudience').value = r.audience || '';
+  document.getElementById('requestSuggestedPriority').value = r.priority || '';
+}
+async function deleteRequest(id){
+  const r = requests.find(x => x.id === id); if(!r) return;
+  if(!canManageRequest(r)) { showToast('No tenés permisos para eliminar esta solicitud.'); return; }
+  if(!confirm('¿Querés eliminar esta solicitud?')) return;
+  requests = requests.filter(x => x.id !== id);
+  state.requests = requests;
+  if (typeof saveState === 'function') await saveState();
+  renderInitiativesPage(); renderCommunicationPage(); renderEvaluationPage(); renderFormsDashboard();
+  showToast('Solicitud eliminada correctamente.');
+}
+function openRequestDetail(id){
+  const r = requests.find(x => x.id === id); if(!r) return;
+  document.getElementById('requestDetailTitle').textContent = `${r.id} · ${r.title}`;
+  document.getElementById('requestDetailBody').innerHTML = `
+    <div class="form-grid">
+      <div class="form-group"><label>Tipo</label><input type="text" value="${r.type === 'communication' ? 'Comunicación' : 'Iniciativa / proyecto'}" readonly></div>
+      <div class="form-group"><label>Estado</label><input type="text" value="${r.status || '-'}" readonly></div>
+      <div class="form-group"><label>Categoría</label><input type="text" value="${r.category || '-'}" readonly></div>
+      <div class="form-group"><label>Fecha objetivo / requerida</label><input type="text" value="${r.targetDate || '-'}" readonly></div>
+      <div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester || '-'}" readonly></div>
+      <div class="form-group"><label>Email solicitante</label><input type="text" value="${r.requesterEmail || '-'}" readonly></div>
+      <div class="form-group"><label>Equipo del solicitante</label><input type="text" value="${r.requesterTeam || r.team || '-'}" readonly></div>
+      <div class="form-group"><label>Sponsor</label><input type="text" value="${r.sponsor || '-'}" readonly></div>
+      ${r.type === 'initiative' ? `<div class="form-group"><label>Impacto</label><input type="text" value="${r.impact || '-'}" readonly></div><div class="form-group"><label>Urgencia</label><input type="text" value="${r.urgency || '-'}" readonly></div>` : `<div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>`}
+      <div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div>
+    </div>`;
+  document.getElementById('requestDetailModal').classList.add('show');
+}
+function openRequestEvaluation(id){
+  const r = requests.find(x => x.id === id); if(!r) return;
+  document.getElementById('evaluationRequestId').value = r.id;
+  document.getElementById('requestEvaluationTitle').textContent = `Evaluación · ${r.id}`;
+  document.getElementById('evaluationApprover').value = r.approver || 'mauro.gambardella@bayer.com';
+  document.getElementById('evaluationStatus').value = r.status || 'Recibido';
+  document.getElementById('evaluationEffort').value = r.effort || '';
+  document.getElementById('evaluationDecision').value = r.decision || 'Sin definir';
+  document.getElementById('evaluationComment').value = r.reviewerComment || '';
+  document.getElementById('evaluationRequestSummary').innerHTML = `<div class="form-grid"><div class="form-group"><label>Título</label><input type="text" value="${r.title || ''}" readonly></div><div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester || ''}" readonly></div><div class="form-group"><label>Equipo</label><input type="text" value="${r.requesterTeam || r.team || ''}" readonly></div><div class="form-group"><label>Prioridad</label><input type="text" value="${r.priority || '-'}" readonly></div><div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div></div>`;
+  document.getElementById('requestEvaluationModal').classList.add('show');
+}
+async function saveRequestEvaluation(){
+  const id = document.getElementById('evaluationRequestId').value;
+  const r = requests.find(x => x.id === id); if(!r) return;
+  r.approver = document.getElementById('evaluationApprover').value.trim();
+  r.status = document.getElementById('evaluationStatus').value;
+  r.effort = document.getElementById('evaluationEffort').value;
+  r.decision = document.getElementById('evaluationDecision').value;
+  r.reviewerComment = document.getElementById('evaluationComment').value.trim();
+  state.requests = requests;
+  if (typeof saveState === 'function') await saveState();
+  closeModal('requestEvaluationModal');
+  renderInitiativesPage(); renderCommunicationPage(); renderEvaluationPage(); renderFormsDashboard();
+  showToast('Evaluación actualizada correctamente.');
+}
+
 async function saveRequest() {
   try {
+    clearRequestFieldErrors();
+    const requestId = document.getElementById('requestId').value;
     const type = document.getElementById('requestType').value;
-    const title = document.getElementById('requestTitle').value.trim();
-    const description = document.getElementById('requestDescription').value.trim();
-    const category = document.getElementById('requestCategory').value;
-    const targetDate = document.getElementById('requestTargetDate').value;
-    const requester = document.getElementById('requestRequester').value.trim();
-    const requesterEmail = document.getElementById('requestRequesterEmail').value.trim();
-    const requesterTeam = document.getElementById('requestRequesterTeam').value;
-    const impact = document.getElementById('requestImpact').value || '';
-    const urgency = document.getElementById('requestUrgency').value || '';
+    const titleEl = document.getElementById('requestTitle');
+    const descEl = document.getElementById('requestDescription');
+    const categoryEl = document.getElementById('requestCategory');
+    const dateEl = document.getElementById('requestTargetDate');
+    const requesterEl = document.getElementById('requestRequester');
+    const requesterEmailEl = document.getElementById('requestRequesterEmail');
+    const requesterTeamEl = document.getElementById('requestRequesterTeam');
+    const impactEl = document.getElementById('requestImpact');
+    const urgencyEl = document.getElementById('requestUrgency');
+    const audienceEl = document.getElementById('requestAudience');
+
+    const title = titleEl.value.trim();
+    const description = descEl.value.trim();
+    const category = categoryEl.value;
+    const targetDate = dateEl.value;
+    const requester = requesterEl.value.trim();
+    const requesterEmail = requesterEmailEl.value.trim();
+    const requesterTeam = requesterTeamEl.value;
+    const impact = document.getElementById('initiativeFields').style.display !== 'none' ? impactEl.value : '';
+    const urgency = document.getElementById('initiativeFields').style.display !== 'none' ? urgencyEl.value : '';
     const sponsor = document.getElementById('requestSponsor').value.trim();
+    const audience = document.getElementById('communicationFields').style.display !== 'none' ? audienceEl.value.trim() : '';
     const suggestedPriority = type === 'initiative' ? calculateSuggestedPriority(impact, '', urgency) : '';
 
-    const item = {
-      id: nextRequestId(),
-      type,
-      title,
-      description,
-      category,
-      channel: type === 'communication' ? category : '',
-      audience: type === 'communication' ? document.getElementById('requestAudience').value.trim() : '',
-      requester,
-      requesterEmail,
-      requesterTeam,
-      team: requesterTeam,
-      impact: type === 'initiative' ? impact : '',
-      effort: '',
-      urgency: type === 'initiative' ? urgency : '',
-      priority: suggestedPriority || 'Media',
-      sponsor,
-      targetDate,
-      status: 'Recibido',
-      createdAt: new Date().toISOString().slice(0,10)
-    };
-
-    if (!item.title || !item.description || !item.category || !item.targetDate || !item.requester || !item.requesterEmail || !item.requesterTeam) {
-      showToast('Completá todos los campos obligatorios.');
-      return;
-    }
-    if (type === 'initiative' && (!item.impact || !item.urgency)) {
-      showToast('Completá Impacto y Urgencia.');
-      return;
-    }
-    if (type === 'communication' && !item.audience) {
-      showToast('Completá la audiencia para Comunicación.');
+    const required = [titleEl, descEl, categoryEl, dateEl, requesterEl, requesterEmailEl, requesterTeamEl];
+    if (type === 'initiative') required.push(impactEl, urgencyEl);
+    if (type === 'communication') required.push(audienceEl);
+    let hasError = false;
+    required.forEach(el => {
+      const val = (el.value || '').trim();
+      if (!val) { el.classList.add('field-error'); hasError = true; }
+    });
+    if (hasError) {
+      showToast('Es necesario completar todos los campos obligatorios.');
       return;
     }
 
     requests = Array.isArray(requests) ? requests : [];
-    requests.unshift(item);
+    const existing = requestId ? requests.find(r => r.id === requestId) : null;
+    const item = existing || { id: nextRequestId(), createdAt: new Date().toISOString() };
+    Object.assign(item, {
+      type, title, description, category,
+      channel: type === 'communication' ? category : '',
+      audience, requester, requesterEmail, requesterTeam, team: requesterTeam,
+      impact: type === 'initiative' ? impact : '',
+      effort: existing?.effort || '',
+      urgency: type === 'initiative' ? urgency : '',
+      priority: suggestedPriority || existing?.priority || 'Media',
+      sponsor, targetDate, status: existing?.status || 'Recibido'
+    });
+
+    if (!existing) requests.unshift(item);
     state.requests = requests;
-    if (typeof saveState === 'function') {
-      await saveState();
-    }
+    if (typeof saveState === 'function') await saveState();
     closeModal('requestModal');
     renderInitiativesPage();
     renderCommunicationPage();
     renderEvaluationPage();
     renderFormsDashboard();
-    showToast('Solicitud guardada correctamente.');
+    showToast(requestId ? 'Solicitud actualizada correctamente.' : 'Solicitud guardada correctamente.');
   } catch (error) {
     console.error('Error al guardar solicitud:', error);
     showToast('Hubo un error al guardar la solicitud.');
@@ -1724,7 +1884,7 @@ function renderInitiativesPage() {
       <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
       <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
       <td>${r.targetDate || '-'}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="viewRequest('${r.id}')">Ver</button></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button> ${canManageRequest(r) ? `<button class=\"btn btn-sm\" onclick=\"editRequest('${r.id}')\">Editar</button> <button class=\"btn btn-danger btn-sm\" onclick=\"deleteRequest('${r.id}')\">Eliminar</button>` : ''}</td>
     </tr>
   `).join('');
 }
@@ -1759,7 +1919,7 @@ function renderCommunicationPage() {
       <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
       <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
       <td>${r.targetDate || '-'}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="viewRequest('${r.id}')">Ver</button></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button> ${canManageRequest(r) ? `<button class=\"btn btn-sm\" onclick=\"editRequest('${r.id}')\">Editar</button> <button class=\"btn btn-danger btn-sm\" onclick=\"deleteRequest('${r.id}')\">Eliminar</button>` : ''}</td>
     </tr>
   `).join('');
 }
@@ -1793,7 +1953,7 @@ function renderEvaluationPage() {
       <td>${r.effort ?? '-'}</td>
       <td>${r.urgency ?? '-'}</td>
       <td><span class="pill pill-${slugify(r.suggestedPriority || r.priority)}">${r.suggestedPriority || r.priority}</span></td>
-      <td><button class="btn btn-secondary btn-sm" onclick="viewRequest('${r.id}')">Ver</button></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button> ${canManageRequest(r) ? `<button class=\"btn btn-sm\" onclick=\"editRequest('${r.id}')\">Editar</button> <button class=\"btn btn-danger btn-sm\" onclick=\"deleteRequest('${r.id}')\">Eliminar</button>` : ''}</td>
     </tr>
   `).join('');
 }
@@ -1810,18 +1970,7 @@ function renderFormsDashboard() {
   const d = document.getElementById('kpiReqPrioritized'); if (d) d.textContent = prioritized + '%';
 }
 
-function viewRequest(id) {
-  const item = requests.find(r => r.id === id);
-  if (!item) return;
-  alert(
-    'ID: ' + item.id + '\n' +
-    'Tipo: ' + (item.type === 'communication' ? 'Comunicación' : 'Iniciativa') + '\n' +
-    'Título: ' + item.title + '\n' +
-    'Estado: ' + item.status + '\n' +
-    'Prioridad: ' + item.priority + '\n\n' +
-    (item.description || 'Sin descripción')
-  );
-}
+
 
 function slugify(v) {
   return String(v || '')
@@ -2127,6 +2276,18 @@ function setModalEditable(modalId, editable){
     });
   }
 });
+
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e){
+      if (e.target === overlay) { e.stopPropagation(); }
+    });
+  });
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', function(e){ e.stopPropagation(); });
+  });
+});
+
 buildTeamNav();
 applyFormsAdminVisibility();
 initApp();
