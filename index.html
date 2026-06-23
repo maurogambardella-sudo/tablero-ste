@@ -845,7 +845,6 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         <div class="form-group">
           <label>Equipo del solicitante <span class="required-star">*</span></label>
           <select id="requestRequesterTeam" required>
-<option value="">-Seleccionar-</option>
             <option value="">-Seleccionar-</option>
             <!-- luego las opciones reales -->
             <option value="Customer Service">Customer Service</option>
@@ -859,7 +858,6 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         <div class="form-group">
           <label>Impacto <span class="required-star">*</span></label>
           <select id="requestImpact" required>
-<option value="">-Seleccionar-</option>
             <option value="">-Seleccionar-</option>
             <!-- luego las opciones reales -->
             <option value="Baja">Baja</option>
@@ -874,7 +872,6 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
 <div class="form-group">
           <label>Urgencia <span class="required-star">*</span></label>
           <select id="requestUrgency" required>
-<option value="">-Seleccionar-</option>
             <option value="">-Seleccionar-</option>
             <!-- luego las opciones reales -->
             <option value="Baja">Baja</option>
@@ -903,7 +900,6 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               <label>Categoría de comunicación <span class="required-star">*</span></label>
               <select id="requestChannel" required>
 <option value="">-Seleccionar-</option>
-                <option value="">Seleccionar</option>
                 <!-- luego las opciones reales -->
                 <option value="Portada SCM">Portada SCM</option>
                 <option value="Kick-off del mes">Kick-off del mes</option>
@@ -1803,11 +1799,14 @@ async function saveRequestEvaluation(){
 async function saveRequest() {
   try {
     clearRequestFieldErrors();
+
     const requestId = document.getElementById('requestId').value;
     const type = document.getElementById('requestType').value;
+
     const titleEl = document.getElementById('requestTitle');
     const descEl = document.getElementById('requestDescription');
     const categoryEl = document.getElementById('requestCategory');
+    const channelEl = document.getElementById('requestChannel');
     const dateEl = document.getElementById('requestTargetDate');
     const requesterEl = document.getElementById('requestRequester');
     const requesterEmailEl = document.getElementById('requestRequesterEmail');
@@ -1815,28 +1814,43 @@ async function saveRequest() {
     const impactEl = document.getElementById('requestImpact');
     const urgencyEl = document.getElementById('requestUrgency');
     const audienceEl = document.getElementById('requestAudience');
+    const sponsorEl = document.getElementById('requestSponsor');
 
     const title = titleEl.value.trim();
     const description = descEl.value.trim();
-    const category = categoryEl.value;
+    const category = type === 'initiative' ? categoryEl.value : '';
+    const channel = type === 'communication' ? channelEl.value : '';
     const targetDate = dateEl.value;
     const requester = requesterEl.value.trim();
     const requesterEmail = requesterEmailEl.value.trim();
     const requesterTeam = requesterTeamEl.value;
-    const impact = document.getElementById('initiativeFields').style.display !== 'none' ? impactEl.value : '';
-    const urgency = document.getElementById('initiativeFields').style.display !== 'none' ? urgencyEl.value : '';
-    const sponsor = document.getElementById('requestSponsor').value.trim();
-    const audience = document.getElementById('communicationFields').style.display !== 'none' ? audienceEl.value.trim() : '';
-    const suggestedPriority = type === 'initiative' ? calculateSuggestedPriority(impact, '', urgency) : '';
+    const impact = type === 'initiative' ? impactEl.value : '';
+    const urgency = type === 'initiative' ? urgencyEl.value : '';
+    const sponsor = type === 'initiative' ? sponsorEl.value.trim() : '';
+    const audience = type === 'communication' ? audienceEl.value.trim() : '';
+    const suggestedPriority = type === 'initiative'
+      ? calculateSuggestedPriority(impact, '', urgency)
+      : '';
 
-    const required = [titleEl, descEl, categoryEl, dateEl, requesterEl, requesterEmailEl, requesterTeamEl];
-    if (type === 'initiative') required.push(impactEl, urgencyEl);
-    if (type === 'communication') required.push(audienceEl);
+    const required = [titleEl, descEl, dateEl, requesterEl, requesterEmailEl, requesterTeamEl];
+
+    if (type === 'initiative') {
+      required.push(categoryEl, impactEl, urgencyEl);
+    }
+
+    if (type === 'communication') {
+      required.push(audienceEl, channelEl);
+    }
+
     let hasError = false;
     required.forEach(el => {
       const val = (el.value || '').trim();
-      if (!val) { el.classList.add('field-error'); hasError = true; }
+      if (!val) {
+        el.classList.add('field-error');
+        hasError = true;
+      }
     });
+
     if (hasError) {
       showToast('Es necesario completar todos los campos obligatorios.');
       return;
@@ -1844,27 +1858,49 @@ async function saveRequest() {
 
     requests = Array.isArray(requests) ? requests : [];
     const existing = requestId ? requests.find(r => r.id === requestId) : null;
-    const item = existing || { id: nextRequestId(), createdAt: new Date().toISOString() };
+    const item = existing || {
+      id: nextRequestId(),
+      createdAt: new Date().toISOString()
+    };
+
     Object.assign(item, {
-      type, title, description, category,
-      channel: type === 'communication' ? category : '',
-      audience, requester, requesterEmail, requesterTeam, team: requesterTeam,
+      type,
+      title,
+      description,
+      category,
+      channel,
+      audience,
+      requester,
+      requesterEmail,
+      requesterTeam,
+      team: requesterTeam,
       impact: type === 'initiative' ? impact : '',
       effort: existing?.effort || '',
       urgency: type === 'initiative' ? urgency : '',
       priority: suggestedPriority || existing?.priority || 'Media',
-      sponsor, targetDate, status: existing?.status || 'Recibido'
+      suggestedPriority: suggestedPriority || existing?.suggestedPriority || '',
+      sponsor,
+      targetDate,
+      status: existing?.status || 'Recibido'
     });
 
     if (!existing) requests.unshift(item);
+
     state.requests = requests;
+
     if (typeof saveState === 'function') await saveState();
+
     closeModal('requestModal');
     renderInitiativesPage();
     renderCommunicationPage();
     renderEvaluationPage();
     renderFormsDashboard();
-    showToast(requestId ? 'Solicitud actualizada correctamente.' : 'Solicitud guardada correctamente.');
+
+    showToast(
+      requestId
+        ? 'Solicitud actualizada correctamente.'
+        : 'Solicitud guardada correctamente.'
+    );
   } catch (error) {
     console.error('Error al guardar solicitud:', error);
     showToast('Hubo un error al guardar la solicitud.');
