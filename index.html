@@ -857,8 +857,9 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         <div class="form-group">
           <label>Impacto <span class="required-star">*</span></label>
           <select id="requestImpact">
+            <option value="">-Seleccionar-</option>
             <option>Baja</option>
-            <option selected>Media</option>
+            <option>Media</option>
             <option>Alta</option>
           </select>
         </div>
@@ -869,8 +870,9 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
 <div class="form-group">
           <label>Urgencia <span class="required-star">*</span></label>
           <select id="requestUrgency">
+            <option value="">Seleccionar</option>
             <option>Baja</option>
-            <option selected>Media</option>
+            <option>Media</option>
             <option>Alta</option>
           </select>
         </div>
@@ -2186,8 +2188,18 @@ async function importUsers(){
 }
 
 // ─── MODALS ───────────────────────────────────────────────────────────────────
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+function closeModal(id){
+  const el = document.getElementById(id);
+  if (el) el.classList.remove("show");
+}
+
+// Desactivar cierre por clic fuera para todos los modales
+document.querySelectorAll(".modal-overlay").forEach(o=>{
+  o.addEventListener("click", e=>{
+    // No hacemos nada al clickear el overlay
+    // Solo se cierra con el botón "Cancelar" o la X
+  });
+});
 
 // ─── FILTERS ──────────────────────────────────────────────────────────────────
 function initFilters(){
