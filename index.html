@@ -1604,10 +1604,13 @@ function openRequestModal(type) {
   document.getElementById('requestModalTitle').textContent = type === 'communication'
     ? 'Nuevo pedido de comunicación'
     : 'Nueva iniciativa / proyecto';
+  const isCommunication = type === 'communication';
+  const categoryLabel = document.querySelector('label[for="requestCategory"]') || document.querySelector('#requestCategory')?.closest('.form-group')?.querySelector('label');
+  if (categoryLabel) categoryLabel.textContent = isCommunication ? 'Categoría de comunicación *' : 'Categoría *';
 
   document.getElementById('requestTitle').value = '';
   document.getElementById('requestDescription').value = '';
-  document.getElementById('requestCategory').value = '';
+  document.getElementById('requestCategory').value = type === 'communication' ? 'Portada SCM' : 'Digital';
   document.getElementById('requestTargetDate').value = '';
   document.getElementById('requestRequester').value = currentUser.email ? (currentUser.email.split('@')[0].replace('.', ' ')) : '';
   document.getElementById('requestRequesterEmail').value = currentUser.email || '';
@@ -1623,58 +1626,72 @@ function openRequestModal(type) {
   document.getElementById('communicationFields').style.display = type === 'communication' ? 'block' : 'none';
 }
 
-function saveRequest() {
-  const type = document.getElementById('requestType').value;
-  const impact = document.getElementById('requestImpact').value || '';
-  const effort = '';
-  const urgency = document.getElementById('requestUrgency').value || '';
-  const suggestedPriority = type === 'initiative' ? calculateSuggestedPriority(impact, effort, urgency) : '';
+async function saveRequest() {
+  try {
+    const type = document.getElementById('requestType').value;
+    const title = document.getElementById('requestTitle').value.trim();
+    const description = document.getElementById('requestDescription').value.trim();
+    const category = document.getElementById('requestCategory').value;
+    const targetDate = document.getElementById('requestTargetDate').value;
+    const requester = document.getElementById('requestRequester').value.trim();
+    const requesterEmail = document.getElementById('requestRequesterEmail').value.trim();
+    const requesterTeam = document.getElementById('requestRequesterTeam').value;
+    const impact = document.getElementById('requestImpact').value || '';
+    const urgency = document.getElementById('requestUrgency').value || '';
+    const sponsor = document.getElementById('requestSponsor').value.trim();
+    const suggestedPriority = type === 'initiative' ? calculateSuggestedPriority(impact, '', urgency) : '';
 
-  const item = {
-    id: nextRequestId(),
-    type,
-    title: document.getElementById('requestTitle').value.trim(),
-    description: document.getElementById('requestDescription').value.trim(),
-    category: document.getElementById('requestCategory').value,
-    requester: document.getElementById('requestRequester').value.trim(),
-    requesterEmail: document.getElementById('requestRequesterEmail').value.trim(),
-    requesterTeam: document.getElementById('requestRequesterTeam').value,
-    team: document.getElementById('requestRequesterTeam').value,
-    status: 'Recibido',
-    priority: suggestedPriority || 'Media',
-    targetDate: document.getElementById('requestTargetDate').value,
-    sponsor: document.getElementById('requestSponsor').value.trim(),
-    audience: document.getElementById('requestAudience').value.trim(),
-    channel: document.getElementById('requestChannel').value,
-    impact,
-    effort,
-    urgency,
-    suggestedPriority,
-    createdAt: new Date().toISOString()
-  };
+    const item = {
+      id: nextRequestId(),
+      type,
+      title,
+      description,
+      category,
+      channel: type === 'communication' ? category : '',
+      audience: type === 'communication' ? document.getElementById('requestAudience').value.trim() : '',
+      requester,
+      requesterEmail,
+      requesterTeam,
+      team: requesterTeam,
+      impact: type === 'initiative' ? impact : '',
+      effort: '',
+      urgency: type === 'initiative' ? urgency : '',
+      priority: suggestedPriority || 'Media',
+      sponsor,
+      targetDate,
+      status: 'Recibido',
+      createdAt: new Date().toISOString().slice(0,10)
+    };
 
-  if (!item.title || !item.description || !item.category || !item.targetDate || !item.requester || !item.requesterEmail || !item.requesterTeam) {
-    showToast('Completá todos los campos obligatorios.');
-    return;
-  }
-  if (type === 'initiative' && (!item.impact || !item.urgency)) {
-    showToast('Completá Impacto y Urgencia.');
-    return;
-  }
-  if (type === 'communication' && (!item.audience || !item.channel)) {
-    showToast('Completá todos los campos obligatorios de Comunicación.');
-    return;
-  }
+    if (!item.title || !item.description || !item.category || !item.targetDate || !item.requester || !item.requesterEmail || !item.requesterTeam) {
+      showToast('Completá todos los campos obligatorios.');
+      return;
+    }
+    if (type === 'initiative' && (!item.impact || !item.urgency)) {
+      showToast('Completá Impacto y Urgencia.');
+      return;
+    }
+    if (type === 'communication' && !item.audience) {
+      showToast('Completá la audiencia para Comunicación.');
+      return;
+    }
 
-  requests.unshift(item);
-  state.requests = requests;
-  saveState();
-  closeModal('requestModal');
-  renderInitiativesPage();
-  renderCommunicationPage();
-  renderEvaluationPage();
-  renderFormsDashboard();
-  showToast('Solicitud guardada correctamente.');
+    requests = Array.isArray(requests) ? requests : [];
+    requests.unshift(item);
+    state.requests = requests;
+    if (typeof saveState === 'function') {
+      await saveState();
+    }
+    closeModal('requestModal');
+    renderInitiativesPage();
+    renderCommunicationPage();
+    renderEvaluationPage();
+    renderFormsDashboard();
+    showToast('Solicitud guardada correctamente.');
+  } catch (error) {
+    console.error('Error al guardar solicitud:', error);
+    showToast('Hubo un error al guardar la solicitud.');
+  }
 }
 
 function renderInitiativesPage() {
