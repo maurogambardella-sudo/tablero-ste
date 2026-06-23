@@ -985,12 +985,12 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <input type="hidden" id="requestType">
           <div class="form-grid">
             <div class="form-group full">
-              <label>Título</label>
-              <input type="text" id="requestTitle">
+              <label>Título *</label>
+              <input type="text" id="requestTitle" required>
             </div>
             <div class="form-group">
-              <label>Equipo</label>
-              <select id="requestTeam">
+              <label>Equipo del solicitante *</label>
+              <select id="requestTeam" required>
                 <option>Customer Service</option>
                 <option>Demand Planning CP</option>
                 <option>Demand Planning Maiz</option>
@@ -1009,11 +1009,11 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               </select>
             </div>
             <div class="form-group full">
-              <label>Descripción</label>
-              <textarea id="requestDescription"></textarea>
+              <label>Descripción *</label>
+              <textarea id="requestDescription" required></textarea>
             </div>
             <div class="form-group" id="requestImpactGroup">
-              <label>Impacto</label>
+              <label>Impacto *</label>
               <select id="requestImpact">
                 <option>Baja</option>
                 <option>Media</option>
@@ -1021,7 +1021,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               </select>
             </div>
             <div class="form-group" id="requestUrgencyGroup">
-              <label>Urgencia</label>
+              <label>Urgencia *</label>
               <select id="requestUrgency">
                 <option>Baja</option>
                 <option>Media</option>
@@ -1029,11 +1029,11 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               </select>
             </div>
             <div class="form-group" id="requestAudienceGroup" style="display:none;">
-              <label>Audiencia</label>
+              <label>Audiencia *</label>
               <input type="text" id="requestAudience">
             </div>
             <div class="form-group" id="requestChannelGroup" style="display:none;">
-              <label>Categoría de comunicación</label>
+              <label>Categoría de comunicación *</label>
               <select id="requestChannel">
                 <option>Portada SCM</option>
                 <option>Kick-off del mes</option>
@@ -1045,7 +1045,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               </select>
             </div>
             <div class="form-group" id="requestFormatGroup" style="display:none;">
-              <label>Formato sugerido</label>
+              <label>Formato sugerido *</label>
               <select id="requestFormat">
                 <option>Plantilla Canva</option>
                 <option>Mail breve</option>
@@ -1056,7 +1056,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               </select>
             </div>
             <div class="form-group" id="requestMetricGroup" style="display:none;">
-              <label>Métrica principal</label>
+              <label>Métrica principal *</label>
               <select id="requestMetric">
                 <option>Likes</option>
                 <option>Quiz</option>
@@ -1067,8 +1067,12 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               </select>
             </div>
             <div class="form-group">
-              <label>Fecha objetivo / requerida</label>
-              <input type="date" id="requestTargetDate">
+              <label>Fecha objetivo / requerida *</label>
+              <input type="date" id="requestTargetDate" required>
+            </div>
+            <div class="form-group">
+              <label>Sponsor</label>
+              <input type="text" id="requestSponsor" placeholder="Opcional">
             </div>
             <div class="form-group full" id="requestSuggestedOwnerGroup" style="display:none;">
               <label>Responsable / referencia sugerida</label>
