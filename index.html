@@ -815,17 +815,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <div id="reqAttachmentsList"></div>
         </div>
 
-        <div class="form-group">
-  <label>Categoría de iniciativa / proyecto <span class="required-star">*</span></label>
-  <select id="requestCategory" required>
-    <option value="">-Seleccionar-</option>
-    <option value="Digital">Digital</option>
-    <option value="Procesos">Procesos</option>
-    <option value="Automatización">Automatización</option>
-    <option value="Innovación">Innovación</option>
-    <option value="Otro">Otro</option>
-  </select>
-</div>
+     
 
         <div class="form-group">
           <label>Fecha objetivo / requerida <span class="required-star">*</span></label>
@@ -886,9 +876,25 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
 
         <div class="form-group full" id="initiativeFields">
+          <div class="form-grid">
+    <div class="form-group">
+      <label>Categoría de iniciativa <span class="required-star">*</span></label>
+      <select id="requestCategory">
+        <option value="">Seleccionar</option>
+        <option value="Digital">Digital</option>
+        <option value="Procesos">Procesos</option>
+        <option value="Automatización">Automatización</option>
+        <option value="Innovación">Innovación</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+            
+          <div class="form-group"> 
           <label>Sponsor / área impulsora</label>
           <input type="text" id="requestSponsor" placeholder="Solo para iniciativas / proyectos">
         </div>
+  </div>
+</div>
 
         <div class="form-group full" id="communicationFields" style="display:none;">
           <div class="form-grid">
