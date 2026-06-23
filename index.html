@@ -791,20 +791,22 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
       <h3 id="requestModalTitle">Nueva solicitud</h3>
       <button class="btn-icon" onclick="closeModal('requestModal')">✕</button>
     </div>
+
     <div class="modal-body">
       <input type="hidden" id="requestId">
       <input type="hidden" id="requestType">
 
       <div class="form-grid">
         <div class="form-group full">
-          <label>Título</label>
-          <input type="text" id="requestTitle" required>
+          <label>Título <span class="required-star">*</span></label>
+          <input type="text" id="requestTitle">
         </div>
 
         <div class="form-group full">
-          <label>Descripción</label>
-          <textarea id="requestDescription" required></textarea>
+          <label>Descripción <span class="required-star">*</span></label>
+          <textarea id="requestDescription"></textarea>
         </div>
+
         <div class="form-group full">
           <label>Adjuntar archivos / links</label>
           <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:flex-end; margin-bottom:8px;">
@@ -815,41 +817,25 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <div id="reqAttachmentsList"></div>
         </div>
 
-     <div class="form-group full" id="initiativeFields">
-          <div class="form-grid">
-    <div class="form-group">
-      <label>Categoría de iniciativa <span class="required-star">*</span></label>
-      <select id="requestCategory">
-        <option value="">Seleccionar</option>
-        <option value="Digital">Digital</option>
-        <option value="Procesos">Procesos</option>
-        <option value="Automatización">Automatización</option>
-        <option value="Innovación">Innovación</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </div>
-
-
         <div class="form-group">
           <label>Fecha objetivo / requerida <span class="required-star">*</span></label>
-          <input type="date" id="requestTargetDate" required>
+          <input type="date" id="requestTargetDate">
         </div>
 
         <div class="form-group">
           <label>Solicitante <span class="required-star">*</span></label>
-          <input type="text" id="requestRequester" required>
+          <input type="text" id="requestRequester">
         </div>
 
         <div class="form-group">
           <label>Email solicitante <span class="required-star">*</span></label>
-          <input type="email" id="requestRequesterEmail" required>
+          <input type="email" id="requestRequesterEmail">
         </div>
 
         <div class="form-group">
           <label>Equipo del solicitante <span class="required-star">*</span></label>
-          <select id="requestRequesterTeam" required>
+          <select id="requestRequesterTeam">
             <option value="">-Seleccionar-</option>
-            <!-- luego las opciones reales -->
             <option value="Customer Service">Customer Service</option>
             <option value="Demand Planning CP">Demand Planning CP</option>
             <option value="Demand Planning Maiz">Demand Planning Maiz</option>
@@ -858,43 +844,56 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           </select>
         </div>
 
-        <div class="form-group">
-          <label>Impacto <span class="required-star">*</span></label>
-          <select id="requestImpact" required>
-            <option value="">-Seleccionar-</option>
-            <!-- luego las opciones reales -->
-            <option value="Baja">Baja</option>
-            <option value="Media">Media</option>
-            <option value="Alta">Alta</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Esfuerzo</label>
-          <input type="text" value="Lo completa el equipo aprobador en Evaluación" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
-        </div>
-<div class="form-group">
-          <label>Urgencia <span class="required-star">*</span></label>
-          <select id="requestUrgency" required>
-            <option value="">-Seleccionar-</option>
-            <!-- luego las opciones reales -->
-            <option value="Baja">Baja</option>
-            <option value="Media">Media</option>
-            <option value="Alta">Alta</option>
-          </select>
-        </div>
+        <div class="form-group full" id="initiativeFields" style="display:none;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Categoría de iniciativa <span class="required-star">*</span></label>
+              <select id="requestCategory">
+                <option value="">Seleccionar</option>
+                <option value="Digital">Digital</option>
+                <option value="Procesos">Procesos</option>
+                <option value="Automatización">Automatización</option>
+                <option value="Innovación">Innovación</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
 
-        <div class="form-group">
-          <label>Prioridad sugerida</label>
-          <input type="text" id="requestSuggestedPriority" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
-        </div>
+            <div class="form-group">
+              <label>Impacto <span class="required-star">*</span></label>
+              <select id="requestImpact">
+                <option value="">-Seleccionar-</option>
+                <option value="Baja">Baja</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
 
-            
-          <div class="form-group"> 
-          <label>Sponsor / área impulsora</label>
-          <input type="text" id="requestSponsor" placeholder="Solo para iniciativas / proyectos">
+            <div class="form-group">
+              <label>Urgencia <span class="required-star">*</span></label>
+              <select id="requestUrgency">
+                <option value="">-Seleccionar-</option>
+                <option value="Baja">Baja</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Prioridad sugerida</label>
+              <input type="text" id="requestSuggestedPriority" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
+            </div>
+
+            <div class="form-group">
+              <label>Esfuerzo</label>
+              <input type="text" value="Lo completa el equipo aprobador en Evaluación" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
+            </div>
+
+            <div class="form-group">
+              <label>Sponsor / área impulsora</label>
+              <input type="text" id="requestSponsor" placeholder="Solo para iniciativas / proyectos">
+            </div>
+          </div>
         </div>
-  </div>
-</div>
 
         <div class="form-group full" id="communicationFields" style="display:none;">
           <div class="form-grid">
@@ -903,22 +902,24 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               <input type="text" id="requestAudience" placeholder="Solo para comunicación">
             </div>
 
-             <div class="form-group">
-      <label>Categoría de comunicación <span class="required-star">*</span></label>
-      <select id="requestChannel">
-        <option value="">Seleccionar</option>
-        <option value="Portada SCM">Portada SCM</option>
-        <option value="Kick-off del mes">Kick-off del mes</option>
-        <option value="Operación / resultados">Operación / resultados</option>
-        <option value="Personas / cultura">Personas / cultura</option>
-        <option value="Información útil">Información útil</option>
-        <option value="Eventos">Eventos</option>
-        <option value="Otro">Otro</option>
-      </select>
+            <div class="form-group">
+              <label>Categoría de comunicación <span class="required-star">*</span></label>
+              <select id="requestChannel">
+                <option value="">Seleccionar</option>
+                <option value="Portada SCM">Portada SCM</option>
+                <option value="Kick-off del mes">Kick-off del mes</option>
+                <option value="Operación / resultados">Operación / resultados</option>
+                <option value="Personas / cultura">Personas / cultura</option>
+                <option value="Información útil">Información útil</option>
+                <option value="Eventos">Eventos</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-            
+
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
       <button class="btn" onclick="saveRequest()">Guardar</button>
@@ -1720,9 +1721,22 @@ function openRequestModal(type) {
 }
 
 
-function clearRequestFieldErrors(){
-  ['requestTitle','requestDescription','requestCategory','requestTargetDate','requestRequester','requestRequesterEmail','requestRequesterTeam','requestImpact','requestUrgency','requestAudience'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.classList.remove('field-error');
+function clearRequestFieldErrors() {
+  [
+    'requestTitle',
+    'requestDescription',
+    'requestCategory',
+    'requestChannel',
+    'requestTargetDate',
+    'requestRequester',
+    'requestRequesterEmail',
+    'requestRequesterTeam',
+    'requestImpact',
+    'requestUrgency',
+    'requestAudience'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('field-error');
   });
 }
 function canManageRequest(r){
@@ -1730,21 +1744,26 @@ function canManageRequest(r){
   return isAdmin() || ((r.requesterEmail || '').toLowerCase() === email);
 }
 function editRequest(id){
-  const r = requests.find(x => x.id === id); if(!r) return;
+  const r = requests.find(x => x.id === id);
+  if(!r) return;
+
   openRequestModal(r.type);
+
   document.getElementById('requestId').value = r.id;
   document.getElementById('requestTitle').value = r.title || '';
   document.getElementById('requestDescription').value = r.description || '';
-  document.getElementById('requestCategory').value = r.category || '';
   document.getElementById('requestTargetDate').value = (r.targetDate || '').slice(0,10);
   document.getElementById('requestRequester').value = r.requester || '';
   document.getElementById('requestRequesterEmail').value = r.requesterEmail || '';
   document.getElementById('requestRequesterTeam').value = r.requesterTeam || r.team || '';
-  document.getElementById('requestImpact').value = r.impact || 'Media';
-  document.getElementById('requestUrgency').value = r.urgency || 'Media';
+
+  document.getElementById('requestCategory').value = r.category || '';
+  document.getElementById('requestChannel').value = r.channel || '';
+  document.getElementById('requestImpact').value = r.impact || '';
+  document.getElementById('requestUrgency').value = r.urgency || '';
   document.getElementById('requestSponsor').value = r.sponsor || '';
   document.getElementById('requestAudience').value = r.audience || '';
-  document.getElementById('requestSuggestedPriority').value = r.priority || '';
+  document.getElementById('requestSuggestedPriority').value = r.suggestedPriority || r.priority || '';
 }
 async function deleteRequest(id){
   const r = requests.find(x => x.id === id); if(!r) return;
