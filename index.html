@@ -815,7 +815,38 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <div id="reqAttachmentsList"></div>
         </div>
 
-     
+     <div class="form-group full" id="initiativeFields">
+          <div class="form-grid">
+    <div class="form-group">
+      <label>Categoría de iniciativa <span class="required-star">*</span></label>
+      <select id="requestCategory">
+        <option value="">Seleccionar</option>
+        <option value="Digital">Digital</option>
+        <option value="Procesos">Procesos</option>
+        <option value="Automatización">Automatización</option>
+        <option value="Innovación">Innovación</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+
+            <div class="form-group">
+              <label>Categoría de comunicación <span class="required-star">*</span></label>
+              <select id="requestChannel" required>
+<option value="">-Seleccionar-</option>
+                <!-- luego las opciones reales -->
+                <option value="Portada SCM">Portada SCM</option>
+                <option value="Kick-off del mes">Kick-off del mes</option>
+                <option value="Operación & resultados">Operación & resultados</option>
+                <option value="Personas & cultura">Personas & cultura</option>
+                <option value="Información útil">Información útil</option>
+                <option value="Eventos">Eventos</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
         <div class="form-group">
           <label>Fecha objetivo / requerida <span class="required-star">*</span></label>
@@ -875,19 +906,6 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <input type="text" id="requestSuggestedPriority" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed;">
         </div>
 
-        <div class="form-group full" id="initiativeFields">
-          <div class="form-grid">
-    <div class="form-group">
-      <label>Categoría de iniciativa <span class="required-star">*</span></label>
-      <select id="requestCategory">
-        <option value="">Seleccionar</option>
-        <option value="Digital">Digital</option>
-        <option value="Procesos">Procesos</option>
-        <option value="Automatización">Automatización</option>
-        <option value="Innovación">Innovación</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </div>
             
           <div class="form-group"> 
           <label>Sponsor / área impulsora</label>
@@ -902,24 +920,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
               <label>Audiencia <span class="required-star">*</span></label>
               <input type="text" id="requestAudience" placeholder="Solo para comunicación">
             </div>
-            <div class="form-group">
-              <label>Categoría de comunicación <span class="required-star">*</span></label>
-              <select id="requestChannel" required>
-<option value="">-Seleccionar-</option>
-                <!-- luego las opciones reales -->
-                <option value="Portada SCM">Portada SCM</option>
-                <option value="Kick-off del mes">Kick-off del mes</option>
-                <option value="Operación & resultados">Operación & resultados</option>
-                <option value="Personas & cultura">Personas & cultura</option>
-                <option value="Información útil">Información útil</option>
-                <option value="Eventos">Eventos</option>
-                <option value="Otro">Otro</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
       <button class="btn" onclick="saveRequest()">Guardar</button>
