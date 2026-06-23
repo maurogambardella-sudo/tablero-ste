@@ -805,6 +805,15 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
           <label>Descripción</label>
           <textarea id="requestDescription" required></textarea>
         </div>
+        <div class="form-group full">
+          <label>Adjuntar archivos / links</label>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:flex-end; margin-bottom:8px;">
+            <input type="file" id="reqFileInput" style="flex:1; min-width:180px;">
+            <input type="text" id="reqFileLabel" placeholder="Descripción del archivo (opcional)" style="flex:1; min-width:140px;">
+            <button type="button" class="btn btn-sm" onclick="addReqAttachment()">Agregar</button>
+          </div>
+          <div id="reqAttachmentsList"></div>
+        </div>
 
         <div class="form-group">
           <label>Categoría de comunicación <span class="required-star">*</span></label>
