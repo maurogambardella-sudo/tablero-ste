@@ -1706,14 +1706,14 @@ function openRequestModal(type) {
 
   document.getElementById('requestTitle').value = '';
   document.getElementById('requestDescription').value = '';
-  document.getElementById('requestCategory').value = type === 'communication' ? 'Portada SCM' : 'Digital';
+  document.getElementById('requestCategory').value = type === 'communication' ? '' : '';
   document.getElementById('requestTargetDate').value = '';
   document.getElementById('requestRequester').value = currentUser.email ? (currentUser.email.split('@')[0].replace('.', ' ')) : '';
   document.getElementById('requestRequesterEmail').value = currentUser.email || '';
   document.getElementById('requestRequesterTeam').value = currentUser.team || '';
-  document.getElementById('requestImpact').value = 'Media';
-  document.getElementById('requestUrgency').value = 'Media';
-  document.getElementById('requestSuggestedPriority').value = 'Media';
+  document.getElementById('requestImpact').value = '';
+  document.getElementById('requestUrgency').value = '';
+  document.getElementById('requestSuggestedPriority').value = '';
   document.getElementById('requestSponsor').value = '';
   document.getElementById('requestAudience').value = '';
   document.getElementById('requestChannel').value = '';
