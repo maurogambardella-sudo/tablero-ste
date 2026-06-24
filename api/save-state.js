@@ -212,15 +212,20 @@ module.exports = async function handler(req, res) {
       const taskRows = tasks
         .filter(t => t.team === me.team)
         .map(t => { const r = mapTask(t); r.team = me.team; return r; });
+      const requestRows = requests
+    .filter(r => (r.team || r.requesterTeam) === me.team)
+    .map(r => { const x = mapRequest(r); x.team = me.team; x.requester_team = x.requester_team || me.team; return x; });
 
       await Promise.all([
         upsert('outputs', outputRows),
-        upsert('tasks', taskRows)
+        upsert('tasks', taskRows),
+        upsert('requests', requestRows)
       ]);
       // Borrar solo lo de su equipo que el editor eliminó (nunca otros equipos).
       await Promise.all([
         deleteRemovedScoped('outputs', me.team, outputRows.map(r => r.id)),
-        deleteRemovedScoped('tasks', me.team, taskRows.map(r => r.id))
+        deleteRemovedScoped('tasks', me.team, taskRows.map(r => r.id)),
+        deleteRemovedScoped('requests', me.team, requestRows.map(r => r.id))
       ]);
       return res.status(200).json({ ok: true });
     }
