@@ -155,6 +155,33 @@ function mapMember(m) {
   };
 }
 
+function mapRequest(r) {
+  return {
+    id: r.id,
+    type: r.type ?? '',
+    title: r.title ?? '',
+    description: r.description ?? '',
+    category: r.category ?? '',
+    requester: r.requester ?? '',
+    requester_email: r.requesterEmail ?? '',
+    requester_team: r.requesterTeam ?? '',
+    team: r.team ?? r.requesterTeam ?? '',
+    status: r.status ?? '',
+    priority: r.priority ?? '',
+    target_date: r.targetDate ?? '',
+    sponsor: r.sponsor ?? '',
+    audience: r.audience ?? '',
+    channel: r.channel ?? '',
+    impact: r.impact === '' || r.impact == null ? null : r.impact,
+    effort: r.effort === '' || r.effort == null ? null : r.effort,
+    urgency: r.urgency === '' || r.urgency == null ? null : r.urgency,
+    suggested_priority: r.suggestedPriority ?? '',
+    approver: r.approver ?? '',
+    evaluation_comment: r.evaluationComment ?? '',
+    created_at: r.createdAt ?? null
+  };
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -170,7 +197,7 @@ module.exports = async function handler(req, res) {
       return res.status(403).json({ error: 'Tu usuario es de solo consulta: no podés guardar cambios.' });
     }
 
-    const { outcomes = [], outputs = [], tasks = [], team = [], config = {} } = req.body;
+    const { outcomes = [], outputs = [], tasks = [], team = [], requests = [], config = {} } = req.body;
 
     // ── EDITOR: solo puede tocar outputs y tasks de SU equipo ──
     if (me.role === 'editor') {
@@ -202,6 +229,7 @@ module.exports = async function handler(req, res) {
     const outputRows = outputs.map(mapOutput);
     const taskRows = tasks.map(mapTask);
     const teamRows = team.map(mapMember);
+    const requestRows = requests.map(mapRequest);
 
     // 1) Primero insertar/actualizar todo (la base NUNCA queda vacía).
     await Promise.all([
@@ -209,6 +237,7 @@ module.exports = async function handler(req, res) {
       upsert('outputs', outputRows),
       upsert('tasks', taskRows),
       upsert('team', teamRows),
+      upsert('requests', requestRows),
       upsert('config', [{
         id: 1,
         cycle_start: config.cycleStart,
@@ -223,6 +252,7 @@ module.exports = async function handler(req, res) {
       deleteRemoved('outputs', outputRows.map(r => r.id)),
       deleteRemoved('tasks', taskRows.map(r => r.id)),
       deleteRemoved('team', teamRows.map(r => r.id))
+      deleteRemoved('requests', requestRows.map(r => r.id))
     ]);
 
     res.status(200).json({ ok: true });
