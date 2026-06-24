@@ -1317,8 +1317,19 @@ requests = state.requests;
           progressMode:  data.config.progress_mode || SEED.config.progressMode
         };
       }
-      setSyncStatus(true);
+
+      const isTotallyEmpty =
+      !state.outcomes.length &&
+      !state.outputs.length &&
+      !state.tasks.length &&
+      !state.team.length &&
+      !state.requests.length;
+
+    if (isTotallyEmpty) {
+      await saveState();
     } else {
+      setSyncStatus(true);
+    } 
       // Base de datos vacía → sembrar datos iniciales
       await saveState();
     }
