@@ -2407,15 +2407,7 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 
-buildTeamNav();
-applyFormsAdminVisibility();
-initApp();
-</script>
-</body>
-</html>
-
-
-      document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
+document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
           const page = link.dataset.page;
@@ -2430,3 +2422,13 @@ initApp();
           if (sub) sub.classList.add('open');
         });
       });
+  
+buildTeamNav();
+applyFormsAdminVisibility();
+initApp();
+</script>
+</body>
+</html>
+
+
+      
