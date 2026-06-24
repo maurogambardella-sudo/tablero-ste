@@ -166,8 +166,8 @@ function mapRequest(r) {
     requester_email: r.requesterEmail ?? '',
     requester_team: r.requesterTeam ?? '',
     team: r.team ?? r.requesterTeam ?? '',
-    status: r.status ?? '',
-    priority: r.priority ?? '',
+    status: r.status ?? 'Recibido',
+    priority: r.priority ?? 'Media',
     target_date: r.targetDate ?? '',
     sponsor: r.sponsor ?? '',
     audience: r.audience ?? '',
@@ -177,8 +177,9 @@ function mapRequest(r) {
     urgency: r.urgency === '' || r.urgency == null ? null : r.urgency,
     suggested_priority: r.suggestedPriority ?? '',
     approver: r.approver ?? '',
-    evaluation_comment: r.evaluationComment ?? '',
-    created_at: r.createdAt ?? null
+    decision: r.decision ?? '',
+    reviewer_comment: r.reviewerComment ?? '',
+    created_at: r.createdAt ?? new Date().toISOString()
   };
 }
 
@@ -251,7 +252,7 @@ module.exports = async function handler(req, res) {
       deleteRemoved('outcomes', outcomeRows.map(r => r.id)),
       deleteRemoved('outputs', outputRows.map(r => r.id)),
       deleteRemoved('tasks', taskRows.map(r => r.id)),
-      deleteRemoved('team', teamRows.map(r => r.id))
+      deleteRemoved('team', teamRows.map(r => r.id)),
       deleteRemoved('requests', requestRows.map(r => r.id))
     ]);
 
