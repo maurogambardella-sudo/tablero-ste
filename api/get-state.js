@@ -116,6 +116,7 @@ function mapRequest(r) {
     suggestedPriority: r.suggested_priority,
     approver: r.approver,
     decision: r.decision,
+    evaluationComment: r.reviewer_comment,
     reviewerComment: r.reviewer_comment,
     createdAt: r.created_at
   };
