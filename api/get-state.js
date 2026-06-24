@@ -115,7 +115,8 @@ function mapRequest(r) {
     urgency: r.urgency,
     suggestedPriority: r.suggested_priority,
     approver: r.approver,
-    evaluationComment: r.evaluation_comment,
+    decision: r.decision,
+    reviewerComment: r.reviewer_comment,
     createdAt: r.created_at
   };
 }
