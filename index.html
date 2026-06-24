@@ -2000,11 +2000,12 @@ function renderInitiativesPage() {
   const priority = document.getElementById('initiativePriorityFilter')?.value || '';
   const team = document.getElementById('initiativeTeamFilter')?.value || '';
 
-  const rows = (state.requests || []).filter(r => r.type === 'initiative');
-    .filter(r => !q || [r.id, r.title, r.category, r.requester, r.requesterTeam].join(' ').toLowerCase().includes(q))
-    .filter(r => !status || r.status === status)
-    .filter(r => !priority || r.priority === priority)
-    .filter(r => !team || r.requesterTeam === team);
+  const rows = (state.requests || [])
+  .filter(r => r.type === 'initiative')
+  .filter(r => !q || [r.id, r.title, r.category, r.requester, r.requesterTeam].join(' ').toLowerCase().includes(q))
+  .filter(r => !status || r.status === status)
+  .filter(r => !priority || r.priority === priority)
+  .filter(r => !team || r.requesterTeam === team);
 
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay iniciativas para mostrar.</td></tr>';
