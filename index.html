@@ -1308,6 +1308,8 @@ async function loadFromAPI() {
       }));
       state.tasks = data.tasks || [];
       state.team  = data.team  || [];
+      state.requests = data.requests || [];
+requests = state.requests;
       if (data.config) {
         state.config = {
           cycleStart:    data.config.cycle_start   || SEED.config.cycleStart,
@@ -1955,6 +1957,7 @@ async function saveRequest() {
     }
 
     state.requests = requests;
+    requests = state.requests;
     console.log('I. state.requests antes de saveState', state.requests);
 
     if (typeof saveState === 'function') {
@@ -1986,7 +1989,7 @@ function renderInitiativesPage() {
   const priority = document.getElementById('initiativePriorityFilter')?.value || '';
   const team = document.getElementById('initiativeTeamFilter')?.value || '';
 
-  const rows = requests.filter(r => r.type === 'initiative')
+  const rows = (state.requests || []).filter(r => r.type === 'initiative');
     .filter(r => !q || [r.id, r.title, r.category, r.requester, r.requesterTeam].join(' ').toLowerCase().includes(q))
     .filter(r => !status || r.status === status)
     .filter(r => !priority || r.priority === priority)
