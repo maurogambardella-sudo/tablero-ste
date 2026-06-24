@@ -92,6 +92,34 @@ function mapTask(t) {
     notes: t.notes
   };
 }
+
+function mapRequest(r) {
+  return {
+    id: r.id,
+    type: r.type,
+    title: r.title,
+    description: r.description,
+    category: r.category,
+    requester: r.requester,
+    requesterEmail: r.requester_email,
+    requesterTeam: r.requester_team,
+    team: r.team,
+    status: r.status,
+    priority: r.priority,
+    targetDate: r.target_date,
+    sponsor: r.sponsor,
+    audience: r.audience,
+    channel: r.channel,
+    impact: r.impact,
+    effort: r.effort,
+    urgency: r.urgency,
+    suggestedPriority: r.suggested_priority,
+    approver: r.approver,
+    evaluationComment: r.evaluation_comment,
+    createdAt: r.created_at
+  };
+}
+
 // team: los nombres coinciden (id, name, role, email) → no necesita mapeo
 
 module.exports = async function handler(req, res) {
@@ -101,10 +129,14 @@ module.exports = async function handler(req, res) {
 
     const me = await getProfile((user.email || '').toLowerCase());
 
-    const [outcomes, outputs, tasks, team, configRows] = await Promise.all([
-      query('outcomes'), query('outputs'),
-      query('tasks'), query('team'), query('config')
-    ]);
+    const [outcomes, outputs, tasks, team, requests, configRows] = await Promise.all([
+  query('outcomes'),
+  query('outputs'),
+  query('tasks'),
+  query('team'),
+  query('requests'),
+  query('config')
+]);
     const config = (configRows && configRows[0]) || {
       cycle_start: '2026-04-01',
       cycle_end: '2026-12-31',
@@ -116,6 +148,7 @@ module.exports = async function handler(req, res) {
       outputs: (outputs || []).map(mapOutput),
       tasks: (tasks || []).map(mapTask),
       team: team || [],
+      requests: (requests || []).map(mapRequest),
       config
     });
   } catch (e) {
