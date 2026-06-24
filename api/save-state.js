@@ -1,6 +1,10 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
+// URL del flujo HTTP de Power Automate que espeja los datos en SharePoint.
+// Si no está seteada, la integración simplemente no hace nada (la app sigue igual).
+const POWER_AUTOMATE_SYNC_URL = process.env.POWER_AUTOMATE_SYNC_URL;
+
 // ── Cerradura: verifica que quien llama tenga una sesión válida ──
 // Lee el token "Bearer" que manda el frontend y le pregunta a Supabase
 // "¿este usuario inició sesión de verdad?". Si no, devuelve null.
@@ -183,6 +187,51 @@ function mapRequest(r) {
   };
 }
 
+// ── Integración SharePoint (vía Power Automate) ──────────────────────────────
+// Construye un índice nombre→email a partir del equipo, para que los flujos de
+// notificación puedan avisar al responsable sin tener que adivinar su correo.
+function buildEmailIndex(team) {
+  const idx = {};
+  (team || []).forEach(m => {
+    if (!m) return;
+    if (m.name) idx[String(m.name).trim().toLowerCase()] = m.email || '';
+    if (m.email) idx[String(m.email).trim().toLowerCase()] = m.email || '';
+  });
+  return idx;
+}
+
+// Le agrega owner_email a cada fila (outputs/tasks) resolviendo el nombre del owner.
+function attachOwnerEmail(rows, emailIndex) {
+  (rows || []).forEach(r => {
+    r.owner_email = emailIndex[String(r.owner || '').trim().toLowerCase()] || '';
+  });
+  return rows;
+}
+
+// Empuja el estado guardado al flujo HTTP de Power Automate, que lo espeja en
+// las listas de SharePoint. Es "best effort": si el flujo no está configurado,
+// falla o tarda, NUNCA rompe el guardado (lo tragamos y respondemos OK igual).
+// Usamos await + timeout corto (en serverless, un fetch sin await puede quedar
+// cortado cuando la función termina; el timeout evita demorar al usuario).
+async function syncToSharePoint(payload) {
+  if (!POWER_AUTOMATE_SYNC_URL) return;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4000);
+  try {
+    await fetch(POWER_AUTOMATE_SYNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+  } catch (e) {
+    // La integración nunca debe tumbar el guardado en Supabase.
+    console.error('Sync a SharePoint falló (se ignora):', e && e.message);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -199,6 +248,9 @@ module.exports = async function handler(req, res) {
     }
 
     const { outcomes = [], outputs = [], tasks = [], team = [], requests = [], config = {} } = req.body;
+
+    // Índice nombre→email del equipo, para enriquecer outputs/tasks con owner_email.
+    const emailIndex = buildEmailIndex(team);
 
     // ── EDITOR: solo puede tocar outputs y tasks de SU equipo ──
     if (me.role === 'editor') {
@@ -227,6 +279,16 @@ module.exports = async function handler(req, res) {
         deleteRemovedScoped('tasks', me.team, taskRows.map(r => r.id)),
         deleteRemovedScoped('requests', me.team, requestRows.map(r => r.id))
       ]);
+
+      // Espejo en SharePoint (solo lo que el editor puede tocar).
+      attachOwnerEmail(outputRows, emailIndex);
+      attachOwnerEmail(taskRows, emailIndex);
+      await syncToSharePoint({
+        outputs: outputRows,
+        tasks: taskRows,
+        requests: requestRows
+      });
+
       return res.status(200).json({ ok: true });
     }
 
@@ -260,6 +322,17 @@ module.exports = async function handler(req, res) {
       deleteRemoved('team', teamRows.map(r => r.id)),
       deleteRemoved('requests', requestRows.map(r => r.id))
     ]);
+
+    // 3) Espejo en SharePoint (best effort, no rompe el guardado).
+    attachOwnerEmail(outputRows, emailIndex);
+    attachOwnerEmail(taskRows, emailIndex);
+    await syncToSharePoint({
+      outcomes: outcomeRows,
+      outputs: outputRows,
+      tasks: taskRows,
+      team: teamRows,
+      requests: requestRows
+    });
 
     res.status(200).json({ ok: true });
   } catch (e) {
