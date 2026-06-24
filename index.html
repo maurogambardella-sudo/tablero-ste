@@ -1694,19 +1694,24 @@ function calculateSuggestedPriority(impact, effort, urgency) {
 }
 
 function openRequestModal(type) {
+  clearRequestFieldErrors();
+
   document.getElementById('requestModal').classList.add('show');
   document.getElementById('requestId').value = '';
   document.getElementById('requestType').value = type;
-  document.getElementById('requestModalTitle').textContent = type === 'communication'
-    ? 'Nuevo pedido de comunicación'
-    : 'Nueva iniciativa / proyecto';
- 
+  document.getElementById('requestModalTitle').textContent =
+    type === 'communication'
+      ? 'Nuevo pedido de comunicación'
+      : 'Nueva iniciativa / proyecto';
 
   document.getElementById('requestTitle').value = '';
   document.getElementById('requestDescription').value = '';
   document.getElementById('requestCategory').value = '';
   document.getElementById('requestTargetDate').value = '';
-  document.getElementById('requestRequester').value = currentUser.email ? (currentUser.email.split('@')[0].replace('.', ' ')) : '';
+  document.getElementById('requestRequester').value =
+    currentUser.email
+      ? currentUser.email.split('@')[0].replace('.', ' ')
+      : '';
   document.getElementById('requestRequesterEmail').value = currentUser.email || '';
   document.getElementById('requestRequesterTeam').value = currentUser.team || '';
   document.getElementById('requestImpact').value = '';
@@ -1716,8 +1721,18 @@ function openRequestModal(type) {
   document.getElementById('requestAudience').value = '';
   document.getElementById('requestChannel').value = '';
 
-  document.getElementById('initiativeFields').style.display = type === 'initiative' ? 'block' : 'none';
-  document.getElementById('communicationFields').style.display = type === 'communication' ? 'block' : 'none';
+  const fileInput = document.getElementById('reqFileInput');
+  const fileLabel = document.getElementById('reqFileLabel');
+  const attachmentsBox = document.getElementById('reqAttachmentsList');
+  if (fileInput) fileInput.value = '';
+  if (fileLabel) fileLabel.value = '';
+  if (attachmentsBox) attachmentsBox.innerHTML = '';
+
+  document.getElementById('initiativeFields').style.display =
+    type === 'initiative' ? 'block' : 'none';
+
+  document.getElementById('communicationFields').style.display =
+    type === 'communication' ? 'block' : 'none';
 }
 
 
@@ -1973,30 +1988,46 @@ function renderCommunicationPage() {
   const q = (document.getElementById('communicationSearch')?.value || '').toLowerCase();
   const status = document.getElementById('communicationStatusFilter')?.value || '';
   const channel = document.getElementById('communicationChannelFilter')?.value || '';
-  const team = document.getElementById('communicationTeamFilter')?.value || '';
 
-  const rows = requests.filter(r => r.type === 'communication')
-    .filter(r => !q || [r.id, r.title, r.audience, r.channel, r.requesterTeam].join(' ').toLowerCase().includes(q))
+  const rows = requests
+    .filter(r => r.type === 'communication')
+    .filter(r =>
+      !q ||
+      [
+        r.id,
+        r.title,
+        r.audience,
+        r.channel,
+        r.requester,
+        r.requesterTeam
+      ].join(' ').toLowerCase().includes(q)
+    )
     .filter(r => !status || r.status === status)
-    .filter(r => !channel || r.channel === channel)
-    .filter(r => !team || r.requesterTeam === team);
+    .filter(r => !channel || r.channel === channel);
 
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">No hay pedidos de comunicación para mostrar.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay pedidos de comunicación para mostrar.</td></tr>';
     return;
   }
 
   tbody.innerHTML = rows.map(r => `
     <tr>
-      <td>${r.id}</td>
-      <td>${r.title}</td>
-      <td>${r.requesterTeam || r.team || '-'}</td>
+      <td>${r.id || '-'}</td>
+      <td>${r.title || '-'}</td>
       <td>${r.audience || '-'}</td>
       <td>${r.channel || '-'}</td>
-      <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
-      <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
+      <td><span class="pill pill-${slugify(r.status || 'Recibido')}">${r.status || 'Recibido'}</span></td>
+      <td><span class="pill pill-${slugify(r.priority || 'Media')}">${r.priority || 'Media'}</span></td>
       <td>${r.targetDate || '-'}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button> ${canManageRequest(r) ? `<button class=\"btn btn-sm\" onclick=\"editRequest('${r.id}')\">Editar</button> <button class=\"btn btn-danger btn-sm\" onclick=\"deleteRequest('${r.id}')\">Eliminar</button>` : ''}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button>
+        ${
+          canManageRequest(r)
+            ? `<button class="btn btn-sm" onclick="editRequest('${r.id}')">Editar</button>
+               <button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">Eliminar</button>`
+            : ''
+        }
+      </td>
     </tr>
   `).join('');
 }
