@@ -178,7 +178,7 @@ function mapRequest(r) {
     suggested_priority: r.suggestedPriority ?? '',
     approver: r.approver ?? '',
     decision: r.decision ?? '',
-    reviewer_comment: r.reviewerComment ?? '',
+    reviewer_comment: r.evaluationComment ?? r.reviewerComment ?? '',
     created_at: r.createdAt ?? new Date().toISOString()
   };
 }
