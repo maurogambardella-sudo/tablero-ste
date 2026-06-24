@@ -2416,14 +2416,16 @@ function setModalEditable(modalId, editable){
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-  ['requestImpact', 'requestEffort', 'requestUrgency'].forEach(id => {
+['requestImpact', 'requestUrgency'].forEach(id => {
   const el = document.getElementById(id);
   if (el) {
     el.addEventListener('change', () => {
-      const impact = Number(document.getElementById('requestImpact').value || 0);
-      const effort = Number(document.getElementById('requestEffort').value || 0);
-      const urgency = Number(document.getElementById('requestUrgency').value || 0);
-      document.getElementById('requestSuggestedPriority').value = calculateSuggestedPriority(impact, effort, urgency);
+      const impact = Number(document.getElementById('requestImpact')?.value || 0);
+      const urgency = Number(document.getElementById('requestUrgency')?.value || 0);
+      const suggestedEl = document.getElementById('requestSuggestedPriority');
+      if (suggestedEl) {
+        suggestedEl.value = calculateSuggestedPriority(impact, 0, urgency);
+      }
     });
   }
 });
