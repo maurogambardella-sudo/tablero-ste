@@ -963,7 +963,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
             <option>Requiere más info</option>
             <option>Priorizado</option>
             <option>Aprobado</option>
-            <option>Descartado</option>
+            <option>Rechazado</option>
           </select>
         </div>
         <div class="form-group">
@@ -1940,7 +1940,7 @@ async function saveRequest() {
       requesterEmail,
       requesterTeam,
       team: requesterTeam,
-      status: 'Recibido',
+      status: 'Enviado',
       priority: suggestedPriority || 'Media',
       targetDate,
       sponsor,
@@ -2109,7 +2109,9 @@ function renderEvaluationPage() {
       <td>${r.effort ?? '-'}</td>
       <td>${r.urgency ?? '-'}</td>
       <td><span class="pill pill-${slugify(r.suggestedPriority || r.priority)}">${r.suggestedPriority || r.priority}</span></td>
-      <td><button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button> ${canManageRequest(r) ? `<button class=\"btn btn-sm\" onclick=\"editRequest('${r.id}')\">Editar</button> <button class=\"btn btn-danger btn-sm\" onclick=\"deleteRequest('${r.id}')\">Eliminar</button>` : ''}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button> ${isAdmin() ? `
+  <button class="btn btn-sm" onclick="openRequestEvaluation('${r.id}')">Evaluar</button>
+` : ''}</td>
     </tr>
   `).join('');
 }
