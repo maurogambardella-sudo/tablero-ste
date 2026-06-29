@@ -1692,16 +1692,61 @@ function openOutputModal(id){
   document.getElementById('outputDeleteBtn').style.display=(isEdit&&editable)?'inline-block':'none';
   document.getElementById('outputModal').classList.add('show');
 }
-async function saveOutput(){
-  const id=document.getElementById('outputId').value;
-  const o={id:id||nextId('OUT',state.outputs),title:document.getElementById('outputTitle').value.trim(),outcome:document.getElementById('outputOutcome').value,team:document.getElementById('outputTeam').value,ciclo:document.getElementById('outputCiclo').value,desc:document.getElementById('outputDesc').value,meta:parseFloat(document.getElementById('outputMeta').value)||0,actual:parseFloat(document.getElementById('outputActual').value)||0,unit:document.getElementById('outputUnit').value,direction:document.getElementById('outputDirection').value,owner:document.getElementById('outputOwner').value,dependency:document.getElementById('outputDependency').value.trim(),participants:_draftPart.slice(),attachments:JSON.parse(JSON.stringify(_draftAttach)),comments:JSON.parse(JSON.stringify(_draftComments)),startDate:document.getElementById('outputStartDate').value,date:document.getElementById('outputDate').value,benefit:document.getElementById('outputBenefit').value,notes:document.getElementById('outputNotes').value};
+async function saveOutput() {
+  const id = document.getElementById('outputId').value;
+  const oid = id || nextId('OUT', state.outputs);
+  const title = document.getElementById('outputTitle').value.trim();
+  const outcome = document.getElementById('outputOutcome').value;
+  const team = document.getElementById('outputTeam').value;
+  const ciclo = document.getElementById('outputCiclo').value;
+  const desc = document.getElementById('outputDesc').value;
+  const meta = parseFloat(document.getElementById('outputMeta').value || 0);
+  const actual = parseFloat(document.getElementById('outputActual').value || 0);
+  const unit = document.getElementById('outputUnit').value;
+  const direction = document.getElementById('outputDirection').value;
+  const owner = document.getElementById('outputOwner').value;
+  const dependency = document.getElementById('outputDependency').value.trim();
   const benefit = document.getElementById('outputBenefit').value.trim();
-  if(!o.title){alert('Ingresá un título');return;}
-  if(id){const idx=state.outputs.findIndex(x=>x.id===id);state.outputs[idx]=o;}else state.outputs.push(o);
-  await saveState();closeModal('outputModal');renderAll();toast(id?'Output actualizado':'Output creado');
+  const participants = draftPart.slice();
+  const attachments = JSON.parse(JSON.stringify(draftAttach));
+  const comments = JSON.parse(JSON.stringify(draftComments));
+  const startDate = document.getElementById('outputStartDate').value;
+  const date = document.getElementById('outputDate').value;
+  const notes = document.getElementById('outputNotes').value;
+
+  if (!title) {
+    alert('Ingresá un título');
+    return;
+  }
+
   if (!benefit) {
-  alert('Ingresá el beneficio');
-  return;
+    alert('Ingresá el beneficio');
+    return;
+  }
+
+  const o = {
+    id: oid,
+    title,
+    outcome,
+    team,
+    ciclo,
+    desc,
+    meta,
+    actual,
+    unit,
+    direction,
+    owner,
+    dependency,
+    benefit,
+    participants,
+    attachments,
+    comments,
+    startDate,
+    date,
+    notes
+  };
+
+  ...
 }
 async function deleteOutput(){
   const id=document.getElementById('outputId').value;if(!id)return;
