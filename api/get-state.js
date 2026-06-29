@@ -74,6 +74,7 @@ function mapOutput(o) {
     dependency: o.dependency,
     attachments: o.attachments,   // el frontend hace safeJSON()
     comments: o.comments,         // el frontend hace safeJSON()
+    benefit: o.benefit,
     notes: o.notes
   };
 }
