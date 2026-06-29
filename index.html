@@ -1692,27 +1692,30 @@ function openOutputModal(id){
   document.getElementById('outputDeleteBtn').style.display=(isEdit&&editable)?'inline-block':'none';
   document.getElementById('outputModal').classList.add('show');
 }
+  
 async function saveOutput() {
   const id = document.getElementById('outputId').value;
   const oid = id || nextId('OUT', state.outputs);
+
   const title = document.getElementById('outputTitle').value.trim();
   const outcome = document.getElementById('outputOutcome').value;
   const team = document.getElementById('outputTeam').value;
   const ciclo = document.getElementById('outputCiclo').value;
-  const desc = document.getElementById('outputDesc').value;
+  const desc = document.getElementById('outputDesc').value.trim();
   const meta = parseFloat(document.getElementById('outputMeta').value || 0);
   const actual = parseFloat(document.getElementById('outputActual').value || 0);
-  const unit = document.getElementById('outputUnit').value;
+  const unit = document.getElementById('outputUnit').value.trim();
   const direction = document.getElementById('outputDirection').value;
   const owner = document.getElementById('outputOwner').value;
   const dependency = document.getElementById('outputDependency').value.trim();
   const benefit = document.getElementById('outputBenefit').value.trim();
-  const participants = draftPart.slice();
-  const attachments = JSON.parse(JSON.stringify(draftAttach));
-  const comments = JSON.parse(JSON.stringify(draftComments));
   const startDate = document.getElementById('outputStartDate').value;
   const date = document.getElementById('outputDate').value;
-  const notes = document.getElementById('outputNotes').value;
+  const notes = document.getElementById('outputNotes').value.trim();
+
+  const participants = Array.isArray(draftPart) ? draftPart.slice() : [];
+  const attachments = Array.isArray(draftAttach) ? JSON.parse(JSON.stringify(draftAttach)) : [];
+  const comments = Array.isArray(draftComments) ? JSON.parse(JSON.stringify(draftComments)) : [];
 
   if (!title) {
     alert('Ingresá un título');
@@ -1726,28 +1729,43 @@ async function saveOutput() {
 
   const o = {
     id: oid,
-    title,
     outcome,
-    team,
-    ciclo,
+    title,
     desc,
+    benefit,
     meta,
     actual,
     unit,
     direction,
     owner,
-    dependency,
-    benefit,
-    participants,
-    attachments,
-    comments,
+    team,
+    ciclo,
     startDate,
     date,
+    participants,
+    dependency,
+    attachments,
+    comments,
     notes
   };
 
-  ...
+  if (id) {
+    const idx = state.outputs.findIndex(x => x.id === id);
+    if (idx === -1) {
+      alert('No se encontró el output a editar');
+      return;
+    }
+    state.outputs[idx] = o;
+  } else {
+    state.outputs.push(o);
+  }
+
+  await saveState();
+  closeModal('outputModal');
+  renderAll();
+  toast(id ? 'Output actualizado' : 'Output creado');
 }
+  
 async function deleteOutput(){
   const id=document.getElementById('outputId').value;if(!id)return;
   const linked=state.tasks.filter(t=>t.output===id);
