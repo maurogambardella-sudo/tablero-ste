@@ -132,6 +132,7 @@ function mapOutput(o) {
     dependency: o.dependency ?? '',
     attachments: JSON.stringify(o.attachments || []),
     comments: JSON.stringify(o.comments || []),
+    benefit: o.benefit ?? '',
     notes: o.notes ?? ''
   };
 }
