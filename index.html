@@ -749,7 +749,7 @@ tbody tr:hover { background: var(--bayer-light); }
         <div class="form-group full"><label>Email</label><input type="email" id="userEmail" placeholder="persona@bayer.com"></div>
         <div class="form-group full" id="userPasswordRow"><label id="userPasswordLabel">Contraseña inicial</label><input type="text" id="userPassword" placeholder="Mínimo 6 caracteres"></div>
         <div class="form-group full"><label>Rol</label><select id="userRole" onchange="onUserRoleChange()"><option value="consulta">Consulta (solo ver)</option><option value="editor">Editor (su equipo)</option><option value="admin">Admin (todo)</option></select></div>
-        <div class="form-group full" id="userTeamRow" style="display:none"><label>Equipo <span style="color:var(--red-alert)">*</span></label><select id="userTeam"></select></div>
+        <div class="form-group full" id="userTeamRow"><label>Equipo <span style="color:var(--red-alert)">*</span></label><select id="userTeam"></select></div>
       </div>
       <p style="font-size:12px;color:var(--text-muted);margin-top:10px" id="userHint"></p>
     </div>
@@ -1456,7 +1456,14 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     link.classList.add('active');
     document.getElementById('page-'+page).classList.add('active');
-    if(page==='admin') loadUsers();
+    if (page === 'admin') {
+  if (!isAdmin()) {
+    toast('Solo el administrador puede acceder a Administración.');
+    document.getElementById('page-dashboard')?.classList.add('active');
+    return;
+  }
+  loadUsers();
+}
   });
 });
 // Construye los submenús por equipo dentro de Outputs y Tasks.
@@ -2240,6 +2247,10 @@ function onUserRoleChange(){
   document.getElementById('userTeamRow').style.display=role==='editor'?'flex':'none';
 }
 function openUserModal(email){
+   if (!isAdmin()) {
+    toast('Solo el administrador puede gestionar usuarios.');
+    return;
+  }
   const isEdit=!!email;
   document.getElementById('userModalTitle').textContent=isEdit?'Editar usuario':'Nuevo usuario';
   document.getElementById('userTeam').innerHTML='<option value="">— Elegí equipo —</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
@@ -2267,6 +2278,10 @@ function openUserModal(email){
   document.getElementById('userModal').classList.add('show');
 }
 async function saveUser(){
+  if (!isAdmin()) {
+    toast('Solo el administrador puede gestionar usuarios.');
+    return;
+  }
   const isEdit=!!document.getElementById('userEditEmail').value;
   const email=document.getElementById('userEmail').value.trim();
   const role=document.getElementById('userRole').value;
@@ -2288,6 +2303,10 @@ async function saveUser(){
   btn.disabled=false;btn.textContent='Guardar';
 }
 async function deleteUser(){
+  if (!isAdmin()) {
+    toast('Solo el administrador puede gestionar usuarios.');
+    return;
+  }
   const email=document.getElementById('userEditEmail').value;if(!email)return;
   if(!confirm('¿Eliminar el usuario '+email+'? Perderá el acceso por completo.'))return;
   try{
@@ -2302,6 +2321,10 @@ async function adminAction(payload){
   return data;
 }
 async function importUsers(){
+  if (!isAdmin()) {
+    toast('Solo el administrador puede gestionar usuarios.');
+    return;
+  }
   const password=document.getElementById('importPassword').value.trim();
   const raw=document.getElementById('importUsersList').value;
   const resultBox=document.getElementById('importUsersResult');
