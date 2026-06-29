@@ -1191,22 +1191,39 @@ async function initApp() {
   showLoading(true);
   // Si el usuario vuelve desde el mail de "recuperar contraseña", mostrar el
   // formulario para cargar la clave nueva (en vez de entrar al tablero).
-  sb.auth.onAuthStateChange((event) => {
-    if (event === 'PASSWORD_RECOVERY') showRecovery();
-  });
-  if ((window.location.hash || '').includes('type=recovery')) {
-    showRecovery();
-    return;
-  }
-  const { data } = await sb.auth.getSession();
-  if (data && data.session) {
-    authToken = data.session.access_token;
-    setUserEmail(data.session.user.email);
-    showApp();
-    loadFromAPI();
-    startInactivityWatch();
-  } else {
+  try {
+    sb.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        showRecovery();
+      }
+    });
+
+    if (window.location.hash.includes('type=recovery')) {
+      showRecovery();
+      showLoading(false);
+      return;
+    }
+
+    const { data } = await sb.auth.getSession();
+
+    if (data && data.session) {
+      authToken = data.session.access_token;
+      setUserEmail(data.session.user.email);
+      showApp();
+      await loadFromAPI();
+      try {
+        startInactivityWatch();
+      } catch (e) {
+        console.warn('No se pudo iniciar control de inactividad', e);
+      }
+    } else {
+      showLogin();
+    }
+  } catch (e) {
+    console.error('Error en initApp()', e);
     showLogin();
+  } finally {
+    showLoading(false);
   }
 }
 async function doLogin(e) {
@@ -1302,41 +1319,63 @@ async function doSetNewPassword(e) {
 // ─── API: CARGA DESDE SUPABASE ────────────────────────────────────────────────
 async function loadFromAPI() {
   showLoading(true);
+
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
+
     let res;
     try {
-      res = await fetch('/api/get-state', { headers: authHeaders(), signal: ctrl.signal });
+      res = await fetch('api/get-state', {
+        headers: authHeaders(),
+        signal: ctrl.signal
+      });
     } finally {
       clearTimeout(timer);
     }
+
     if (!res.ok) throw new Error('API error');
+
     const data = await res.json();
+
     if (data.me) {
-      currentUser = { email: data.me.email || '', role: data.me.role || 'consulta', team: data.me.team || '' };
+      currentUser = {
+        email: data.me.email || '',
+        role: data.me.role || 'consulta',
+        team: data.me.team || ''
+      };
     }
-    if (data.outcomes && data.outcomes.length > 0) {
-      state.outcomes = data.outcomes;
-      state.outputs = (data.outputs || []).map(o => ({
+
+    if (data.outcomes && data.outcomes.length > 0) state.outcomes = data.outcomes;
+    if (data.outputs) {
+      state.outputs = data.outputs.map(o => ({
         ...o,
         participants: safeJSON(o.participants, []),
-        attachments:  safeJSON(o.attachments, []),
-        comments:     safeJSON(o.comments, [])
+        attachments: safeJSON(o.attachments, []),
+        comments: safeJSON(o.comments, []),
+        benefit: o.benefit || ''
       }));
-      state.tasks = data.tasks || [];
-      state.team  = data.team  || [];
-      state.requests = data.requests || [];
-requests = state.requests;
-      if (data.config) {
-        state.config = {
-          cycleStart:    data.config.cycle_start   || SEED.config.cycleStart,
-          cycleEnd:      data.config.cycle_end     || SEED.config.cycleEnd,
-          progressMode:  data.config.progress_mode || SEED.config.progressMode
-        };
-      }
+    }
+    if (data.tasks) {
+      state.tasks = data.tasks.map(t => ({
+        ...t,
+        benefit: t.benefit || ''
+      }));
+    }
+    if (data.team) state.team = data.team;
+    if (data.requests) {
+      state.requests = data.requests;
+      requests = state.requests;
+    }
+    if (data.config) {
+      state.config = {
+        cycleStart: data.config.cycle_start || data.config.cyclestart || SEED.config.cycleStart,
+        cycleEnd: data.config.cycle_end || data.config.cycleend || SEED.config.cycleEnd,
+        progressMode: data.config.progress_mode || data.config.progressmode || SEED.config.progressMode
+      };
+    }
 
-      const isTotallyEmpty =
+    const isTotallyEmpty =
       !state.outcomes.length &&
       !state.outputs.length &&
       !state.tasks.length &&
@@ -1347,17 +1386,15 @@ requests = state.requests;
       await saveState();
     } else {
       setSyncStatus(true);
-    } 
-      // Base de datos vacía → sembrar datos iniciales
-      await saveState();
     }
-  } catch(e) {
-    console.warn('No se pudo cargar desde API, usando datos locales:', e);
+  } catch (e) {
+    console.warn('No se pudo cargar desde API, usando datos locales', e);
     setSyncStatus(false);
+  } finally {
+    showLoading(false);
+    renderAll();
+    applyFormsAdminVisibility();
   }
-  showLoading(false);
-  renderAll();
-  applyFormsAdminVisibility();
 }
 
 // ─── API: GUARDAR EN SUPABASE ─────────────────────────────────────────────────
@@ -1672,24 +1709,101 @@ function renderOutputs(){
 function teamOptionsHtml(){
   return '<option value="">— Sin equipo —</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
 }
-function openOutputModal(id){
-  const isEdit=!!id;
-  document.getElementById('outputModalTitle').textContent=isEdit?'Editar Output':'Nuevo Output';
-  document.getElementById('outputDeleteBtn').style.display=isEdit?'inline-block':'none';
-  document.getElementById('outputOutcome').innerHTML=state.outcomes.map(oc=>`<option value="${oc.id}">${oc.id} — ${oc.title}</option>`).join('');
-  document.getElementById('outputTeam').innerHTML=teamOptionsHtml();
-  document.getElementById('outputOwner').innerHTML='<option value="">Sin asignar</option>'+state.team.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
-  if(isEdit){const o=state.outputs.find(x=>x.id===id);document.getElementById('outputId').value=o.id;document.getElementById('outputTitle').value=o.title;document.getElementById('outputOutcome').value=o.outcome;document.getElementById('outputCiclo').value=o.ciclo||'Q2 2026';document.getElementById('outputDesc').value=o.desc||'';document.getElementById('outputMeta').value=o.meta??'';document.getElementById('outputActual').value=o.actual??'';document.getElementById('outputUnit').value=o.unit||'';document.getElementById('outputDirection').value=o.direction||'Mayor';document.getElementById('outputOwner').value=o.owner||'';document.getElementById('outputTeam').value=o.team||'';document.getElementById('outputDependency').value=o.dependency||'';document.getElementById('outputStartDate').value=o.startDate||'';document.getElementById('outputDate').value=o.date||''document.getElementById('outputBenefit').value = o.benefit||'';document.getElementById('outputNotes').value=o.notes||'';_draftPart=Array.isArray(o.participants)?o.participants.slice():[];_draftAttach=Array.isArray(o.attachments)?JSON.parse(JSON.stringify(o.attachments)):[];_draftComments=Array.isArray(o.comments)?JSON.parse(JSON.stringify(o.comments)):[];}
-  else{document.getElementById('outputId').value='';['outputTitle','outputDesc','outputMeta','outputActual','outputUnit','outputStartDate','outputDate','outputBenefit','outputNotes','outputDependency'].forEach(i=>document.getElementById(i).value='');document.getElementById('outputDirection').value='Mayor';document.getElementById('outputCiclo').value='Q2 2026';document.getElementById('outputStartDate').value=state.config.cycleStart||'';document.getElementById('outputTeam').value=outputsScope||(isEditor()?currentUser.team:'');_draftPart=[];_draftAttach=[];_draftComments=[];}
-  ['outputAttachName','outputAttachUrl','outputCommentText'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  renderParticipantsBox();renderAttachmentsList();renderCommentsList();
-  // Permisos: ¿puede editar este output en la vista actual?
-  const itemObj=isEdit?state.outputs.find(x=>x.id===id):null;
-  const editable=isEdit?canEditOutputHere(itemObj):canCreateOutputsHere();
+function openOutputModal(id) {
+  const isEdit = !!id;
+
+  document.getElementById('outputModalTitle').textContent = isEdit ? 'Editar Output' : 'Nuevo Output';
+  document.getElementById('outputDeleteBtn').style.display = isEdit ? 'inline-block' : 'none';
+
+  document.getElementById('outputOutcome').innerHTML =
+    state.outcomes.map(oc => `<option value="${oc.id}">${oc.id} — ${oc.title}</option>`).join('');
+
+  document.getElementById('outputTeam').innerHTML = teamOptionsHtml();
+
+  document.getElementById('outputOwner').innerHTML =
+    '<option value="">Sin asignar</option>' +
+    state.team.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+
+  if (isEdit) {
+    const o = state.outputs.find(x => x.id === id);
+    if (!o) {
+      alert('No se encontró el output');
+      return;
+    }
+
+    document.getElementById('outputId').value = o.id;
+    document.getElementById('outputTitle').value = o.title || '';
+    document.getElementById('outputOutcome').value = o.outcome || '';
+    document.getElementById('outputCiclo').value = o.ciclo || 'Q2 2026';
+    document.getElementById('outputDesc').value = o.desc || '';
+    document.getElementById('outputMeta').value = o.meta ?? '';
+    document.getElementById('outputActual').value = o.actual ?? '';
+    document.getElementById('outputUnit').value = o.unit || '';
+    document.getElementById('outputDirection').value = o.direction || 'Mayor';
+    document.getElementById('outputOwner').value = o.owner || '';
+    document.getElementById('outputTeam').value = o.team || '';
+    document.getElementById('outputDependency').value = o.dependency || '';
+    document.getElementById('outputStartDate').value = o.startDate || '';
+    document.getElementById('outputDate').value = o.date || '';
+    document.getElementById('outputBenefit').value = o.benefit || '';
+    document.getElementById('outputNotes').value = o.notes || '';
+
+    draftPart = Array.isArray(o.participants) ? o.participants.slice() : [];
+    draftAttach = Array.isArray(o.attachments) ? JSON.parse(JSON.stringify(o.attachments)) : [];
+    draftComments = Array.isArray(o.comments) ? JSON.parse(JSON.stringify(o.comments)) : [];
+  } else {
+    document.getElementById('outputId').value = '';
+
+    [
+      'outputTitle',
+      'outputDesc',
+      'outputMeta',
+      'outputActual',
+      'outputUnit',
+      'outputStartDate',
+      'outputDate',
+      'outputBenefit',
+      'outputNotes',
+      'outputDependency'
+    ].forEach(i => {
+      document.getElementById(i).value = '';
+    });
+
+    document.getElementById('outputDirection').value = 'Mayor';
+    document.getElementById('outputCiclo').value = 'Q2 2026';
+    document.getElementById('outputStartDate').value = state.config.cycleStart || '';
+    document.getElementById('outputTeam').value = outputsScope || (isEditor() ? currentUser.team : '');
+
+    draftPart = [];
+    draftAttach = [];
+    draftComments = [];
+  }
+
+  ['outputAttachName', 'outputAttachUrl', 'outputCommentText'].forEach(i => {
+    const el = document.getElementById(i);
+    if (el) el.value = '';
+  });
+
+  renderParticipantsBox();
+  renderAttachmentsList();
+  renderCommentsList();
+
+  const itemObj = isEdit ? state.outputs.find(x => x.id === id) : null;
+  const editable = isEdit ? canEditOutputHere(itemObj) : canCreateOutputsHere();
+
   setModalEditable('outputModal', editable);
-  // El editor no puede cambiar el equipo (siempre el suyo).
-  if(editable&&isEditor()){const tsel=document.getElementById('outputTeam');if(tsel)tsel.disabled=true;}
-  document.getElementById('outputDeleteBtn').style.display=(isEdit&&editable)?'inline-block':'none';
+
+  if (editable && isEditor()) {
+    const tsel = document.getElementById('outputTeam');
+    if (tsel) tsel.disabled = true;
+  } else {
+    const tsel = document.getElementById('outputTeam');
+    if (tsel) tsel.disabled = false;
+  }
+
+  document.getElementById('outputDeleteBtn').style.display =
+    isEdit && editable ? 'inline-block' : 'none';
+
   document.getElementById('outputModal').classList.add('show');
 }
   
