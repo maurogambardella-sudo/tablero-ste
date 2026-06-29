@@ -427,7 +427,7 @@ tbody tr:hover { background: var(--bayer-light); }
       <option>Requiere más info</option>
       <option>Priorizado</option>
       <option>Aprobado</option>
-      <option>Descartado</option>
+      <option>Rechazado</option>
     </select>
     <select id="initiativePriorityFilter" onchange="renderInitiativesPage()">
       <option value="">Todas las prioridades</option>
@@ -477,7 +477,7 @@ tbody tr:hover { background: var(--bayer-light); }
       <option>Requiere más info</option>
       <option>Priorizado</option>
       <option>Aprobado</option>
-      <option>Descartado</option>
+      <option>Rechazado</option>
     </select>
     <select id="communicationChannelFilter" onchange="renderCommunicationPage()">
       <option value="">Todos los canales</option>
@@ -1849,6 +1849,10 @@ function openRequestEvaluation(id){
   document.getElementById('requestEvaluationModal').classList.add('show');
 }
 async function saveRequestEvaluation(){
+    if (!isAdmin()) {
+    toast('Solo un administrador puede evaluar solicitudes.');
+    return;
+  }
   const id = document.getElementById('evaluationRequestId').value;
   const r = requests.find(x => x.id === id); if(!r) return;
   r.approver = document.getElementById('evaluationApprover').value.trim();
@@ -2088,7 +2092,7 @@ function renderEvaluationPage() {
   const tbody = document.getElementById('evaluationTbody');
   if (!tbody) return;
 
-  const openCount = requests.filter(r => !['Aprobado', 'Descartado'].includes(r.status)).length;
+  const openCount = requests.filter(r => !['Aprobado', 'Rechazado'].includes(r.status)).length;
   const evalCount = requests.filter(r => r.status === 'En evaluación').length;
   const highCount = requests.filter(r => r.priority === 'Alta').length;
   const approvedCount = requests.filter(r => r.status === 'Aprobado').length;
