@@ -656,7 +656,15 @@ tbody tr:hover { background: var(--bayer-light); }
           </div>
           <div id="outputCommentsList" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto"></div>
         </div>
-        <div class="form-group full"><label>Notas</label><textarea id="outputNotes"></textarea></div>
+        <div class="form-group full">
+  <label>Beneficio <span class="required-star">*</span></label>
+  <textarea id="outputBenefit" placeholder="Describí el beneficio esperado o generado"></textarea>
+</div>
+
+<div class="form-group full">
+  <label>Notas</label>
+  <textarea id="outputNotes"></textarea>
+</div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1671,8 +1679,8 @@ function openOutputModal(id){
   document.getElementById('outputOutcome').innerHTML=state.outcomes.map(oc=>`<option value="${oc.id}">${oc.id} — ${oc.title}</option>`).join('');
   document.getElementById('outputTeam').innerHTML=teamOptionsHtml();
   document.getElementById('outputOwner').innerHTML='<option value="">Sin asignar</option>'+state.team.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
-  if(isEdit){const o=state.outputs.find(x=>x.id===id);document.getElementById('outputId').value=o.id;document.getElementById('outputTitle').value=o.title;document.getElementById('outputOutcome').value=o.outcome;document.getElementById('outputCiclo').value=o.ciclo||'Q2 2026';document.getElementById('outputDesc').value=o.desc||'';document.getElementById('outputMeta').value=o.meta??'';document.getElementById('outputActual').value=o.actual??'';document.getElementById('outputUnit').value=o.unit||'';document.getElementById('outputDirection').value=o.direction||'Mayor';document.getElementById('outputOwner').value=o.owner||'';document.getElementById('outputTeam').value=o.team||'';document.getElementById('outputDependency').value=o.dependency||'';document.getElementById('outputStartDate').value=o.startDate||'';document.getElementById('outputDate').value=o.date||'';document.getElementById('outputNotes').value=o.notes||'';_draftPart=Array.isArray(o.participants)?o.participants.slice():[];_draftAttach=Array.isArray(o.attachments)?JSON.parse(JSON.stringify(o.attachments)):[];_draftComments=Array.isArray(o.comments)?JSON.parse(JSON.stringify(o.comments)):[];}
-  else{document.getElementById('outputId').value='';['outputTitle','outputDesc','outputMeta','outputActual','outputUnit','outputStartDate','outputDate','outputNotes','outputDependency'].forEach(i=>document.getElementById(i).value='');document.getElementById('outputDirection').value='Mayor';document.getElementById('outputCiclo').value='Q2 2026';document.getElementById('outputStartDate').value=state.config.cycleStart||'';document.getElementById('outputTeam').value=outputsScope||(isEditor()?currentUser.team:'');_draftPart=[];_draftAttach=[];_draftComments=[];}
+  if(isEdit){const o=state.outputs.find(x=>x.id===id);document.getElementById('outputId').value=o.id;document.getElementById('outputTitle').value=o.title;document.getElementById('outputOutcome').value=o.outcome;document.getElementById('outputCiclo').value=o.ciclo||'Q2 2026';document.getElementById('outputDesc').value=o.desc||'';document.getElementById('outputMeta').value=o.meta??'';document.getElementById('outputActual').value=o.actual??'';document.getElementById('outputUnit').value=o.unit||'';document.getElementById('outputDirection').value=o.direction||'Mayor';document.getElementById('outputOwner').value=o.owner||'';document.getElementById('outputTeam').value=o.team||'';document.getElementById('outputDependency').value=o.dependency||'';document.getElementById('outputStartDate').value=o.startDate||'';document.getElementById('outputDate').value=o.date||''document.getElementById('outputBenefit').value = o.benefit||'';document.getElementById('outputNotes').value=o.notes||'';_draftPart=Array.isArray(o.participants)?o.participants.slice():[];_draftAttach=Array.isArray(o.attachments)?JSON.parse(JSON.stringify(o.attachments)):[];_draftComments=Array.isArray(o.comments)?JSON.parse(JSON.stringify(o.comments)):[];}
+  else{document.getElementById('outputId').value='';['outputTitle','outputDesc','outputMeta','outputActual','outputUnit','outputStartDate','outputDate','outputBenefit','outputNotes','outputDependency'].forEach(i=>document.getElementById(i).value='');document.getElementById('outputDirection').value='Mayor';document.getElementById('outputCiclo').value='Q2 2026';document.getElementById('outputStartDate').value=state.config.cycleStart||'';document.getElementById('outputTeam').value=outputsScope||(isEditor()?currentUser.team:'');_draftPart=[];_draftAttach=[];_draftComments=[];}
   ['outputAttachName','outputAttachUrl','outputCommentText'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   renderParticipantsBox();renderAttachmentsList();renderCommentsList();
   // Permisos: ¿puede editar este output en la vista actual?
@@ -1686,10 +1694,14 @@ function openOutputModal(id){
 }
 async function saveOutput(){
   const id=document.getElementById('outputId').value;
-  const o={id:id||nextId('OUT',state.outputs),title:document.getElementById('outputTitle').value.trim(),outcome:document.getElementById('outputOutcome').value,team:document.getElementById('outputTeam').value,ciclo:document.getElementById('outputCiclo').value,desc:document.getElementById('outputDesc').value,meta:parseFloat(document.getElementById('outputMeta').value)||0,actual:parseFloat(document.getElementById('outputActual').value)||0,unit:document.getElementById('outputUnit').value,direction:document.getElementById('outputDirection').value,owner:document.getElementById('outputOwner').value,dependency:document.getElementById('outputDependency').value.trim(),participants:_draftPart.slice(),attachments:JSON.parse(JSON.stringify(_draftAttach)),comments:JSON.parse(JSON.stringify(_draftComments)),startDate:document.getElementById('outputStartDate').value,date:document.getElementById('outputDate').value,notes:document.getElementById('outputNotes').value};
+  const o={id:id||nextId('OUT',state.outputs),title:document.getElementById('outputTitle').value.trim(),outcome:document.getElementById('outputOutcome').value,team:document.getElementById('outputTeam').value,ciclo:document.getElementById('outputCiclo').value,desc:document.getElementById('outputDesc').value,meta:parseFloat(document.getElementById('outputMeta').value)||0,actual:parseFloat(document.getElementById('outputActual').value)||0,unit:document.getElementById('outputUnit').value,direction:document.getElementById('outputDirection').value,owner:document.getElementById('outputOwner').value,dependency:document.getElementById('outputDependency').value.trim(),participants:_draftPart.slice(),attachments:JSON.parse(JSON.stringify(_draftAttach)),comments:JSON.parse(JSON.stringify(_draftComments)),startDate:document.getElementById('outputStartDate').value,date:document.getElementById('outputDate').value,benefit:document.getElementById('outputBenefit').value,notes:document.getElementById('outputNotes').value};
+  const benefit = document.getElementById('outputBenefit').value.trim();
   if(!o.title){alert('Ingresá un título');return;}
   if(id){const idx=state.outputs.findIndex(x=>x.id===id);state.outputs[idx]=o;}else state.outputs.push(o);
   await saveState();closeModal('outputModal');renderAll();toast(id?'Output actualizado':'Output creado');
+  if (!benefit) {
+  alert('Ingresá el beneficio');
+  return;
 }
 async function deleteOutput(){
   const id=document.getElementById('outputId').value;if(!id)return;
