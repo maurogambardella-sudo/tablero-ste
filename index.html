@@ -1833,6 +1833,10 @@ function openRequestDetail(id){
   document.getElementById('requestDetailModal').classList.add('show');
 }
 function openRequestEvaluation(id){
+    if (!isAdmin()) {
+    toast('Solo un administrador puede acceder a Evaluación.');
+    return;
+  }
   const r = requests.find(x => x.id === id); if(!r) return;
   document.getElementById('evaluationRequestId').value = r.id;
   document.getElementById('requestEvaluationTitle').textContent = `Evaluación · ${r.id}`;
