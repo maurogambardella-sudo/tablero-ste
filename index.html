@@ -31,10 +31,10 @@
 html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; height: 100%; }
 .app { display: flex; min-height: 100vh; }
 .sidebar { width: 240px; background: var(--bayer-dark); color: white; position: fixed; left: 0; top: 0; bottom: 0; display: flex; flex-direction: column; z-index: 50; overflow: hidden; }
-.sidebar .brand { padding: 18px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-.brand-logo { display: block; width: 64px; height: auto; margin: 0 0 12px 0; object-fit: contain; }
-.sidebar .brand h1 { font-size: 12px; font-weight: 700; line-height: 1.25; margin: 0; }
-.sidebar .brand p { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 6px; line-height: 1.35; }
+.sidebar .brand { padding: 16px 20px 14px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+.brand-logo { display: block; width: 60px; height: auto; margin: 0 0 10px 0; object-fit: contain; filter: brightness(0) invert(1); }
+.sidebar .brand h1 { font-size: 15px; font-weight: 700; line-height: 1.2; margin: 0; }
+.sidebar .brand p { font-size: 11px; color: rgba(255,255,255,0.68); margin-top: 6px; line-height: 1.35; }
 .sidebar .brand .accent { color: var(--bayer-green); }
 .sidebar nav { padding: 12px 0; flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
 .sidebar nav a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; cursor: pointer; transition: all 0.15s; }
@@ -52,11 +52,14 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .nav-sub a:hover { background: rgba(255,255,255,0.05); color: white; }
 .nav-sub a.active { background: rgba(102,181,18,0.15); color: white; border-left-color: var(--bayer-green); font-weight: 600; }
 .nav-sub a.all-teams { font-weight: 600; color: rgba(255,255,255,0.8); }
-.sidebar .footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+.sidebar .footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: rgba(255,255,255,0.5); flex-shrink: 0; position: relative; }
 .sidebar .footer button { background: var(--bayer-green); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 6px; transition: background 0.15s; }
 .sidebar .footer button:hover { background: var(--bayer-green-dark); }
 .sidebar .footer button.secondary { background: rgba(255,255,255,0.1); }
 .sidebar .footer button.secondary:hover { background: rgba(255,255,255,0.2); }
+.admin-tools { position: relative; margin-bottom: 6px; }
+.admin-tools-menu { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+.admin-tools-menu.hidden { display: none; }
 .main { flex: 1; margin-left: 240px; padding: 28px 36px; max-width: calc(100vw - 240px); }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .page-header h2 { font-size: 24px; font-weight: 700; color: var(--bayer-dark); }
@@ -330,16 +333,26 @@ tbody tr:hover { background: var(--bayer-light); }
       <a class="nav-link" id="navAdmin" data-page="admin" style="display:none"><span class="icon">🔐</span> Administración</a>
       <a class="nav-link" data-page="guide"><span class="icon">📖</span> Guía</a>
     </nav>
-    <div class="footer">
-      <button onclick="exportData()">⬇ Exportar JSON</button>
-      <button class="secondary" id="btnImport" onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
-      <button class="secondary" id="btnReset" onclick="resetDemo()">↻ Reset demo</button>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-      <button class="secondary" onclick="doLogout()">⎋ Cerrar sesión</button>
-      <p style="margin-top:8px;word-break:break-all" id="userEmailLabel"></p>
-      <p style="margin-top:2px;font-weight:700;color:var(--bayer-green)" id="roleBadge"></p>
-      <p style="margin-top:4px" id="syncStatus">● Conectado</p>
+   <div class="footer">
+  <div class="admin-tools" id="adminTools" style="display:none;">
+    <button type="button" class="secondary" id="btnAdminTools" onclick="toggleAdminMenu()">
+      Herramientas
+    </button>
+
+    <div class="admin-tools-menu hidden" id="adminToolsMenu">
+      <button type="button" onclick="exportData()">Exportar JSON</button>
+      <button type="button" onclick="document.getElementById('importFile').click()">Importar JSON</button>
+      <button type="button" onclick="resetDemo()">Reset demo</button>
     </div>
+  </div>
+
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+
+  <button class="secondary" onclick="doLogout()">Cerrar sesión</button>
+
+  <p style="margin-top:8px;word-break:break-all;" id="userEmailLabel"></p>
+  <p style="margin-top:2px;font-weight:700;color:var(--bayer-green);" id="roleBadge"></p>
+</div>
   </aside>
 
   <main class="main">
@@ -2627,27 +2640,38 @@ function renderAll() {
 // ─── PERMISOS SEGÚN ROL ───────────────────────────────────────────────────────
 // Acomoda la interfaz: oculta botones que el usuario no puede usar.
 // (La seguridad de verdad la hace el servidor; esto es para que no se confunda.)
-function applyRolePermissions(){
-  const showIf = (id, cond) => { const el = document.getElementById(id); if (el) el.style.display = cond ? '' : 'none'; };
-  // Botón "+ Nuevo Output" y "+ Nueva Task": depende del submenú activo.
+function applyRolePermissions() {
+  const showIf = (id, cond) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = cond ? '' : 'none';
+  };
+
   showIf('btnNewOutput', canCreateOutputsHere());
-  showIf('btnNewTask',   canCreateTasksHere());
-  // Cosas de estructura: solo admin.
-  showIf('btnNewOutcome',  canEditStructure());
-  showIf('btnNewMember',   canEditStructure());
+  showIf('btnNewTask', canCreateTasksHere());
+  showIf('btnNewOutcome', canEditStructure());
+  showIf('btnNewMember', canEditStructure());
   showIf('btnConfigCycle', canEditStructure());
-  // Botones destructivos del pie: solo admin.
-  showIf('btnImport', isAdmin());
-  showIf('btnReset',  isAdmin());
-  // Menú de Administración: solo admin.
+
+  showIf('adminTools', isAdmin());
   showIf('navAdmin', isAdmin());
-  // Cartelito de rol en la barra lateral.
+
   const badge = document.getElementById('roleBadge');
   if (badge) {
-    const labels = { admin:'Administrador', editor:'Editor · '+(currentUser.team||'sin equipo'), consulta:'Solo consulta' };
+    const labels = {
+      admin: 'Administrador',
+      editor: `Editor${currentUser.team ? ' · ' + currentUser.team : ''}`,
+      consulta: 'Solo consulta'
+    };
     badge.textContent = labels[currentUser.role] || 'Solo consulta';
   }
 }
+
+function toggleAdminMenu() {
+  const menu = document.getElementById('adminToolsMenu');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+}
+    
 // Deshabilita/activa todos los campos de un modal y oculta Guardar/Eliminar
 // cuando el usuario no puede editar ese item.
 function setModalEditable(modalId, editable){
