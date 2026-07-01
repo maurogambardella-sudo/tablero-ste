@@ -31,10 +31,10 @@
 html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; height: 100%; }
 .app { display: flex; min-height: 100vh; }
 .sidebar { width: 240px; background: var(--bayer-dark); color: white; position: fixed; left: 0; top: 0; bottom: 0; display: flex; flex-direction: column; z-index: 50; overflow: hidden; }
-.sidebar .brand { padding: 16px 20px 14px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-.brand-logo { display: block; width: 60px; height: auto; margin: 0 0 10px 0; object-fit: contain; filter: brightness(0) invert(1); }
-.sidebar .brand h1 { font-size: 15px; font-weight: 700; line-height: 1.2; margin: 0; }
-.sidebar .brand p { font-size: 11px; color: rgba(255,255,255,0.68); margin-top: 6px; line-height: 1.35; }
+.sidebar .brand { padding: 14px 18px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+.brand-logo { display: block; width: 58px; height: auto; margin: 0 0 10px 0; object-fit: contain; filter: brightness(0) invert(1); }
+.sidebar .brand h1 { font-size: 11px; font-weight: 700; line-height: 1.18; margin: 0; }
+.sidebar .brand p { font-size: 10px; color: rgba(255,255,255,0.68); margin-top: 5px; line-height: 1.3; }
 .sidebar .brand .accent { color: var(--bayer-green); }
 .sidebar nav { padding: 12px 0; flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
 .sidebar nav a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; cursor: pointer; transition: all 0.15s; }
@@ -216,11 +216,11 @@ tbody tr:hover { background: var(--bayer-light); }
 .hidden { display: none !important; }
 .auth-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, var(--bayer-dark) 0%, #0091DF 100%); }
 .auth-card { background: var(--surface); border-radius: 18px; box-shadow: var(--shadow-lg); width: 100%; max-width: 430px; padding: 34px 34px 30px; }
-.auth-card .brand-mini { text-align: center; margin-bottom: 26px; display: flex; flex-direction: column; align-items: center; }
-.auth-logo { display: block; width: 76px; height: auto; margin: 0 auto 14px; object-fit: contain; }
-.auth-card .brand-mini h1 { font-size: 18px; font-weight: 700; color: var(--bayer-dark); line-height: 1.2; margin: 0; letter-spacing: -0.2px; }
+.auth-card .brand-mini { text-align: center; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center; }
+.auth-logo { display: block; width: 78px; height: auto; margin: 0 auto 14px; object-fit: contain; filter: none; }
+.auth-card .brand-mini h1 { font-size: 17px; font-weight: 700; color: var(--bayer-dark); line-height: 1.18; margin: 0; letter-spacing: -0.2px; }
 .auth-card .brand-mini h1 .accent { color: var(--bayer-green); }
-.auth-card .brand-mini p { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4; }
+.auth-card .brand-mini p { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.35; }
 .auth-field { display: flex; flex-direction: column; margin-bottom: 16px; }
 .auth-field label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
 .auth-field input { padding: 11px 13px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s; }
@@ -247,8 +247,8 @@ tbody tr:hover { background: var(--bayer-light); }
 <!-- Login overlay -->
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-card">
-    <div class="brand">
-  <img src="./assets/bayer-logo.png" alt="Bayer" class="brand-logo">
+    <div class="brand-mini">
+  <img src="./assets/bayer-logo.png" alt="Bayer" class="auth-logo">
   <h1>Strategy <span class="accent">&</span><br>Transformation Enablers</h1>
   <p>SCM Conosur Tablero PS 2030</p>
 </div>
@@ -303,7 +303,7 @@ tbody tr:hover { background: var(--bayer-light); }
 <div class="app">
   <aside class="sidebar">
     <div class="brand-mini">
-      <img src="./assets/bayer-logo.png" alt="Bayer" class="auth-logo">
+      <img src="./assets/bayer-logo.png" alt="Bayer" class="brand-logo">
   <h1>Strategy <span class="accent">&</span><br>Transformation Enablers</h1>
   <p>SCM Conosur · Tablero PS 2030</p>
 </div>
