@@ -27,18 +27,18 @@ function sbHeaders(extra) {
 
 // Busca el perfil (rol + equipo) de un email. Sin fila → "consulta".
 async function getProfile(email) {
-  if (!email) return { email: '', role: 'consulta', team: '' };
+  if (!email) return { email: '', role: 'consulta', team: '', comms: false };
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=*`,
       { headers: sbHeaders() }
     );
-    if (!res.ok) return { email, role: 'consulta', team: '' };
+    if (!res.ok) return { email, role: 'consulta', team: '', comms: false };
     const rows = await res.json();
-    if (rows && rows[0]) return { email, role: rows[0].role || 'consulta', team: rows[0].team || '' };
-    return { email, role: 'consulta', team: '' };
+    if (rows && rows[0]) return { email, role: rows[0].role || 'consulta', team: rows[0].team || '', comms: !!rows[0].comms };
+    return { email, role: 'consulta', team: '', comms: false };
   } catch {
-    return { email, role: 'consulta', team: '' };
+    return { email, role: 'consulta', team: '', comms: false };
   }
 }
 
@@ -55,11 +55,11 @@ async function findAuthUserByEmail(email) {
   }
 }
 
-async function upsertProfile(email, role, team) {
+async function upsertProfile(email, role, team, comms) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
     method: 'POST',
     headers: sbHeaders({ 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }),
-    body: JSON.stringify([{ email: email.toLowerCase(), role, team: team || '' }])
+    body: JSON.stringify([{ email: email.toLowerCase(), role, team: team || '', comms: !!comms }])
   });
   if (!res.ok) {
     const d = await res.text();
@@ -93,6 +93,7 @@ module.exports = async function handler(req, res) {
     const email = (body.email || '').trim().toLowerCase();
     const role = body.role || 'consulta';
     const team = role === 'editor' ? (body.team || '') : '';
+    const comms = !!body.comms;
 
     if (!email) return res.status(400).json({ error: 'Falta el email.' });
 
@@ -112,14 +113,14 @@ module.exports = async function handler(req, res) {
         // 422 suele ser "ya existe"
         return res.status(400).json({ error: 'No se pudo crear el usuario de login: ' + d });
       }
-      await upsertProfile(email, role, team);
+      await upsertProfile(email, role, team, body.comms);
       return res.status(200).json({ ok: true });
     }
 
     // ── EDITAR rol/equipo de un usuario existente ──
     if (action === 'update') {
       if (role === 'editor' && !team) return res.status(400).json({ error: 'Un editor necesita un equipo asignado.' });
-      await upsertProfile(email, role, team);
+      await upsertProfile(email, role, team, body.comms);
       return res.status(200).json({ ok: true });
     }
 
