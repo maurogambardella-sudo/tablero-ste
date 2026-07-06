@@ -1148,7 +1148,14 @@ function applyFormsAdminVisibility(){ document.querySelectorAll('.admin-only').f
 // ─── AUTH (Supabase) ──────────────────────────────────────────────────────────
 const SB_URL  = "https://gzwhodlleluvaziwsemq.supabase.co";
 const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6d2hvZGxsZWx1dmF6aXdzZW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTc1OTUsImV4cCI6MjA5NTQ3MzU5NX0.b_uBQdtrSAWO__UD8WkvowKqrggh7gmyM1zJG--z4sY";
-const sb = window.supabase.createClient(SB_URL, SB_ANON);
+const sb = window.supabase.createClient(SB_URL, SB_ANON, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'sb-tablero-auth'
+  }
+});
 let authToken = null;
 
 // ─── CIERRE POR INACTIVIDAD ───────────────────────────────────────────────────
