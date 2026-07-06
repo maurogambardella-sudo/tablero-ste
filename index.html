@@ -493,7 +493,7 @@ tbody tr:hover { background: var(--bayer-light); }
       <h2>Comunicación</h2>
       <p class="meta">Pedidos de comunicación interna, campañas y temas a difundir.</p>
     </div>
-    <button class="btn" onclick="openRequestModal('communication')">Nuevo pedido</button>
+    <button class="btn" onclick="openCommunicationRequest()">Nuevo pedido</button>
   </div>
 
   <div class="filters">
@@ -786,6 +786,7 @@ tbody tr:hover { background: var(--bayer-light); }
         <div class="form-group full" id="userPasswordRow"><label id="userPasswordLabel">Contraseña inicial</label><input type="text" id="userPassword" placeholder="Mínimo 6 caracteres"></div>
         <div class="form-group full"><label>Rol</label><select id="userRole" onchange="onUserRoleChange()"><option value="consulta">Consulta (solo ver)</option><option value="editor">Editor (su equipo)</option><option value="admin">Admin (todo)</option></select></div>
         <div class="form-group full" id="userTeamRow"><label>Equipo <span style="color:var(--red-alert)">*</span></label><select id="userTeam"></select></div>
+        <div class="form-group full"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="userComms"> Pertenece al squad de Comunicación</label></div>
       </div>
       <p style="font-size:12px;color:var(--text-muted);margin-top:10px" id="userHint"></p>
     </div>
@@ -1141,6 +1142,7 @@ const TEAMS = ['Demand Planning CP','Demand Planning Maíz','Impo & Expo','Custo
 // servidor confirme quién es. El backend SIEMPRE vuelve a verificar el rol.
 let currentUser = { email:'', role:'consulta', team:'' };
 function isAdmin()  { return currentUser.role === 'admin'; }
+function isComms() { return !!currentUser.comms; }
 function isEditor() { return currentUser.role === 'editor'; }
 function isViewer() { return currentUser.role === 'consulta'; }
 function canCreate() { return isAdmin() || isEditor(); }
@@ -1382,7 +1384,8 @@ async function loadFromAPI() {
       currentUser = {
         email: data.me.email || '',
         role: data.me.role || 'consulta',
-        team: data.me.team || ''
+        team: data.me.team || '',
+        comms: !!data.me.comms
       };
     }
 
@@ -1964,9 +1967,25 @@ function calculateSuggestedPriority(impact, effort, urgency) {
   return 'Baja';
 }
 
+
+function canManageCommunication() {
+  return isAdmin() || isComms();
+}
+
+function openCommunicationRequest() {
+  if (!canManageCommunication()) {
+    toast('Solo el squad de comunicación o un administrador pueden crear pedidos.');
+    return;
+  }
+  openRequestModal('communication');
+}
+
 function openRequestModal(type) {
   clearRequestFieldErrors();
-
+ if (type === 'communication' && !canManageCommunication()) {
+    toast('No tenés permisos para crear o editar pedidos de comunicación.');
+    return;
+  }
   document.getElementById('requestModal').classList.add('show');
   document.getElementById('requestId').value = '';
   document.getElementById('requestType').value = type;
@@ -2046,8 +2065,9 @@ function clearRequestFieldErrors() {
   });
 }
 function canManageRequest(r){
+  if (isAdmin() || isComms()) return true;
   const email = (currentUser?.email || '').toLowerCase();
-  return isAdmin() || ((r.requesterEmail || '').toLowerCase() === email);
+  return (r.requesterEmail || '').toLowerCase() === email;
 }
 function editRequest(id){
   const r = requests.find(x => x.id === id);
@@ -2148,6 +2168,11 @@ async function saveRequest() {
     const requestId = document.getElementById('requestId').value;
     const type = document.getElementById('requestType').value;
     console.log('C. type:', type);
+
+    if (type === 'communication' && !canManageCommunication()) {
+  toast('No tenés permisos para guardar pedidos de comunicación.');
+  return;
+}
 
     const titleEl = document.getElementById('requestTitle');
     const descEl = document.getElementById('requestDescription');
@@ -2532,6 +2557,7 @@ function openUserModal(email){
     document.getElementById('userEditEmail').value=u.email||email;
     emailInput.value=u.email||email; emailInput.disabled=true;
     document.getElementById('userRole').value=u.role||'consulta';
+    document.getElementById('userComms').checked = !!u.comms;
     document.getElementById('userTeam').value=u.team||'';
     document.getElementById('userPassword').value='';
     document.getElementById('userPasswordLabel').textContent='Nueva contraseña (opcional)';
@@ -2557,6 +2583,7 @@ async function saveUser(){
   const email=document.getElementById('userEmail').value.trim();
   const role=document.getElementById('userRole').value;
   const team=role==='editor'?document.getElementById('userTeam').value:'';
+  const comms = document.getElementById('userComms').checked;
   const password=document.getElementById('userPassword').value;
   if(!email){alert('Ingresá el email');return;}
   if(role==='editor'&&!team){alert('Elegí el equipo del editor');return;}
@@ -2564,9 +2591,9 @@ async function saveUser(){
   const btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Guardando…';
   try{
     if(!isEdit){
-      await adminAction({action:'create',email,password,role,team});
+      await adminAction({action:'create',email,password,role,team,comms});
     }else{
-      await adminAction({action:'update',email,role,team});
+      await adminAction({action:'update',email,role,team,comms});
       if(password)await adminAction({action:'password',email,password});
     }
     closeModal('userModal');await loadUsers();toast(isEdit?'Usuario actualizado':'Usuario creado');
