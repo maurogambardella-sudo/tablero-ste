@@ -870,15 +870,14 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
 
         <div class="form-group">
           <label>Equipo del solicitante <span class="required-star">*</span></label>
-          <select id="requestRequesterTeam">
-  <option value="">-Seleccionar-</option>
-  <option value="Customer">Customer</option>
-  <option value="Comercio Exterior">Comercio Exterior</option>
-  <option value="Planning">Planning</option>
-  <option value="Logística">Logística</option>
-  <option value="Estrategia e Innovación">Estrategia e Innovación</option>
-  <option value="Staff SCM">Staff SCM</option>
-</select>
+       <select id="requestRequesterTeam">
+            <option value="">-Seleccionar-</option>
+            <option value="Customer Service">Customer Service</option>
+            <option value="Demand Planning CP">Demand Planning CP</option>
+            <option value="Demand Planning Maiz">Demand Planning Maiz</option>
+            <option value="Impo & Expo">Impo & Expo</option>
+            <option value="Strategy & Transformation">Strategy & Transformation</option>
+          </select>
         </div>
 
         <div class="form-group full" id="initiativeFields" style="display:none;">
@@ -933,29 +932,42 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
 
         <div class="form-group full" id="communicationFields" style="display:none;">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Audiencia <span class="required-star">*</span></label>
-              <input type="text" id="requestAudience" placeholder="Solo para comunicación">
-            </div>
+     <div class="form-grid">
+  <div class="form-group">
+    <label>Audiencia <span class="required-star">*</span></label>
+    <input type="text" id="requestAudience" placeholder="Solo para comunicación">
+  </div>
 
-            <div class="form-group">
-              <label>Categoría de comunicación <span class="required-star">*</span></label>
-              <select id="requestChannel">
-                <option value="">Seleccionar</option>
-                <option value="Portada SCM">Portada SCM</option>
-                <option value="Kick-off del mes">Kick-off del mes</option>
-                <option value="Operación / resultados">Operación / resultados</option>
-                <option value="Personas / cultura">Personas / cultura</option>
-                <option value="Información útil">Información útil</option>
-                <option value="Eventos">Eventos</option>
-                <option value="Otro">Otro</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="form-group">
+    <label>Categoría de comunicación <span class="required-star">*</span></label>
+    <select id="requestChannel">
+      <option value="">Seleccionar</option>
+      <option value="Portada SCM">Portada SCM</option>
+      <option value="Kick-off del mes">Kick-off del mes</option>
+      <option value="Operación / resultados">Operación / resultados</option>
+      <option value="Personas / cultura">Personas / cultura</option>
+      <option value="Información útil">Información útil</option>
+      <option value="Eventos">Eventos</option>
+      <option value="Otro">Otro</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Medio de difusión <span class="required-star">*</span></label>
+    <select id="requestMedium">
+      <option value="">Seleccionar</option>
+      <option value="Newsletter">Newsletter</option>
+      <option value="WhatsApp">WhatsApp</option>
+      <option value="E-mail">E-mail</option>
+      <option value="Teams">Teams</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Fecha de difusión</label>
+    <input type="date" id="requestBroadcastDate">
+  </div>
+</div>
 
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
@@ -1956,6 +1968,8 @@ function openRequestModal(type) {
   document.getElementById('requestModal').classList.add('show');
   document.getElementById('requestId').value = '';
   document.getElementById('requestType').value = type;
+  document.getElementById('requestMedium').value = '';
+  document.getElementById('requestBroadcastDate').value = '';
   document.getElementById('requestModalTitle').textContent =
     type === 'communication'
       ? 'Nuevo pedido de comunicación'
@@ -2035,6 +2049,8 @@ function editRequest(id){
   document.getElementById('requestUrgency').value = r.urgency || '';
   document.getElementById('requestSponsor').value = r.sponsor || '';
   document.getElementById('requestAudience').value = r.audience || '';
+  document.getElementById('requestMedium').value = r.medium || '';
+  document.getElementById('requestBroadcastDate').value = (r.broadcastDate || '').slice(0,10);
   document.getElementById('requestSuggestedPriority').value = r.suggestedPriority || r.priority || '';
 }
 async function deleteRequest(id){
@@ -2059,6 +2075,9 @@ function openRequestDetail(id){
       <div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester || '-'}" readonly></div>
       <div class="form-group"><label>Email solicitante</label><input type="text" value="${r.requesterEmail || '-'}" readonly></div>
       <div class="form-group"><label>Equipo del solicitante</label><input type="text" value="${r.requesterTeam || r.team || '-'}" readonly></div>
+      <div class="form-group"><label>Medio</label><input type="text" value="${r.medium || '-'}" readonly></div>
+      <div class="form-group"><label>Fecha de difusión</label><input type="text" value="${r.broadcastDate || '-'}" readonly></div>
+      <div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>`
       <div class="form-group"><label>Sponsor</label><input type="text" value="${r.sponsor || '-'}" readonly></div>
       ${r.type === 'initiative' ? `<div class="form-group"><label>Impacto</label><input type="text" value="${r.impact || '-'}" readonly></div><div class="form-group"><label>Urgencia</label><input type="text" value="${r.urgency || '-'}" readonly></div>` : `<div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>`}
       <div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div>
@@ -2121,6 +2140,8 @@ async function saveRequest() {
     const impactEl = document.getElementById('requestImpact');
     const urgencyEl = document.getElementById('requestUrgency');
     const audienceEl = document.getElementById('requestAudience');
+    const mediumEl = document.getElementById('requestMedium');
+    const broadcastDateEl = document.getElementById('requestBroadcastDate');
     const sponsorEl = document.getElementById('requestSponsor');
 
     console.log('D. elementos encontrados', {
@@ -2141,6 +2162,8 @@ async function saveRequest() {
     const urgency = type === 'initiative' ? urgencyEl.value : '';
     const sponsor = type === 'initiative' ? sponsorEl.value.trim() : '';
     const audience = type === 'communication' ? audienceEl.value.trim() : '';
+    const medium = type === 'communication' ? mediumEl.value : '';
+    const broadcastDate = type === 'communication' ? broadcastDateEl.value : '';
     const suggestedPriority = type === 'initiative'
       ? calculateSuggestedPriority(impact, '', urgency)
       : '';
@@ -2153,7 +2176,7 @@ async function saveRequest() {
 
     const required = [titleEl, descEl, dateEl, requesterEl, requesterEmailEl, requesterTeamEl];
     if (type === 'initiative') required.push(categoryEl, impactEl, urgencyEl);
-    if (type === 'communication') required.push(audienceEl, channelEl);
+    if (type === 'communication') required.push(audienceEl, channelEl, mediumEl);
 
     let hasErrors = false;
     required.forEach(el => {
@@ -2186,6 +2209,8 @@ async function saveRequest() {
       targetDate,
       sponsor,
       audience,
+      medium,
+      broadcastDate,
       channel,
       impact,
       effort: '',
