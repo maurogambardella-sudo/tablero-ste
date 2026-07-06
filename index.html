@@ -1469,6 +1469,7 @@ function showLoading(show) {
 }
 function setSyncStatus(ok) {
   const el = document.getElementById('syncStatus');
+  if (!el) return;
   el.textContent = ok ? '● Sincronizado' : '⚠ Sin conexión';
   el.style.color = ok ? 'rgba(102,181,18,0.9)' : 'rgba(239,68,68,0.9)';
 }
