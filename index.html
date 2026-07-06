@@ -854,7 +854,7 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
 
         <div class="form-group">
-          <label>Fecha objetivo / requerida <span class="required-star">*</span></label>
+          <label id="requestTargetDateLabel">Fecha objetivo / requerida <span class="required-star">*</span></label>
           <input type="date" id="requestTargetDate">
         </div>
 
@@ -1979,12 +1979,30 @@ function openRequestModal(type) {
   document.getElementById('requestDescription').value = '';
   document.getElementById('requestCategory').value = '';
   document.getElementById('requestTargetDate').value = '';
+  // Etiqueta de la fecha según el tipo
+document.getElementById('requestTargetDateLabel').innerHTML =
+  type === 'communication'
+    ? 'Fecha del comunicado <span class="required-star">*</span>'
+    : 'Fecha objetivo / requerida <span class="required-star">*</span>';
   document.getElementById('requestRequester').value =
     currentUser.email
       ? currentUser.email.split('@')[0].replace('.', ' ')
       : '';
   document.getElementById('requestRequesterEmail').value = currentUser.email || '';
-  document.getElementById('requestRequesterTeam').value = currentUser.team || '';
+  // Opciones de equipo según el tipo de solicitud
+const teamSel = document.getElementById('requestRequesterTeam');
+if (type === 'communication') {
+  teamSel.innerHTML =
+    '<option value="">-Seleccionar-</option>' +
+    ['Customer','Comercio Exterior','Planning','Logística','Estrategia e Innovación','Staff SCM']
+      .map(t => `<option value="${t}">${t}</option>`).join('');
+} else {
+  teamSel.innerHTML =
+    '<option value="">-Seleccionar-</option>' +
+    TEAMS.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+  document.getElementById('requestRequesterTeam').value =
+type === 'communication' ? '' : (currentUser.team || '');
   document.getElementById('requestImpact').value = '';
   document.getElementById('requestUrgency').value = '';
   document.getElementById('requestSuggestedPriority').value = '';
