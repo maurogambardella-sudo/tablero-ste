@@ -34,20 +34,20 @@ async function query(table) {
 // Busca el perfil del usuario (rol + equipo). Si no tiene fila, queda como
 // "consulta" (solo ver) por seguridad.
 async function getProfile(email) {
-  if (!email) return { email: '', role: 'consulta', team: '' };
+  if (!email) return { email: '', role: 'consulta', team: '', comms: false };
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=*`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
-    if (!res.ok) return { email, role: 'consulta', team: '' };
+    if (!res.ok) return { email, role: 'consulta', team: '', comms: false };
     const rows = await res.json();
     if (rows && rows[0]) {
-      return { email, role: rows[0].role || 'consulta', team: rows[0].team || '' };
+      return { email, role: rows[0].role || 'consulta', team: rows[0].team || '', comms: !!rows[0].comms };
     }
-    return { email, role: 'consulta', team: '' };
+    return { email, role: 'consulta', team: '', comms: false };
   } catch {
-    return { email, role: 'consulta', team: '' };
+    return { email, role: 'consulta', team: '', comms: false };
   }
 }
 
