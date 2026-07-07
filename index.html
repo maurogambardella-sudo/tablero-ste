@@ -2851,13 +2851,30 @@ document.querySelectorAll(".modal-overlay").forEach(o=>{
 
 // ─── FILTERS ──────────────────────────────────────────────────────────────────
 function initFilters(){
-  document.getElementById('outputFilterOutcome').innerHTML='<option value="">Todos los outcomes</option>'+state.outcomes.map(oc=><option value="${oc.id}">${oc.id} — ${oc.title}</option>).join('');
-  document.getElementById('taskFilterOutput').innerHTML='<option value="">Todos los outputs</option>'+state.outputs.map(o=><option value="${o.id}">${o.id} — ${o.title}</option>).join('');
-  document.getElementById('taskFilterOwner').innerHTML='<option value="">Todos los responsables</option>'+state.team.map(m=><option value="${m.name}">${m.name}</option>).join('');
+  document.getElementById('outputFilterOutcome').innerHTML =
+    '<option value="">Todos los outcomes</option>' +
+    state.outcomes.map(oc => `<option value="${oc.id}">${oc.id} — ${oc.title}</option>`).join('');
+
+  document.getElementById('taskFilterOutput').innerHTML =
+    '<option value="">Todos los outputs</option>' +
+    state.outputs.map(o => `<option value="${o.id}">${o.id} — ${o.title}</option>`).join('');
+
+  document.getElementById('taskFilterOwner').innerHTML =
+    '<option value="">Todos los responsables</option>' +
+    state.team.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
 }
 
 // ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
-function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=tablero-ste-${todayStr()}.json;a.click();URL.revokeObjectURL(url);toast('Datos exportados');}
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tablero-ste-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Datos exportados');
+}
 async function importData(event){
   const file=event.target.files[0];if(!file)return;
   const reader=new FileReader();
