@@ -2217,7 +2217,7 @@ function openRequestEvaluation(id){
   document.getElementById('evaluationEffort').value = r.effort || '';
   document.getElementById('evaluationDecision').value = r.decision || 'Sin definir';
   document.getElementById('evaluationComment').value = r.reviewerComment || '';
-  document.getElementById('evaluationRequestSummary').innerHTML = `<div class="form-grid"><div class="form-group"><label>Título</label><input type="text" value="${r.title || ''}" readonly></div><div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester || ''}" readonly></div><div class="form-group"><label>Equipo</label><input type="text" value="${r.requesterTeam || r.team || ''}" readonly></div><div class="form-group"><label>Prioridad</label><input type="text" value="${r.priority || '-'}" readonly></div><div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div></div>`;
+  document.getElementById('evaluationRequestSummary').innerHTML = `<div class="form-grid"><div class="form-group"><label>Título</label><input type="text" value="${r.title || ''}" readonly></div><div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester || ''}" readonly></div><div class="form-group"><label>Equipo</label><input type="text" value="${r.requesterTeam || r.team || ''}" readonly></div><div class="form-group"><label>Prioridad</label><input type="text" value="${r.priority || '-'}" readonly></div><div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div></div>;
   document.getElementById('requestEvaluationModal').classList.add('show');
 }
 async function saveRequestEvaluation(){
