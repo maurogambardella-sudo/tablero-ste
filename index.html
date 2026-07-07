@@ -2704,7 +2704,9 @@ function openUserModal(email){
   }
   const isEdit=!!email;
   document.getElementById('userModalTitle').textContent=isEdit?'Editar usuario':'Nuevo usuario';
-  document.getElementById('userTeam').innerHTML='<option value="">— Elegí equipo —</option>'+TEAMS.map(t=><option value="${t}">${t}</option>).join('');
+  document.getElementById('userTeam').innerHTML =
+  '<option value="">— Elegí equipo —</option>' +
+  TEAMS.map(t => `<option value="${t}">${t}</option>`).join('');
   document.getElementById('userDeleteBtn').style.display=isEdit?'inline-block':'none';
   const emailInput=document.getElementById('userEmail');
   if(isEdit){
