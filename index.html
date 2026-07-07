@@ -2060,7 +2060,7 @@ document.getElementById('requestTargetDateLabel').innerHTML =
   type === 'communication'
     ? 'Fecha del comunicado <span class="required-star">*</span>'
     : 'Fecha objetivo / requerida <span class="required-star">*</span>';
-  document.getElementById('requestRequester').value =
+  toTitleCaseName(document.getElementById('requestRequester').value) =
     currentUser.email
       ? currentUser.email.split('@')[0].replace('.', ' ')
       : '';
