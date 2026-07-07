@@ -2211,7 +2211,7 @@ function openRequestEvaluation(id){
   }
   const r = requests.find(x => x.id === id); if(!r) return;
   document.getElementById('evaluationRequestId').value = r.id;
-  document.getElementById('requestEvaluationTitle').textContent = `Evaluación · ${r.id};
+  document.getElementById('requestEvaluationTitle').textContent = 'Evaluación · ${r.id}';
   document.getElementById('evaluationApprover').value = r.approver || 'mauro.gambardella@bayer.com';
   document.getElementById('evaluationStatus').value = r.status || 'Recibido';
   document.getElementById('evaluationEffort').value = r.effort || '';
