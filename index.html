@@ -2178,7 +2178,7 @@ function openRequestDetail(id){
       <div class="form-group"><label>Estado</label><input type="text" value="${r.status || '-'}" readonly></div>
       <div class="form-group"><label>Categoría</label><input type="text" value="${r.category || '-'}" readonly></div>
       <div class="form-group"><label>Fecha objetivo / requerida</label><input type="text" value="${r.targetDate || '-'}" readonly></div>
-      <div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester ? toTitleCaseName(r.requester) : '-'}" readonly></div>
+      <div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester || '-'}" readonly></div>
       <div class="form-group"><label>Email solicitante</label><input type="text" value="${r.requesterEmail || '-'}" readonly></div>
       <div class="form-group"><label>Equipo del solicitante</label><input type="text" value="${r.requesterTeam || r.team || '-'}" readonly></div>
       <div class="form-group"><label>Medio</label><input type="text" value="${r.medium || '-'}" readonly></div>
