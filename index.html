@@ -2168,7 +2168,9 @@ async function deleteRequest(id){
   toast('Solicitud eliminada correctamente.');
 }
 function openRequestDetail(id){
-  const r = requests.find(x => x.id === id); if(!r) return;
+  const r = requests.find(x => x.id === id);
+  if (!r) return;
+
   document.getElementById('requestDetailTitle').textContent = `${r.id} · ${r.title}`;
   document.getElementById('requestDetailBody').innerHTML = `
     <div class="form-grid">
@@ -2183,27 +2185,34 @@ function openRequestDetail(id){
       <div class="form-group"><label>Fecha de difusión</label><input type="text" value="${r.broadcastDate || '-'}" readonly></div>
       <div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>
       <div class="form-group"><label>Sponsor</label><input type="text" value="${r.sponsor || '-'}" readonly></div>
-      ${r.type === 'initiative' ? `<div class="form-group"><label>Impacto</label><input type="text" value="${r.impact || '-'}" readonly></div><div class="form-group"><label>Urgencia</label><input type="text" value="${r.urgency || '-'}" readonly></div>` : `<div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>`}
+      ${r.type === 'initiative'
+        ? `<div class="form-group"><label>Impacto</label><input type="text" value="${r.impact || '-'}" readonly></div>
+           <div class="form-group"><label>Urgencia</label><input type="text" value="${r.urgency || '-'}" readonly></div>`
+        : `<div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>`}
       <div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div>
-    </div>;
-  <div class="form-group full">
-  <label>Adjuntos</label>
-  <div>
-    ${
-      Array.isArray(r.attachments) && r.attachments.length
-        ? r.attachments.map(a => `
-            <div style="margin-bottom:6px;">
-              <a href="${a.url}" target="_blank" rel="noopener" style="font-size:12px;color:var(--bayer-blue);text-decoration:none;word-break:break-all;">
-                ${a.name}
-              </a>
-            </div>
-          `).join('')
-        : '<span style="font-size:12px;color:var(--text-muted);">Sin adjuntos.</span>'
-    }
-  </div>
-</div>
+
+      <div class="form-group full">
+        <label>Adjuntos</label>
+        <div>
+          ${
+            Array.isArray(r.attachments) && r.attachments.length
+              ? r.attachments.map(a => `
+                  <div style="margin-bottom:6px;">
+                    <a href="${a.url}" target="_blank" rel="noopener" style="font-size:12px;color:var(--bayer-blue);text-decoration:none;word-break:break-all;">
+                      ${a.name}
+                    </a>
+                  </div>
+                `).join('')
+              : '<span style="font-size:12px;color:var(--text-muted);">Sin adjuntos.</span>'
+          }
+        </div>
+      </div>
+    </div>
+  `;
+
   document.getElementById('requestDetailModal').classList.add('show');
 }
+
 function openRequestEvaluation(id){
     if (!isAdmin()) {
     toast('Solo un administrador puede acceder a Evaluación.');
@@ -2211,13 +2220,36 @@ function openRequestEvaluation(id){
   }
   const r = requests.find(x => x.id === id); if(!r) return;
   document.getElementById('evaluationRequestId').value = r.id;
-  document.getElementById('requestEvaluationTitle').textContent = 'Evaluación · ${r.id}';
+  document.getElementById('requestEvaluationTitle').textContent = `Evaluación · ${r.id}`;
   document.getElementById('evaluationApprover').value = r.approver || 'mauro.gambardella@bayer.com';
   document.getElementById('evaluationStatus').value = r.status || 'Recibido';
   document.getElementById('evaluationEffort').value = r.effort || '';
   document.getElementById('evaluationDecision').value = r.decision || 'Sin definir';
   document.getElementById('evaluationComment').value = r.reviewerComment || '';
-  document.getElementById('evaluationRequestSummary').innerHTML = <div class="form-grid"><div class="form-group"><label>Título</label><input type="text" value="${r.title || ''}" readonly></div><div class="form-group"><label>Solicitante</label><input type="text" value="${r.requester || ''}" readonly></div><div class="form-group"><label>Equipo</label><input type="text" value="${r.requesterTeam || r.team || ''}" readonly></div><div class="form-group"><label>Prioridad</label><input type="text" value="${r.priority || '-'}" readonly></div><div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div></div>;
+  document.getElementById('evaluationRequestSummary').innerHTML = `
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Título</label>
+      <input type="text" value="${r.title || ''}" readonly>
+    </div>
+    <div class="form-group">
+      <label>Solicitante</label>
+      <input type="text" value="${r.requester || ''}" readonly>
+    </div>
+    <div class="form-group">
+      <label>Equipo</label>
+      <input type="text" value="${r.requesterTeam || r.team || ''}" readonly>
+    </div>
+    <div class="form-group">
+      <label>Prioridad</label>
+      <input type="text" value="${r.priority || '-'}" readonly>
+    </div>
+    <div class="form-group full">
+      <label>Descripción</label>
+      <textarea readonly>${r.description || '-'}</textarea>
+    </div>
+  </div>
+`;
   document.getElementById('requestEvaluationModal').classList.add('show');
 }
 async function saveRequestEvaluation(){
