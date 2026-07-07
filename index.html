@@ -2568,7 +2568,9 @@ function openTaskModal(id){
   const isEdit=!!id;
   document.getElementById('taskModalTitle').textContent=isEdit?'Editar Task':'Nueva Task';
   document.getElementById('taskDeleteBtn').style.display=isEdit?'inline-block':'none';
-  document.getElementById('taskOutput').innerHTML='<option value="">— Seleccionar —</option>'+state.outputs.map(o=><option value="${o.id}">${o.id} — ${o.title}</option>).join('');
+  document.getElementById('taskOutput').innerHTML =
+  '<option value="">— Seleccionar —</option>' +
+  state.outputs.map(o => `<option value="${o.id}">${o.id} — ${o.title}</option>`).join('');
   document.getElementById('taskTeam').innerHTML=teamOptionsHtml();
   document.getElementById('taskOwner').innerHTML='<option value="">Sin asignar</option>'+state.team.map(m=><option value="${m.name}">${m.name}</option>).join('');
   if(isEdit){const t=state.tasks.find(x=>x.id===id);document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskOutput').value=t.output||'';document.getElementById('taskTeam').value=t.team||'';document.getElementById('taskOwner').value=t.owner||'';document.getElementById('taskPriority').value=t.priority||'Media';document.getElementById('taskStatus').value=t.status||'Pendiente';document.getElementById('taskStart').value=t.start||'';document.getElementById('taskEnd').value=t.end||'';document.getElementById('taskProgress').value=calcTaskProgress(t);document.getElementById('taskDesc').value=t.desc||'';document.getElementById('taskNotes').value=t.notes||'';}
