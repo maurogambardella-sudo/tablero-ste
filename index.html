@@ -2605,7 +2605,23 @@ async function deleteTask(){
 // ─── TEAM ─────────────────────────────────────────────────────────────────────
 function renderTeam(){
   const tbody=document.getElementById('teamTbody');
-  tbody.innerHTML=state.team.map(m=>{const outs=state.outputs.filter(o=>o.owner===m.name).length,open=state.tasks.filter(t=>t.owner===m.name&&t.status!=='Completada').length,done=state.tasks.filter(t=>t.owner===m.name&&t.status==='Completada').length;return<tr onclick="openMemberModal('${m.id}')"><td><strong>${m.name}</strong></td><td>${m.role||''}</td><td><a href="mailto:${m.email}" style="color:var(--bayer-blue)">${m.email||''}</a></td><td>${outs}</td><td>${open}</td><td>${done}</td><td><button class="btn-icon" onclick="event.stopPropagation();openMemberModal('${m.id}')">✎</button></td></tr>;}).join('');
+  tbody.innerHTML = state.team.map(m => {
+  const outs = state.outputs.filter(o => o.owner === m.name).length,
+        open = state.tasks.filter(t => t.owner === m.name && t.status !== 'Completada').length,
+        done = state.tasks.filter(t => t.owner === m.name && t.status === 'Completada').length;
+
+  return `
+    <tr onclick="openMemberModal('${m.id}')">
+      <td><strong>${m.name}</strong></td>
+      <td>${m.role || ''}</td>
+      <td><a href="mailto:${m.email}" style="color:var(--bayer-blue)">${m.email || ''}</a></td>
+      <td>${outs}</td>
+      <td>${open}</td>
+      <td>${done}</td>
+      <td><button class="btn-icon" onclick="event.stopPropagation();openMemberModal('${m.id}')">✎</button></td>
+    </tr>
+  `;
+}).join('');
 }
 function openMemberModal(id){
   const isEdit=!!id;
