@@ -2812,11 +2812,26 @@ async function importUsers(){
       }
     }
   }
-  btn.disabled=false;btn.textContent='Importar';
-  const ok=results.filter(r=>r.ok).length;
-  const fail=results.filter(r=>!r.ok).length;
-  resultBox.innerHTML=<p style="font-weight:700;margin-bottom:8px;color:${fail?'var(--red-alert)':'var(--green-ok)'}">✔ ${ok} importados${fail?' · ✖ '+fail+' con error':''}</p>
-    +results.map(r=><div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center"><span style="color:${r.ok?'var(--green-ok)':'var(--red-alert)'}">${r.ok?'✔':'✖'}</span><strong>${r.email}</strong><span style="color:var(--text-muted)">${r.msg}</span></div>).join('');
+    btn.disabled = false;
+  btn.textContent = 'Importar';
+
+  const ok = results.filter(r => r.ok).length;
+  const fail = results.filter(r => !r.ok).length;
+
+  resultBox.innerHTML = `
+    <p style="font-weight:700;margin-bottom:8px;color:${fail ? 'var(--red-alert)' : 'var(--green-ok)'}">
+      ✔ ${ok} importados${fail ? ' · ✖ ' + fail + ' con error' : ''}
+    </p>
+    ${results.map(r => `
+      <div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center">
+        <span style="color:${r.ok ? 'var(--green-ok)' : 'var(--red-alert)'}">${r.ok ? '✔' : '✖'}</span>
+        <strong>${r.email}</strong>
+        <span style="color:var(--text-muted)">${r.msg}</span>
+      </div>
+    `).join('')}
+  `;
+
+  if (ok > 0) await loadUsers();
   if(ok>0) await loadUsers();
 }
 
