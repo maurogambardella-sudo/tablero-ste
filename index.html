@@ -2185,7 +2185,7 @@ function openRequestDetail(id){
       <div class="form-group"><label>Sponsor</label><input type="text" value="${r.sponsor || '-'}" readonly></div>
       ${r.type === 'initiative' ? `<div class="form-group"><label>Impacto</label><input type="text" value="${r.impact || '-'}" readonly></div><div class="form-group"><label>Urgencia</label><input type="text" value="${r.urgency || '-'}" readonly></div>` : `<div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>`}
       <div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div>
-    </div>`;
+    </div>;
   <div class="form-group full">
   <label>Adjuntos</label>
   <div>
