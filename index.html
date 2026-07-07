@@ -2524,20 +2524,22 @@ function renderEvaluationPage() {
     return;
   }
 
-  tbody.innerHTML = requests.map(r => 
-    <tr>
-      <td>${r.id}</td>
-      <td>${r.type === 'communication' ? 'Comunicación' : 'Iniciativa'}</td>
-      <td>${r.title}</td>
-      <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
-      <td>${r.impact ?? '-'}</td>
-      <td>${r.effort ?? '-'}</td>
-      <td>${r.urgency ?? '-'}</td>
-      <td><span class="pill pill-${slugify(r.suggestedPriority || r.priority)}">${r.suggestedPriority || r.priority}</span></td>
-      <td><button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button> ${isAdmin() ? `
-  <button class="btn btn-sm" onclick="openRequestEvaluation('${r.id}')">Evaluar</button>
-` : ''}</td>
-    </tr>).join('');
+tbody.innerHTML = requests.map(r => `
+  <tr>
+    <td>${r.id}</td>
+    <td>${r.type === 'communication' ? 'Comunicación' : 'Iniciativa'}</td>
+    <td>${r.title}</td>
+    <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
+    <td>${r.impact ?? '-'}</td>
+    <td>${r.effort ?? '-'}</td>
+    <td>${r.urgency ?? '-'}</td>
+    <td><span class="pill pill-${slugify(r.suggestedPriority || r.priority)}">${r.suggestedPriority || r.priority}</span></td>
+    <td>
+      <button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button>
+      ${isAdmin() ? `<button class="btn btn-sm" onclick="openRequestEvaluation('${r.id}')">Evaluar</button>` : ''}
+    </td>
+  </tr>
+`).join('');
 }
 
 function renderFormsDashboard() {
