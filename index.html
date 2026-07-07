@@ -2449,7 +2449,7 @@ function renderCommunicationPage() {
     return;
   }
 
-  tbody.innerHTML = rows.map(r => `
+  tbody.innerHTML = rows.map(r => 
     <tr>
       <td>${r.id || '-'}</td>
       <td>${r.title || '-'}</td>
@@ -2467,8 +2467,7 @@ function renderCommunicationPage() {
             : ''
         }
       </td>
-    </tr>
-  `).join('');
+    </tr>).join('');
 }
 
 function renderEvaluationPage() {
