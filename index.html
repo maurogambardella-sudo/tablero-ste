@@ -2614,7 +2614,7 @@ function renderUsers(){
     const roleColor=u.role==='admin'?'#10384F':u.role==='editor'?'#0091DF':'#9CA3AF';
     const team=u.team?<span class="pill" style="background:#E0E7FF;color:#3730A3;font-size:10px">${u.team}</span>:'<em style="color:var(--text-muted)">—</em>';
 const commsPill=u.comms?<span class="pill" style="background:#DCFCE7;color:#166534;font-size:10px;margin-left:4px">Comms</span>:'';
-return `<tr onclick="openUserModal('${(u.email||'').replace(/'/g,"\\'")}')"><td><strong>${u.email}</strong></td><td><span class="pill" style="background:${roleColor};color:white">${ROLE_LABELS[u.role]||u.role}</span></td><td>${team}${commsPill}</td><td><button class="btn-icon" onclick="event.stopPropagation();openUserModal('${(u.email||'').replace(/'/g,"\\'")}')">✎</button></td></tr>`;
+return <tr onclick="openUserModal('${(u.email||'').replace(/'/g,"\\'")}')"><td><strong>${u.email}</strong></td><td><span class="pill" style="background:${roleColor};color:white">${ROLE_LABELS[u.role]||u.role}</span></td><td>${team}${commsPill}</td><td><button class="btn-icon" onclick="event.stopPropagation();openUserModal('${(u.email||'').replace(/'/g,"\\'")}')">✎</button></td></tr>;
   }).join('');
 }
 function onUserRoleChange(){
@@ -2628,7 +2628,7 @@ function openUserModal(email){
   }
   const isEdit=!!email;
   document.getElementById('userModalTitle').textContent=isEdit?'Editar usuario':'Nuevo usuario';
-  document.getElementById('userTeam').innerHTML='<option value="">— Elegí equipo —</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('userTeam').innerHTML='<option value="">— Elegí equipo —</option>'+TEAMS.map(t=><option value="${t}">${t}</option>).join('');
   document.getElementById('userDeleteBtn').style.display=isEdit?'inline-block':'none';
   const emailInput=document.getElementById('userEmail');
   if(isEdit){
@@ -2737,8 +2737,8 @@ async function importUsers(){
   btn.disabled=false;btn.textContent='Importar';
   const ok=results.filter(r=>r.ok).length;
   const fail=results.filter(r=>!r.ok).length;
-  resultBox.innerHTML=`<p style="font-weight:700;margin-bottom:8px;color:${fail?'var(--red-alert)':'var(--green-ok)'}">✔ ${ok} importados${fail?' · ✖ '+fail+' con error':''}</p>`
-    +results.map(r=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center"><span style="color:${r.ok?'var(--green-ok)':'var(--red-alert)'}">${r.ok?'✔':'✖'}</span><strong>${r.email}</strong><span style="color:var(--text-muted)">${r.msg}</span></div>`).join('');
+  resultBox.innerHTML=<p style="font-weight:700;margin-bottom:8px;color:${fail?'var(--red-alert)':'var(--green-ok)'}">✔ ${ok} importados${fail?' · ✖ '+fail+' con error':''}</p>
+    +results.map(r=><div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center"><span style="color:${r.ok?'var(--green-ok)':'var(--red-alert)'}">${r.ok?'✔':'✖'}</span><strong>${r.email}</strong><span style="color:var(--text-muted)">${r.msg}</span></div>).join('');
   if(ok>0) await loadUsers();
 }
 
@@ -2758,9 +2758,9 @@ document.querySelectorAll(".modal-overlay").forEach(o=>{
 
 // ─── FILTERS ──────────────────────────────────────────────────────────────────
 function initFilters(){
-  document.getElementById('outputFilterOutcome').innerHTML='<option value="">Todos los outcomes</option>'+state.outcomes.map(oc=>`<option value="${oc.id}">${oc.id} — ${oc.title}</option>`).join('');
-  document.getElementById('taskFilterOutput').innerHTML='<option value="">Todos los outputs</option>'+state.outputs.map(o=>`<option value="${o.id}">${o.id} — ${o.title}</option>`).join('');
-  document.getElementById('taskFilterOwner').innerHTML='<option value="">Todos los responsables</option>'+state.team.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+  document.getElementById('outputFilterOutcome').innerHTML='<option value="">Todos los outcomes</option>'+state.outcomes.map(oc=><option value="${oc.id}">${oc.id} — ${oc.title}</option>).join('');
+  document.getElementById('taskFilterOutput').innerHTML='<option value="">Todos los outputs</option>'+state.outputs.map(o=><option value="${o.id}">${o.id} — ${o.title}</option>).join('');
+  document.getElementById('taskFilterOwner').innerHTML='<option value="">Todos los responsables</option>'+state.team.map(m=><option value="${m.name}">${m.name}</option>).join('');
 }
 
 // ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
