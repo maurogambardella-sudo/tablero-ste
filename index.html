@@ -2572,7 +2572,9 @@ function openTaskModal(id){
   '<option value="">— Seleccionar —</option>' +
   state.outputs.map(o => `<option value="${o.id}">${o.id} — ${o.title}</option>`).join('');
   document.getElementById('taskTeam').innerHTML=teamOptionsHtml();
-  document.getElementById('taskOwner').innerHTML='<option value="">Sin asignar</option>'+state.team.map(m=><option value="${m.name}">${m.name}</option>).join('');
+  document.getElementById('taskOwner').innerHTML =
+  '<option value="">Sin asignar</option>' +
+  state.team.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
   if(isEdit){const t=state.tasks.find(x=>x.id===id);document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskOutput').value=t.output||'';document.getElementById('taskTeam').value=t.team||'';document.getElementById('taskOwner').value=t.owner||'';document.getElementById('taskPriority').value=t.priority||'Media';document.getElementById('taskStatus').value=t.status||'Pendiente';document.getElementById('taskStart').value=t.start||'';document.getElementById('taskEnd').value=t.end||'';document.getElementById('taskProgress').value=calcTaskProgress(t);document.getElementById('taskDesc').value=t.desc||'';document.getElementById('taskNotes').value=t.notes||'';}
   else{document.getElementById('taskId').value='';['taskTitle','taskDesc','taskNotes','taskStart','taskEnd'].forEach(i=>document.getElementById(i).value='');document.getElementById('taskPriority').value='Media';document.getElementById('taskStatus').value='Pendiente';document.getElementById('taskProgress').value=0;document.getElementById('taskTeam').value=tasksScope||(isEditor()?currentUser.team:'');}
   ['taskStart','taskEnd','taskStatus'].forEach(fid=>{const el=document.getElementById(fid);el.oninput=el.onchange=()=>{document.getElementById('taskProgress').value=calcTaskProgress({status:document.getElementById('taskStatus').value,start:document.getElementById('taskStart').value,end:document.getElementById('taskEnd').value});};});
