@@ -2884,7 +2884,7 @@ document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
           document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
           document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
           link.classList.add('active');
-          const target = document.getElementById(`page-${page}`);
+          const target = document.getElementById('page-${page}');
           if (target) target.classList.add('active');
           const parent = document.querySelector('.nav-parent[data-group="forms"]');
           if (parent) parent.classList.add('expanded');
