@@ -845,14 +845,14 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
 
         <div class="form-group full">
-          <label>Adjuntar archivos / links</label>
-          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:flex-end; margin-bottom:8px;">
-            <input type="file" id="reqFileInput" style="flex:1; min-width:180px;">
-            <input type="text" id="reqFileLabel" placeholder="Descripción del archivo (opcional)" style="flex:1; min-width:140px;">
-            <button type="button" class="btn btn-sm" onclick="addReqAttachment()">Agregar</button>
-          </div>
-          <div id="reqAttachmentsList"></div>
-        </div>
+  <label>Adjuntar archivos / links</label>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px;">
+    <input type="text" id="reqAttachName" placeholder="Nombre del archivo / link" style="flex:1;min-width:140px;">
+    <input type="text" id="reqAttachUrl" placeholder="Link SharePoint, OneDrive, Teams, etc." style="flex:2;min-width:200px;">
+    <button type="button" class="btn btn-sm" onclick="addReqAttachment()">Agregar</button>
+  </div>
+  <div id="reqAttachmentsList"></div>
+</div>
 
         <div class="form-group">
           <label id="requestTargetDateLabel">Fecha objetivo / requerida <span class="required-star">*</span></label>
@@ -1712,6 +1712,7 @@ async function saveConfig(){state.config.cycleStart=document.getElementById('con
 
 // ─── OUTPUTS ──────────────────────────────────────────────────────────────────
 let _draftAttach=[],_draftComments=[],_draftPart=[];
+let draftReqAttachments = [];
 function renderParticipantsBox(){
   const box=document.getElementById('outputParticipantsBox');if(!box)return;
   if(!state.team.length){box.innerHTML='<span style="font-size:11px;color:var(--text-muted)">No hay miembros cargados.</span>';return;}
@@ -1750,6 +1751,60 @@ function renderOutputs(){
     return `<tr onclick="openOutputModal('${o.id}')"><td><strong>${o.id}</strong></td><td><span class="pill" style="background:#10384F;color:white">${o.outcome||'—'}</span></td><td style="max-width:140px">${teamHtml}</td><td><strong>${o.title}</strong><br><span style="font-size:11px;color:var(--text-muted)">${o.desc||''}</span></td><td>${o.actual??'—'} / ${o.meta??'—'} ${o.unit||''}</td><td><div class="inline-progress"><div class="bar"><div class="fill" style="width:${Math.min(real,100)}%"></div></div><span class="text">${real}%</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Esp: ${exp}% <span class="${dc}">(${ds}${d}%)</span></div></td><td><span class="pill ${pillClass(st)}">${st}</span></td><td>${o.owner||'<em style="color:var(--text-muted)">Sin asignar</em>'}</td><td style="max-width:160px">${partHtml}</td><td style="max-width:160px;font-size:11px">${o.dependency||'<em style="color:var(--text-muted)">—</em>'}</td><td>${o.ciclo||''}</td><td>${o.date||''}<br><span style="font-size:10px;color:var(--text-muted)">${o.startDate?'desde '+o.startDate:''}</span></td><td style="font-size:11px;white-space:nowrap">${ni.length?ni.join(' · '):'—'}</td><td>${pencil}</td></tr>`;
   }).join('');
 }
+
+function addReqAttachment() {
+  const nameEl = document.getElementById('reqAttachName');
+  const urlEl = document.getElementById('reqAttachUrl');
+
+  const name = nameEl?.value.trim();
+  const url = urlEl?.value.trim();
+
+  if (!name || !url) {
+    alert('Ingresá nombre y link del archivo.');
+    return;
+  }
+
+  draftReqAttachments.push({
+    name,
+    url,
+    addedAt: todayStr()
+  });
+
+  nameEl.value = '';
+  urlEl.value = '';
+  renderReqAttachmentsList();
+}
+
+function removeReqAttachment(i) {
+  if (!confirm('¿Quitar adjunto?')) return;
+  draftReqAttachments.splice(i, 1);
+  renderReqAttachmentsList();
+}
+
+function renderReqAttachmentsList() {
+  const box = document.getElementById('reqAttachmentsList');
+  if (!box) return;
+
+  if (!draftReqAttachments.length) {
+    box.innerHTML = '<span style="font-size:11px;color:var(--text-muted);font-style:italic">Sin adjuntos.</span>';
+    return;
+  }
+
+  box.innerHTML = draftReqAttachments.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#F3F4F6;border-radius:6px;border:1px solid var(--border);margin-bottom:6px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:var(--bayer-dark);">${a.name}</div>
+        <div>
+          <a href="${a.url}" target="_blank" rel="noopener" style="font-size:10px;color:var(--bayer-blue);text-decoration:none;word-break:break-all;">
+            ${a.url}
+          </a>
+        </div>
+      </div>
+      <button type="button" class="btn-icon" onclick="removeReqAttachment(${i})">✕</button>
+    </div>
+  `).join('');
+}
+  
 function teamOptionsHtml(){
   return '<option value="">— Sin equipo —</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
 }
@@ -2031,12 +2086,15 @@ type === 'communication' ? '' : (currentUser.team || '');
   document.getElementById('requestAudience').value = '';
   document.getElementById('requestChannel').value = '';
 
-  const fileInput = document.getElementById('reqFileInput');
-  const fileLabel = document.getElementById('reqFileLabel');
-  const attachmentsBox = document.getElementById('reqAttachmentsList');
-  if (fileInput) fileInput.value = '';
-  if (fileLabel) fileLabel.value = '';
-  if (attachmentsBox) attachmentsBox.innerHTML = '';
+  draftReqAttachments = [];
+
+const attachName = document.getElementById('reqAttachName');
+const attachUrl = document.getElementById('reqAttachUrl');
+
+if (attachName) attachName.value = '';
+if (attachUrl) attachUrl.value = '';
+
+renderReqAttachmentsList();
 
   document.getElementById('initiativeFields').style.display =
     type === 'initiative' ? 'block' : 'none';
@@ -2092,6 +2150,12 @@ function editRequest(id){
   document.getElementById('requestMedium').value = r.medium || '';
   document.getElementById('requestBroadcastDate').value = (r.broadcastDate || '').slice(0,10);
   document.getElementById('requestSuggestedPriority').value = r.suggestedPriority || r.priority || '';
+
+  draftReqAttachments = Array.isArray(r.attachments)
+  ? JSON.parse(JSON.stringify(r.attachments))
+  : [];
+
+renderReqAttachmentsList();
 }
 async function deleteRequest(id){
   const r = requests.find(x => x.id === id); if(!r) return;
@@ -2122,6 +2186,22 @@ function openRequestDetail(id){
       ${r.type === 'initiative' ? `<div class="form-group"><label>Impacto</label><input type="text" value="${r.impact || '-'}" readonly></div><div class="form-group"><label>Urgencia</label><input type="text" value="${r.urgency || '-'}" readonly></div>` : `<div class="form-group full"><label>Audiencia</label><input type="text" value="${r.audience || '-'}" readonly></div>`}
       <div class="form-group full"><label>Descripción</label><textarea readonly>${r.description || '-'}</textarea></div>
     </div>`;
+  <div class="form-group full">
+  <label>Adjuntos</label>
+  <div>
+    ${
+      Array.isArray(r.attachments) && r.attachments.length
+        ? r.attachments.map(a => `
+            <div style="margin-bottom:6px;">
+              <a href="${a.url}" target="_blank" rel="noopener" style="font-size:12px;color:var(--bayer-blue);text-decoration:none;word-break:break-all;">
+                ${a.name}
+              </a>
+            </div>
+          `).join('')
+        : '<span style="font-size:12px;color:var(--text-muted);">Sin adjuntos.</span>'
+    }
+  </div>
+</div>
   document.getElementById('requestDetailModal').classList.add('show');
 }
 function openRequestEvaluation(id){
@@ -2261,6 +2341,7 @@ async function saveRequest() {
       effort: '',
       urgency,
       suggestedPriority,
+      attachments: Array.isArray(draftReqAttachments) ? JSON.parse(JSON.stringify(draftReqAttachments)) : [],
       createdAt: new Date().toISOString()
     };
 
