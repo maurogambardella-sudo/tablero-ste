@@ -2417,8 +2417,7 @@ function renderInitiativesPage() {
       <button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button>
       ${canManageRequest(r) ? `<button class="btn btn-sm" onclick="editRequest('${r.id}')">Editar</button> <button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">Eliminar</button>` : ''}
     </td>
-  </tr>
-`).join('');
+  </tr>).join('');
 }
 
 function renderCommunicationPage() {
