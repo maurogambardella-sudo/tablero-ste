@@ -2436,20 +2436,22 @@ function renderInitiativesPage() {
     return;
   }
 
-  tbody.innerHTML = rows.map(r => 
+  tbody.innerHTML = rows.map(r => `
   <tr>
     <td>${r.id}</td>
     <td>${r.title}</td>
     <td>${r.category || '-'}</td>
     <td>${r.requester || '-'}</td>
-    <td><span class="pill pill-${slugify(r.status)}">${r.status}</span></td>
-    <td><span class="pill pill-${slugify(r.priority)}">${r.priority}</span></td>
+    <td><span class="pill pill-${slugify(r.status || '')}">${r.status || '-'}</span></td>
+    <td><span class="pill pill-${slugify(r.priority || '')}">${r.priority || '-'}</span></td>
     <td>${r.targetDate || '-'}</td>
     <td>
       <button class="btn btn-secondary btn-sm" onclick="openRequestDetail('${r.id}')">Ver</button>
-      ${canManageRequest(r) ? `<button class="btn btn-sm" onclick="editRequest('${r.id}')">Editar</button> <button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">Eliminar</button>` : ''}
+      <button class="btn btn-sm" onclick="editRequest('${r.id}')">Editar</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">Eliminar</button>
     </td>
-  </tr>).join('');
+  </tr>
+`).join('');
 }
 
 function renderCommunicationPage() {
