@@ -604,6 +604,37 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
   </div>
 </section>
+
+    <section class="page" id="page-recognitions">
+  <div class="page-header">
+    <div>
+      <h2>Reconocimientos</h2>
+      <p class="meta">Reconocimientos entre integrantes del equipo</p>
+    </div>
+    <button class="btn" onclick="openRecognitionModal()">Nuevo reconocimiento</button>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>A quién se reconoce</th>
+            <th>Equipo</th>
+            <th>DSO</th>
+            <th>VACC</th>
+            <th>Fecha</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="recognitionsTbody">
+          <tr><td colspan="7" class="empty">Todavía no hay reconocimientos para mostrar.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
     <!-- TEAM -->
     <section class="page" id="page-team">
       <div class="page-header">
