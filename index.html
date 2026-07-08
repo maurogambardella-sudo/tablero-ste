@@ -2717,9 +2717,7 @@ async function deleteTask(){
 }
 
 function openRecognitionModal() {
-  if (!appUsers.length) {
-    try { await loadUsers(); } catch(e) { console.warn('No se pudieron cargar usuarios', e); }
-  }
+  
   document.getElementById('recognitionModal').classList.add('show');
   document.getElementById('recognitionId').value = '';
   document.getElementById('recognitionReason').value = '';
