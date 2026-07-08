@@ -177,6 +177,8 @@ function mapRequest(r) {
     sponsor: r.sponsor ?? '',
     audience: r.audience ?? '',
     channel: r.channel ?? '',
+    medium: r.medium ?? '',
+    broadcast_date: r.broadcastDate || null,
     impact: r.impact === '' || r.impact == null ? null : r.impact,
     effort: r.effort === '' || r.effort == null ? null : r.effort,
     urgency: r.urgency === '' || r.urgency == null ? null : r.urgency,
