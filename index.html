@@ -2713,6 +2713,30 @@ async function deleteTask(){
   await saveState();closeModal('taskModal');renderAll();toast('Task eliminada');
 }
 
+function openRecognitionModal() {
+  document.getElementById('recognitionModal').classList.add('show');
+  document.getElementById('recognitionId').value = '';
+  document.getElementById('recognitionReason').value = '';
+  document.getElementById('recognitionDSO').value = '';
+  document.getElementById('recognitionVACC').value = '';
+  document.getElementById('recognitionTeam').value = '';
+
+  const sel = document.getElementById('recognitionToMember');
+  const members = (state.team || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  sel.innerHTML =
+    '<option value="">Seleccionar</option>' +
+    members.map(m => `<option value="${m.id || ''}">${m.name || ''}</option>`).join('');
+
+  sel.onchange = function () {
+    const member = members.find(m => String(m.id || '') === sel.value);
+    document.getElementById('recognitionTeam').value = member?.role || '';
+  };
+}
+
+
+
+  
 // ─── TEAM ─────────────────────────────────────────────────────────────────────
 function renderTeam(){
   const tbody=document.getElementById('teamTbody');
