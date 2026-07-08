@@ -2312,7 +2312,8 @@ async function saveRequest() {
     const category = type === 'initiative' ? categoryEl.value : '';
     const channel = type === 'communication' ? channelEl.value : '';
     const targetDate = dateEl.value;
-    const requester = requesterEl.value.trim();
+    const requester = formatPersonName(requesterEl.value);
+    requesterEl.value = requester;
     const requesterEmail = requesterEmailEl.value.trim();
     const requesterTeam = requesterTeamEl.value;
     const impact = type === 'initiative' ? impactEl.value : '';
