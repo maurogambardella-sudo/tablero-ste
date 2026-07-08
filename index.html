@@ -1004,6 +1004,64 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
 </div>
         </div>
         </div>
+
+    <div class="modal-overlay" id="recognitionModal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <h3 id="recognitionModalTitle">Nuevo reconocimiento</h3>
+      <button class="btn-icon" onclick="closeModal('recognitionModal')">×</button>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" id="recognitionId">
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>A quien se reconoce <span class="required-star">*</span></label>
+          <select id="recognitionToMember"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Equipo</label>
+          <input type="text" id="recognitionTeam" readonly style="background:#F3F4F6;color:var(--text-muted);cursor:not-allowed">
+        </div>
+
+        <div class="form-group">
+          <label>Comportamientos DSO</label>
+          <select id="recognitionDSO">
+            <option value="">Seleccionar</option>
+            <option value="Foco en Outcomes">Foco en Outcomes</option>
+            <option value="Co-Crear para clientes">Co-Crear para clientes</option>
+            <option value="Colaborar con responsabilidad">Colaborar con responsabilidad</option>
+            <option value="Sé tu mejor versión e incluye a los demás">Sé tu mejor versión e incluye a los demás</option>
+            <option value="Actuar, Aprender Rápido y Evolucionar">Actuar, Aprender Rápido y Evolucionar</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Comportamientos VACC</label>
+          <select id="recognitionVACC">
+            <option value="">Seleccionar</option>
+            <option value="Visionario">Visionario</option>
+            <option value="Arquitecto">Arquitecto</option>
+            <option value="Coach">Coach</option>
+            <option value="Catalizador">Catalizador</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>Motivo reconocimiento <span class="required-star">*</span></label>
+          <textarea id="recognitionReason"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('recognitionModal')">Cancelar</button>
+      <button class="btn" onclick="saveRecognition()">Guardar</button>
+    </div>
+  </div>
+</div>
         
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
@@ -1160,12 +1218,16 @@ const SEED = {
     createdAt: new Date().toISOString()
   }
 ],
+
+  recognitions: [],
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = JSON.parse(JSON.stringify(SEED));
   if (!state.requests) state.requests = [];
 let requests = state.requests;
+  if (!state.recognitions) state.recognitions = [];
+let recognitions = state.recognitions;
 let isSaving = false;
 
 // ─── EQUIPOS Y ROL DEL USUARIO ────────────────────────────────────────────────
