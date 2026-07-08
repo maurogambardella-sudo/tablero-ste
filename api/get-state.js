@@ -111,6 +111,8 @@ function mapRequest(r) {
     sponsor: r.sponsor,
     audience: r.audience,
     channel: r.channel,
+    medium: r.medium,
+    broadcastDate: r.broadcast_date,
     impact: r.impact,
     effort: r.effort,
     urgency: r.urgency,
