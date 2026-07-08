@@ -1005,7 +1005,16 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
         </div>
         </div>
 
-    <div class="modal-overlay" id="recognitionModal">
+    
+        
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
+      <button class="btn" onclick="saveRequest()">Guardar</button>
+    </div>
+   </div>
+</div>
+
+  <div class="modal-overlay" id="recognitionModal">
   <div class="modal" style="max-width:760px">
     <div class="modal-header">
       <h3 id="recognitionModalTitle">Nuevo reconocimiento</h3>
@@ -1061,13 +1070,6 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
       <button class="btn" onclick="saveRecognition()">Guardar</button>
     </div>
   </div>
-</div>
-        
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('requestModal')">Cancelar</button>
-      <button class="btn" onclick="saveRequest()">Guardar</button>
-    </div>
-   </div>
 </div>
 
 <div class="modal-overlay" id="requestDetailModal">
