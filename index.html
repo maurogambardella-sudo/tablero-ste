@@ -2717,7 +2717,6 @@ async function deleteTask(){
 }
 
 function openRecognitionModal() {
-  
   document.getElementById('recognitionModal').classList.add('show');
   document.getElementById('recognitionId').value = '';
   document.getElementById('recognitionReason').value = '';
@@ -2739,7 +2738,7 @@ function openRecognitionModal() {
   const user = members.find(u => String(u.email || '') === sel.value);
   document.getElementById('recognitionTeam').value = user?.team || '';
 };
-
+}
 
 
   
