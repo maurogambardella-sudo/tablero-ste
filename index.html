@@ -2060,10 +2060,12 @@ document.getElementById('requestTargetDateLabel').innerHTML =
   type === 'communication'
     ? 'Fecha del comunicado <span class="required-star">*</span>'
     : 'Fecha objetivo / requerida <span class="required-star">*</span>';
-  document.getElementById('requestRequester').value =
+ document.getElementById('requestRequester').value =
+  formatPersonName(
     currentUser.email
       ? currentUser.email.split('@')[0].replace('.', ' ')
-      : '';
+      : ''
+  );
   document.getElementById('requestRequesterEmail').value = currentUser.email || '';
   // Opciones de equipo según el tipo de solicitud
 const teamSel = document.getElementById('requestRequesterTeam');
