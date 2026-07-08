@@ -2137,7 +2137,7 @@ function editRequest(id){
   document.getElementById('requestTitle').value = r.title || '';
   document.getElementById('requestDescription').value = r.description || '';
   document.getElementById('requestTargetDate').value = (r.targetDate || '').slice(0,10);
-  document.getElementById('requestRequester').value = r.requester || '';
+  document.getElementById('requestRequester').value = formatPersonName(r?.requester || '');
   document.getElementById('requestRequesterEmail').value = r.requesterEmail || '';
   document.getElementById('requestRequesterTeam').value = r.requesterTeam || r.team || '';
 
