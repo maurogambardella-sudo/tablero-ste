@@ -2788,21 +2788,26 @@ async function deleteMember(){
 }
 
 // ─── ADMINISTRACIÓN DE USUARIOS ───────────────────────────────────────────────
-let adminUsers=[];
-const ROLE_LABELS={admin:'Admin',editor:'Editor',consulta:'Consulta'};
-async function loadUsers(){
-  if(!isAdmin())return;
-  const tb=document.getElementById('usersTbody');
-  tb.innerHTML='<tr><td colspan="4" class="empty">Cargando…</td></tr>';
-  try{
-    const res=await fetch('/api/admin-users',{headers:authHeaders()});
-    appUsers = Array.isArray(data) ? data : (data.users || []);
-    if(!res.ok)throw new Error('error');
-    const data=await res.json();
-    adminUsers=data.users||[];
+let adminUsers = [];
+const ROLE_LABELS = { admin:'Admin', editor:'Editor', consulta:'Consulta' };
+
+async function loadUsers() {
+  if (!isAdmin()) return;
+
+  const tb = document.getElementById('usersTbody');
+  tb.innerHTML = '<tr><td colspan="4" class="empty">Cargando…</td></tr>';
+
+  try {
+    const res = await fetch('/api/admin-users', { headers: authHeaders() });
+    if (!res.ok) throw new Error('error');
+
+    const data = await res.json();
+    adminUsers = data.users || [];
+    appUsers = data.users || [];
+
     renderUsers();
-  }catch(e){
-    tb.innerHTML='<tr><td colspan="4" class="empty">No se pudieron cargar los usuarios.</td></tr>';
+  } catch (e) {
+    tb.innerHTML = '<tr><td colspan="4" class="empty">No se pudieron cargar los usuarios.</td></tr>';
   }
 }
 function renderUsers(){
