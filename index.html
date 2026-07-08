@@ -1237,6 +1237,7 @@ const TEAMS = ['Demand Planning CP','Demand Planning Maíz','Impo & Expo','Custo
 // Rol del usuario logueado. Por defecto "consulta" (solo ver) hasta que el
 // servidor confirme quién es. El backend SIEMPRE vuelve a verificar el rol.
 let currentUser = { email:'', role:'consulta', team:'' };
+let appUsers = [];
 function isAdmin()  { return currentUser.role === 'admin'; }
 function isComms() { return !!currentUser.comms; }
 function isEditor() { return currentUser.role === 'editor'; }
@@ -2716,6 +2717,9 @@ async function deleteTask(){
 }
 
 function openRecognitionModal() {
+  if (!appUsers.length) {
+    try { await loadUsers(); } catch(e) { console.warn('No se pudieron cargar usuarios', e); }
+  }
   document.getElementById('recognitionModal').classList.add('show');
   document.getElementById('recognitionId').value = '';
   document.getElementById('recognitionReason').value = '';
@@ -2724,17 +2728,19 @@ function openRecognitionModal() {
   document.getElementById('recognitionTeam').value = '';
 
   const sel = document.getElementById('recognitionToMember');
-  const members = (state.team || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const members = (appUsers || [])
+  .filter(u => (u.email || '').toLowerCase() !== (currentUser.email || '').toLowerCase())
+  .slice()
+  .sort((a, b) => (a.email || '').localeCompare(b.email || ''));
 
-  sel.innerHTML =
-    '<option value="">Seleccionar</option>' +
-    members.map(m => `<option value="${m.id || ''}">${m.name || ''}</option>`).join('');
+ sel.innerHTML =
+  '<option value="">Seleccionar</option>' +
+  members.map(u => `<option value="${u.email || ''}">${u.email || ''}</option>`).join('');
 
   sel.onchange = function () {
-    const member = members.find(m => String(m.id || '') === sel.value);
-    document.getElementById('recognitionTeam').value = member?.role || '';
-  };
-}
+  const user = members.find(u => String(u.email || '') === sel.value);
+  document.getElementById('recognitionTeam').value = user?.team || '';
+};
 
 
 
@@ -2793,6 +2799,7 @@ async function loadUsers(){
   tb.innerHTML='<tr><td colspan="4" class="empty">Cargando…</td></tr>';
   try{
     const res=await fetch('/api/admin-users',{headers:authHeaders()});
+    appUsers = Array.isArray(data) ? data : (data.users || []);
     if(!res.ok)throw new Error('error');
     const data=await res.json();
     adminUsers=data.users||[];
