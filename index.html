@@ -1400,7 +1400,7 @@ async function initApp() {
       authToken = data.session.access_token;
       setUserEmail(data.session.user.email);
       showApp();
-      await loadFromAPI();
+      await ;
       try {
         startInactivityWatch();
       } catch (e) {
@@ -1438,7 +1438,7 @@ async function doLogin(e) {
   setUserEmail(data.user.email);
   document.getElementById('authPassword').value = '';
   showApp();
-  loadFromAPI();
+  ;
   startInactivityWatch();
 }
 async function doLogout() {
@@ -1502,7 +1502,7 @@ async function doSetNewPassword(e) {
   }
   document.getElementById('recoveryOverlay').classList.add('hidden');
   showApp();
-  loadFromAPI();
+  ;
   startInactivityWatch();
 }
 
@@ -1557,6 +1557,8 @@ async function loadFromAPI() {
     if (data.requests) {
       state.requests = data.requests;
       requests = state.requests;
+    if (data.recognitions) state.recognitions = data.recognitions;
+recognitions = state.recognitions;
     }
     if (data.config) {
       state.config = {
@@ -1571,7 +1573,8 @@ async function loadFromAPI() {
       !state.outputs.length &&
       !state.tasks.length &&
       !state.team.length &&
-      !state.requests.length;
+      !state.requests.length &&
+      !state.recognitions.length;
 
     if (isTotallyEmpty) {
       await saveState();
