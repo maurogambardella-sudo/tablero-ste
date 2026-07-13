@@ -830,6 +830,57 @@ tbody tr:hover { background: var(--bayer-light); }
   </div>
 </div>
 
+
+<div class="modal-overlay" id="recognitionDetailModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <h3>Detalle del reconocimiento</h3>
+      <button class="btn-icon" onclick="closeModal('recognitionDetailModal')">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="card-grid-2">
+        <div class="form-group">
+          <label>ID</label>
+          <input type="text" id="recognitionDetailId" readonly>
+        </div>
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="text" id="recognitionDetailDate" readonly>
+        </div>
+        <div class="form-group">
+          <label>De</label>
+          <input type="text" id="recognitionDetailFrom" readonly>
+        </div>
+        <div class="form-group">
+          <label>A</label>
+          <input type="text" id="recognitionDetailTo" readonly>
+        </div>
+        <div class="form-group">
+          <label>Equipo</label>
+          <input type="text" id="recognitionDetailTeam" readonly>
+        </div>
+        <div class="form-group">
+          <label>DSO</label>
+          <input type="text" id="recognitionDetailDSO" readonly>
+        </div>
+        <div class="form-group full">
+          <label>VACC</label>
+          <input type="text" id="recognitionDetailVACC" readonly>
+        </div>
+        <div class="form-group full">
+          <label>Motivo</label>
+          <textarea id="recognitionDetailReason" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('recognitionDetailModal')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal importación masiva -->
 <div class="modal-overlay" id="importUsersModal">
   <div class="modal" style="max-width:560px">
@@ -2675,6 +2726,17 @@ function formatPersonName(name) {
     .map(part => part ? part.charAt(0).toUpperCase() + part.slice(1) : '')
     .join(' ');
 }
+
+
+function getUserDisplayNameByEmail(email) {
+  const user = (appUsers || []).find(u => (u.email || '').toLowerCase() === (email || '').toLowerCase());
+  if (!user) return email || '-';
+
+  if (user.name && String(user.name).trim()) return user.name.trim();
+  if (user.full_name && String(user.full_name).trim()) return user.full_name.trim();
+
+  return user.email || email || '-';
+}
   
 
   
@@ -2822,7 +2884,7 @@ function renderRecognitions() {
     .map(r => `
       <tr>
         <td>${r.id || '-'}</td>
-        <td>${r.toEmail || '-'}</td>
+        <td>${getUserDisplayNameByEmail(r.toEmail)}</td>
         <td>${r.toTeam || '-'}</td>
         <td>${r.dso || '-'}</td>
         <td>${r.vacc || '-'}</td>
@@ -2837,16 +2899,16 @@ function openRecognitionDetail(id) {
   const r = (state.recognitions || []).find(x => x.id === id);
   if (!r) return;
 
-  alert(
-    `ID: ${r.id}\n` +
-    `De: ${r.fromEmail || '-'}\n` +
-    `A: ${r.toEmail || '-'}\n` +
-    `Equipo: ${r.toTeam || '-'}\n` +
-    `DSO: ${r.dso || '-'}\n` +
-    `VACC: ${r.vacc || '-'}\n` +
-    `Fecha: ${r.createdAt || '-'}\n\n` +
-    `Motivo:\n${r.reason || '-'}`
-  );
+  document.getElementById('recognitionDetailId').value = r.id || '';
+  document.getElementById('recognitionDetailDate').value = r.createdAt || '';
+  document.getElementById('recognitionDetailFrom').value = getUserDisplayNameByEmail(r.fromEmail);
+  document.getElementById('recognitionDetailTo').value = getUserDisplayNameByEmail(r.toEmail);
+  document.getElementById('recognitionDetailTeam').value = r.toTeam || '';
+  document.getElementById('recognitionDetailDSO').value = r.dso || '';
+  document.getElementById('recognitionDetailVACC').value = r.vacc || '';
+  document.getElementById('recognitionDetailReason').value = r.reason || '';
+
+  document.getElementById('recognitionDetailModal').classList.add('show');
 }
 
 
