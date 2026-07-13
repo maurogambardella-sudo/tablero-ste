@@ -2741,6 +2741,103 @@ function openRecognitionModal() {
 }
 
 
+async function saveRecognition() {
+  const id = document.getElementById('recognitionId').value;
+  const toEmail = document.getElementById('recognitionToMember').value;
+  const team = document.getElementById('recognitionTeam').value;
+  const dso = document.getElementById('recognitionDSO').value;
+  const vacc = document.getElementById('recognitionVACC').value;
+  const reason = document.getElementById('recognitionReason').value.trim();
+
+  if (!toEmail) {
+    alert('Seleccioná a quién se reconoce');
+    return;
+  }
+
+  if (!reason) {
+    alert('Ingresá el motivo del reconocimiento');
+    return;
+  }
+
+  const user = (appUsers || []).find(u => (u.email || '') === toEmail);
+
+  const item = {
+    id: id || nextId('REC', state.recognitions || []),
+    fromEmail: currentUser.email || '',
+    fromTeam: currentUser.team || '',
+    toEmail,
+    toTeam: team || user?.team || '',
+    dso,
+    vacc,
+    reason,
+    createdAt: new Date().toISOString().slice(0, 10)
+  };
+
+  if (id) {
+    const idx = state.recognitions.findIndex(x => x.id === id);
+    if (idx >= 0) state.recognitions[idx] = item;
+  } else {
+    state.recognitions.push(item);
+  }
+
+  recognitions = state.recognitions;
+  await saveState();
+  closeModal('recognitionModal');
+  renderRecognitions();
+  toast(id ? 'Reconocimiento actualizado' : 'Reconocimiento guardado');
+}
+
+
+
+function renderRecognitions() {
+  const tbody = document.getElementById('recognitionsTbody');
+  if (!tbody) return;
+
+  const rows = (state.recognitions || []).filter(r =>
+    (r.fromEmail || '').toLowerCase() === (currentUser.email || '').toLowerCase() ||
+    (r.toEmail || '').toLowerCase() === (currentUser.email || '').toLowerCase()
+  );
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Todavía no hay reconocimientos para mostrar.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows
+    .slice()
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+    .map(r => `
+      <tr>
+        <td>${r.id || '-'}</td>
+        <td>${r.toEmail || '-'}</td>
+        <td>${r.toTeam || '-'}</td>
+        <td>${r.dso || '-'}</td>
+        <td>${r.vacc || '-'}</td>
+        <td>${r.createdAt || '-'}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="openRecognitionDetail('${r.id}')">Ver</button></td>
+      </tr>
+    `).join('');
+}
+
+
+function openRecognitionDetail(id) {
+  const r = (state.recognitions || []).find(x => x.id === id);
+  if (!r) return;
+
+  alert(
+    `ID: ${r.id}\n` +
+    `De: ${r.fromEmail || '-'}\n` +
+    `A: ${r.toEmail || '-'}\n` +
+    `Equipo: ${r.toTeam || '-'}\n` +
+    `DSO: ${r.dso || '-'}\n` +
+    `VACC: ${r.vacc || '-'}\n` +
+    `Fecha: ${r.createdAt || '-'}\n\n` +
+    `Motivo:\n${r.reason || '-'}`
+  );
+}
+
+
+  
   
 // ─── TEAM ─────────────────────────────────────────────────────────────────────
 function renderTeam(){
@@ -3044,6 +3141,7 @@ function renderAll() {
   renderOutputs();
   renderTasks();
   renderTeam();
+  renderRecognitions();
 
   requests = state.requests || [];
 
