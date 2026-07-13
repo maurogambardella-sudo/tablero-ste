@@ -2762,7 +2762,7 @@ async function saveRecognition() {
   const user = (appUsers || []).find(u => (u.email || '') === toEmail);
 
   const item = {
-    id: id || nextId('REC', state.recognitions || []),
+    id: id || nextRecognitionId(),
     fromEmail: currentUser.email || '',
     fromTeam: currentUser.team || '',
     toEmail,
@@ -2786,6 +2786,19 @@ async function saveRecognition() {
   renderRecognitions();
   toast(id ? 'Reconocimiento actualizado' : 'Reconocimiento guardado');
 }
+
+function nextRecognitionId() {
+  const items = state.recognitions || [];
+  const nums = items
+    .map(r => String(r.id || ''))
+    .filter(id => id.startsWith('REC-'))
+    .map(id => parseInt(id.replace('REC-', ''), 10))
+    .filter(n => !isNaN(n));
+
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `REC-${String(next).padStart(2, '0')}`;
+}
+
 
 
 
