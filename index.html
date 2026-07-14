@@ -1535,6 +1535,7 @@ async function loadFromAPI() {
         team: data.me.team || '',
         comms: !!data.me.comms
       };
+      applyRolePermissions();
     }
 
     if (data.outcomes && data.outcomes.length > 0) state.outcomes = data.outcomes;
@@ -1589,6 +1590,7 @@ recognitions = state.recognitions;
     showLoading(false);
     renderAll();
     applyFormsAdminVisibility();
+    applyRolePermissions();
   }
 }
 
