@@ -1396,19 +1396,19 @@ async function initApp() {
 
     const { data } = await sb.auth.getSession();
 
-    if (data && data.session) {
-      authToken = data.session.access_token;
-      setUserEmail(data.session.user.email);
-      showApp();
-      await ;
-      try {
-        startInactivityWatch();
-      } catch (e) {
-        console.warn('No se pudo iniciar control de inactividad', e);
-      }
-    } else {
-      showLogin();
-    }
+if (data && data.session) {
+  authToken = data.session.access_token;
+  setUserEmail(data.session.user.email);
+  showApp();
+  await loadFromAPI();
+  try {
+    startInactivityWatch();
+  } catch (e) {
+    console.warn('No se pudo iniciar control de inactividad', e);
+  }
+} else {
+  showLogin();
+}
   } catch (e) {
     console.error('Error en initApp()', e);
     showLogin();
