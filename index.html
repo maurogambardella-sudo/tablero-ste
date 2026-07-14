@@ -1532,7 +1532,7 @@ async function loadFromAPI() {
     if (data.me) {
       currentUser = {
         email: data.me.email || '',
-        role: data.me.role || 'admin',
+        role: data.me.role || 'consulta',
         team: data.me.team || '',
         comms: !!data.me.comms
       };
