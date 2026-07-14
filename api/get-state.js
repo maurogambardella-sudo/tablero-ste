@@ -125,6 +125,20 @@ function mapRequest(r) {
   };
 }
 
+function mapRecognition(r) {
+  return {
+    id: r.id,
+    fromEmail: r.from_email,
+    fromTeam: r.from_team,
+    toEmail: r.to_email,
+    toTeam: r.to_team,
+    dso: r.dso,
+    vacc: r.vacc,
+    reason: r.reason,
+    createdAt: r.created_at
+  };
+}
+
 // team: los nombres coinciden (id, name, role, email) → no necesita mapeo
 
 module.exports = async function handler(req, res) {
@@ -134,12 +148,13 @@ module.exports = async function handler(req, res) {
 
     const me = await getProfile((user.email || '').toLowerCase());
 
-    const [outcomes, outputs, tasks, team, requests, configRows] = await Promise.all([
+  const [outcomes, outputs, tasks, team, requests, recognitions, configRows] = await Promise.all([
   query('outcomes'),
   query('outputs'),
   query('tasks'),
   query('team'),
   query('requests'),
+  query('recognitions'),
   query('config')
 ]);
     const config = (configRows && configRows[0]) || {
@@ -154,6 +169,7 @@ module.exports = async function handler(req, res) {
       tasks: (tasks || []).map(mapTask),
       team: team || [],
       requests: (requests || []).map(mapRequest),
+      recognitions: (recognitions || []).map(mapRecognition),
       config
     });
   } catch (e) {
