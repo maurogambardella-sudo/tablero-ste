@@ -1580,6 +1580,7 @@ recognitions = state.recognitions;
       await saveState();
     } else {
       setSyncStatus(true);
+      await ensureAppUsersLoaded();
     }
   } catch (e) {
     console.warn('No se pudo cargar desde API, usando datos locales', e);
@@ -2781,7 +2782,9 @@ async function deleteTask(){
   await saveState();closeModal('taskModal');renderAll();toast('Task eliminada');
 }
 
-function openRecognitionModal() {
+async function openRecognitionModal() {
+  await ensureAppUsersLoaded();
+  
   document.getElementById('recognitionModal').classList.add('show');
   document.getElementById('recognitionId').value = '';
   document.getElementById('recognitionReason').value = '';
@@ -2985,6 +2988,24 @@ async function loadUsers() {
     tb.innerHTML = '<tr><td colspan="4" class="empty">No se pudieron cargar los usuarios.</td></tr>';
   }
 }
+
+async function ensureAppUsersLoaded() {
+  if (appUsers && appUsers.length) return;
+
+  try {
+    const res = await fetch('/api/admin-users', {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('error');
+
+    const data = await res.json();
+    appUsers = data.users || [];
+  } catch (e) {
+    console.warn('No se pudieron cargar los usuarios para Reconocimientos', e);
+    appUsers = [];
+  }
+}
+
 function renderUsers(){
   const tb = document.getElementById('usersTbody');
 
