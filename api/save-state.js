@@ -190,6 +190,20 @@ function mapRequest(r) {
   };
 }
 
+function mapRecognition(r) {
+  return {
+    id: r.id,
+    from_email: r.fromEmail ?? '',
+    from_team: r.fromTeam ?? '',
+    to_email: r.toEmail ?? '',
+    to_team: r.toTeam ?? '',
+    dso: r.dso ?? '',
+    vacc: r.vacc ?? '',
+    reason: r.reason ?? '',
+    created_at: r.createdAt ?? new Date().toISOString()
+  };
+}
+
 // ── Integración SharePoint (vía Power Automate) ──────────────────────────────
 // Construye un índice nombre→email a partir del equipo, para que los flujos de
 // notificación puedan avisar al responsable sin tener que adivinar su correo.
@@ -250,7 +264,7 @@ module.exports = async function handler(req, res) {
       return res.status(403).json({ error: 'Tu usuario es de solo consulta: no podés guardar cambios.' });
     }
 
-    const { outcomes = [], outputs = [], tasks = [], team = [], requests = [], config = {} } = req.body;
+    const { outcomes = [], outputs = [], tasks = [], team = [], requests = [], recognitions = [], config = {} } = req.body;
 
     // Índice nombre→email del equipo, para enriquecer outputs/tasks con owner_email.
     const emailIndex = buildEmailIndex(team);
@@ -270,11 +284,15 @@ module.exports = async function handler(req, res) {
       const requestRows = requests
     .filter(r => (r.team || r.requesterTeam) === me.team)
     .map(r => { const x = mapRequest(r); x.team = me.team; x.requester_team = x.requester_team || me.team; return x; });
+      const recognitionRows = recognitions
+  .filter(r => (r.fromTeam === me.team || r.toTeam === me.team))
+  .map(mapRecognition);
 
       await Promise.all([
         upsert('outputs', outputRows),
         upsert('tasks', taskRows),
-        upsert('requests', requestRows)
+        upsert('requests', requestRows),
+        upsert('recognitions', recognitionRows)
       ]);
       // Borrar solo lo de su equipo que el editor eliminó (nunca otros equipos).
       await Promise.all([
@@ -283,13 +301,34 @@ module.exports = async function handler(req, res) {
         deleteRemovedScoped('requests', me.team, requestRows.map(r => r.id))
       ]);
 
+      await deleteRemovedRecognitionsScoped(me.team, recognitionRows.map(r => r.id));
+
+      async function deleteRemovedRecognitionsScoped(team, keepIds) {
+  let filter = `or=(from_team.eq.${encodeURIComponent(team)},to_team.eq.${encodeURIComponent(team)})`;
+  let url;
+  if (!keepIds || !keepIds.length) {
+    url = `${SUPABASE_URL}/rest/v1/recognitions?${filter}`;
+  } else {
+    const list = keepIds
+      .map(id => '"' + String(id).replace(/"/g, '\\"') + '"')
+      .join(',');
+    url = `${SUPABASE_URL}/rest/v1/recognitions?${filter}&id=not.in.(${encodeURIComponent(list)})`;
+  }
+  const res = await fetch(url, { method: 'DELETE', headers: sbHeaders() });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Error limpiando recognitions (${res.status}): ${detail}`);
+  }
+}
+
       // Espejo en SharePoint (solo lo que el editor puede tocar).
       attachOwnerEmail(outputRows, emailIndex);
       attachOwnerEmail(taskRows, emailIndex);
       await syncToSharePoint({
         outputs: outputRows,
         tasks: taskRows,
-        requests: requestRows
+        requests: requestRows,
+        recognitions: recognitionRows
       });
 
       return res.status(200).json({ ok: true });
@@ -301,6 +340,7 @@ module.exports = async function handler(req, res) {
     const taskRows = tasks.map(mapTask);
     const teamRows = team.map(mapMember);
     const requestRows = requests.map(mapRequest);
+    const recognitionRows = recognitions.map(mapRecognition);
 
     // 1) Primero insertar/actualizar todo (la base NUNCA queda vacía).
     await Promise.all([
@@ -309,6 +349,7 @@ module.exports = async function handler(req, res) {
       upsert('tasks', taskRows),
       upsert('team', teamRows),
       upsert('requests', requestRows),
+      upsert('recognitions', recognitionRows),
       upsert('config', [{
         id: 1,
         cycle_start: config.cycleStart,
@@ -323,7 +364,8 @@ module.exports = async function handler(req, res) {
       deleteRemoved('outputs', outputRows.map(r => r.id)),
       deleteRemoved('tasks', taskRows.map(r => r.id)),
       deleteRemoved('team', teamRows.map(r => r.id)),
-      deleteRemoved('requests', requestRows.map(r => r.id))
+      deleteRemoved('requests', requestRows.map(r => r.id)),
+      deleteRemoved('recognitions', recognitionRows.map(r => r.id))
     ]);
 
     // 3) Espejo en SharePoint (best effort, no rompe el guardado).
@@ -334,7 +376,8 @@ module.exports = async function handler(req, res) {
       outputs: outputRows,
       tasks: taskRows,
       team: teamRows,
-      requests: requestRows
+      requests: requestRows,
+      recognitions: recognitionRows
     });
 
     res.status(200).json({ ok: true });
