@@ -1418,27 +1418,37 @@ if (data && data.session) {
 }
 async function doLogin(e) {
   e.preventDefault();
+
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   const btn = document.getElementById('authBtn');
   const errBox = document.getElementById('authError');
+
   errBox.classList.remove('show');
-  btn.disabled = true; btn.textContent = 'Ingresando…';
+  btn.disabled = true;
+  btn.textContent = 'Ingresando';
+
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  btn.disabled = false; btn.textContent = 'Ingresar';
+
+  btn.disabled = false;
+  btn.textContent = 'Ingresar';
+
   if (error) {
     errBox.textContent = 'Email o contraseña incorrectos.';
     errBox.classList.add('show');
     return;
   }
   // Guardar la preferencia del casillero "Mantener sesión iniciada".
-  const keep = document.getElementById('keepSession');
-  localStorage.setItem('keepSession', (keep && keep.checked) ? '1' : '0');
+ const keep = document.getElementById('keepSession');
+  localStorage.setItem('keepSession', keep && keep.checked ? '1' : '0');
+
   authToken = data.session.access_token;
   setUserEmail(data.user.email);
   document.getElementById('authPassword').value = '';
+
   showApp();
-  ;
+  await loadFromAPI();
+  applyRolePermissions();
   startInactivityWatch();
 }
 async function doLogout() {
@@ -1502,7 +1512,8 @@ async function doSetNewPassword(e) {
   }
   document.getElementById('recoveryOverlay').classList.add('hidden');
   showApp();
-  ;
+  await loadFromAPI();
+  applyRolePermissions();
   startInactivityWatch();
 }
 
