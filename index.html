@@ -1527,6 +1527,7 @@ async function loadFromAPI() {
     if (!res.ok) throw new Error('API error');
 
     const data = await res.json();
+    console.log('GET STATE data =', data);
 
     if (data.me) {
       currentUser = {
