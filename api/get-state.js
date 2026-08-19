@@ -139,6 +139,23 @@ function mapRecognition(r) {
   };
 }
 
+function mapOnePss(r) {
+  return {
+    id: r.id,
+    nombreIniciativa: r.nombre_iniciativa,
+    detalle: r.detalle,
+    owner: r.owner,
+    coOwner: r.co_owner,
+    fechaInicio: r.fecha_inicio,
+    estado: r.estado,
+    dependencia: r.dependencia,
+    deadlineFecha: r.deadline_fecha,
+    stopper: r.stopper,
+    comentarios: r.comentarios,
+    sourceFile: r.source_file
+  };
+}
+
 // team: los nombres coinciden (id, name, role, email) → no necesita mapeo
 
 module.exports = async function handler(req, res) {
@@ -148,15 +165,16 @@ module.exports = async function handler(req, res) {
 
     const me = await getProfile((user.email || '').toLowerCase());
 
-  const [outcomes, outputs, tasks, team, requests, recognitions, configRows] = await Promise.all([
+  const [outcomes, outputs, tasks, team, requests, recognitions, configRows, onePss] = await Promise.all([
   query('outcomes'),
   query('outputs'),
   query('tasks'),
   query('team'),
   query('requests'),
   query('recognitions'),
-  query('config')
-]);
+  query('config'),
+  query('one_pss'),
+  ]);
     const config = (configRows && configRows[0]) || {
       cycle_start: '2026-04-01',
       cycle_end: '2026-12-31',
@@ -170,6 +188,7 @@ module.exports = async function handler(req, res) {
       team: team || [],
       requests: (requests || []).map(mapRequest),
       recognitions: (recognitions || []).map(mapRecognition),
+      onePss: (onePss || []).map(mapOnePss),
       config
     });
   } catch (e) {
