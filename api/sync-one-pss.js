@@ -52,22 +52,23 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { sourceFile = '', rows = [] } = req.body || {};
+    const { sourceFile = '', elemento = '', rows = [] } = req.body || {};
 
     const mapped = (rows || []).map(r => ({
-      id: r.ID ?? '',
-      nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
-      detalle: r['Detalle'] ?? '',
-      owner: r['Owner'] ?? '',
-      co_owner: r['Co Owner'] ?? '',
-      fecha_inicio: r['Fecha inicio'] ?? '',
-      estado: r['Estado'] ?? '',
-      dependencia: r['Dependencia'] ?? '',
-      deadline_fecha: r['Deadline (fecha)'] ?? '',
-      stopper: r['Stopper'] ?? '',
-      comentarios: r['Comentarios'] ?? '',
-      source_file: sourceFile || ''
-    })).filter(r => r.id && r.nombre_iniciativa);
+  id: r.ID ?? '',
+  nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
+  detalle: r['Detalle'] ?? '',
+  owner: r['Owner'] ?? '',
+  co_owner: r['Co Owner'] ?? '',
+  fecha_inicio: r['Fecha inicio'] ?? '',
+  estado: r['Estado'] ?? '',
+  dependencia: r['Dependencia'] ?? '',
+  deadline_fecha: r['Deadline (fecha)'] ?? '',
+  stopper: r['Stopper'] ?? '',
+  comentarios: r['Comentarios'] ?? '',
+  source_file: sourceFile || '',
+  elemento: elemento || ''
+})).filter(r => r.id && r.nombre_iniciativa);
 
     await upsert('one_pss', mapped);
     await deleteRemoved('one_pss', mapped.map(r => r.id));
