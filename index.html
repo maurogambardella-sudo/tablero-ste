@@ -332,7 +332,20 @@ tbody tr:hover { background: var(--bayer-light); }
   </div>
 </div>
       <a class="nav-link" data-page="recognitions"><span class="icon">🏅</span> Reconocimientos</a>
-      <a class="nav-link" data-page="onepss"><span class="icon">🔗</span> One PSS</a>
+      <div class="nav-group">
+  <a class="nav-parent" data-group="onepss">
+    <span class="icon">◈</span> One PSS
+    <span class="nav-caret">▶</span>
+  </a>
+  <div class="nav-sub" id="navSubOnePss">
+    <a class="nav-link all-teams" data-page="onepss" data-onepss-view="all">General</a>
+    <a class="nav-link" data-page="onepss" data-onepss-view="Equipos Multidisciplinarios">Equipos Multidisciplinarios</a>
+    <a class="nav-link" data-page="onepss" data-onepss-view="Strategy & Performance">Strategy & Performance</a>
+    <a class="nav-link" data-page="onepss" data-onepss-view="DMS & Problem Solving">DMS & Problem Solving</a>
+    <a class="nav-link" data-page="onepss" data-onepss-view="Knowledge Management">Knowledge Management</a>
+    <a class="nav-link" data-page="onepss" data-onepss-view="LWA / Improvements">LWA / Improvements</a>
+  </div>
+</div>
       <a class="nav-link" data-page="team"><span class="icon">👥</span> Equipo</a>
       <a class="nav-link" id="navAdmin" data-page="admin" style="display:none"><span class="icon">🔐</span> Administración</a>
       <a class="nav-link" data-page="guide"><span class="icon">📖</span> Guía</a>
@@ -643,8 +656,8 @@ tbody tr:hover { background: var(--bayer-light); }
     <div>
       <h2>One PSS</h2>
       <p class="meta">
-        Iniciativas sincronizadas desde los registros semanales de cada elemento
-      </p>
+  <span id="onePssSubtitle">Iniciativas sincronizadas desde los registros semanales de cada elemento</span>
+</p>
     </div>
   </div>
 
@@ -1407,6 +1420,7 @@ function canEditTask(t)   { if (isAdmin()) return true; if (isEditor()) return !
 // Submenú activo: '' = "Todos los equipos"; o el nombre de un equipo.
 let outputsScope = '';
 let tasksScope   = '';
+let onePssActiveView = 'all';
 // ¿Puede editar en la VISTA actual? En "Todos los equipos" solo el admin edita;
 // el editor edita únicamente dentro del submenú de SU equipo.
 function canEditOutputHere(o){ if(isAdmin())return true; if(isEditor())return !!currentUser.team && outputsScope===currentUser.team && (!o || o.team===currentUser.team); return false; }
@@ -1838,6 +1852,10 @@ document.querySelectorAll('.nav-link').forEach(link=>{
   }
   loadUsers();
 }
+
+if (page === 'onepss') {
+      renderOnePss();
+  }
   });
 });
 // Construye los submenús por equipo dentro de Outputs y Tasks.
@@ -1933,18 +1951,46 @@ function fillOnePssFilters(rows) {
 
 function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
+  const scopedRows = onePssActiveView === 'all'
+    ? allRows
+    : allRows.filter(r => (r.elemento || '') === onePssActiveView);
 
   const search = (
     document.getElementById('onePssSearch')?.value || ''
   ).trim().toLowerCase();
 
-  const elemento = document.getElementById('onePssFilterElemento')?.value || '';
-  const estado = document.getElementById('onePssFilterEstado')?.value || '';
-  const owner = document.getElementById('onePssFilterOwner')?.value || '';
+  const elementoSelect = document.getElementById('onePssFilterElemento');
+  const estadoSelect = document.getElementById('onePssFilterEstado');
+  const ownerSelect = document.getElementById('onePssFilterOwner');
+  const subtitle = document.getElementById('onePssSubtitle');
 
-  fillOnePssFilters(allRows);
+  if (subtitle) {
+    subtitle.textContent = onePssActiveView === 'all'
+      ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
+      : `Vista de ${onePssActiveView} · Iniciativas sincronizadas desde su registro semanal`;
+  }
 
-  const rows = allRows
+  if (elementoSelect) {
+    if (onePssActiveView === 'all') {
+      elementoSelect.disabled = false;
+    } else {
+      elementoSelect.value = onePssActiveView;
+      elementoSelect.disabled = true;
+    }
+  }
+
+  fillOnePssFilters(scopedRows);
+
+  if (elementoSelect && onePssActiveView !== 'all') {
+    elementoSelect.value = onePssActiveView;
+    elementoSelect.disabled = true;
+  }
+
+  const elemento = elementoSelect?.value || '';
+  const estado = estadoSelect?.value || '';
+  const owner = ownerSelect?.value || '';
+
+  const rows = scopedRows
     .filter(r => !elemento || r.elemento === elemento)
     .filter(r => !estado || r.estado === estado)
     .filter(r => !owner || r.owner === owner)
@@ -1978,12 +2024,17 @@ function renderOnePss() {
   const byEstado = status =>
     rows.filter(r => String(r.estado || '').toLowerCase().includes(status)).length;
 
-  document.getElementById('onePssKpiTotal').textContent = rows.length;
-  document.getElementById('onePssKpiIniciado').textContent = byEstado('iniciado');
-  document.getElementById('onePssKpiCompleto').textContent = byEstado('completo');
+  const kpiTotal = document.getElementById('onePssKpiTotal');
+  const kpiIniciado = document.getElementById('onePssKpiIniciado');
+  const kpiCompleto = document.getElementById('onePssKpiCompleto');
+  const kpiElementos = document.getElementById('onePssKpiElementos');
 
-  document.getElementById('onePssKpiElementos').textContent =
-    new Set(rows.map(r => r.elemento).filter(Boolean)).size;
+  if (kpiTotal) kpiTotal.textContent = rows.length;
+  if (kpiIniciado) kpiIniciado.textContent = byEstado('iniciado');
+  if (kpiCompleto) kpiCompleto.textContent = byEstado('completo');
+  if (kpiElementos) {
+    kpiElementos.textContent = new Set(rows.map(r => r.elemento).filter(Boolean)).size;
+  }
 
   if (!rows.length) {
     tbody.innerHTML =
@@ -1995,7 +2046,7 @@ function renderOnePss() {
     <tr>
       <td><strong>${escHtml(r.id)}</strong></td>
       <td>${r.elemento ? `<span class="pill">${escHtml(r.elemento)}</span>` : '—'}</td>
-      <td>${escHtml(r.nombreIniciativa)}</td>
+      <td>${escHtml(r.nombreIniciativa || '—')}</td>
       <td>${escHtml(r.owner || '—')}</td>
       <td>${escHtml(r.coOwner || '—')}</td>
       <td><span class="pill ${onePssPillClass(r.estado)}">${escHtml(r.estado || 'Sin estado')}</span></td>
