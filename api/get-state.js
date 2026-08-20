@@ -141,18 +141,19 @@ function mapRecognition(r) {
 
 function mapOnePss(r) {
   return {
-    id: r.id,
-    nombreIniciativa: r.nombre_iniciativa,
-    detalle: r.detalle,
-    owner: r.owner,
-    coOwner: r.co_owner,
-    fechaInicio: r.fecha_inicio,
-    estado: r.estado,
-    dependencia: r.dependencia,
-    deadlineFecha: r.deadline_fecha,
-    stopper: r.stopper,
-    comentarios: r.comentarios,
-    sourceFile: r.source_file
+    id: r.id ?? '',
+    nombreIniciativa: r.nombre_iniciativa ?? '',
+    detalle: r.detalle ?? '',
+    owner: r.owner ?? '',
+    coOwner: r.co_owner ?? '',
+    fechaInicio: r.fecha_inicio ?? '',
+    estado: r.estado ?? '',
+    dependencia: r.dependencia ?? '',
+    deadlineFecha: r.deadline_fecha ?? '',
+    stopper: r.stopper ?? '',
+    comentarios: r.comentarios ?? '',
+    sourceFile: r.source_file ?? '',
+    elemento: r.elemento ?? ''
   };
 }
 
