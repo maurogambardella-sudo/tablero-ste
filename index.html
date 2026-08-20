@@ -1400,6 +1400,8 @@ let state = JSON.parse(JSON.stringify(SEED));
 let requests = state.requests;
   if (!state.recognitions) state.recognitions = [];
 let recognitions = state.recognitions;
+  if (!state.onePss) state.onePss = [];
+let onePss = state.onePss;
 let isSaving = false;
 
 // ─── EQUIPOS Y ROL DEL USUARIO ────────────────────────────────────────────────
