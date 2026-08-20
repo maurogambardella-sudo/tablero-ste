@@ -332,6 +332,7 @@ tbody tr:hover { background: var(--bayer-light); }
   </div>
 </div>
       <a class="nav-link" data-page="recognitions"><span class="icon">🏅</span> Reconocimientos</a>
+      <a class="nav-link" data-page="onepss"><span class="icon">🔗</span> One PSS</a>
       <a class="nav-link" data-page="team"><span class="icon">👥</span> Equipo</a>
       <a class="nav-link" id="navAdmin" data-page="admin" style="display:none"><span class="icon">🔐</span> Administración</a>
       <a class="nav-link" data-page="guide"><span class="icon">📖</span> Guía</a>
@@ -635,6 +636,90 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
   </div>
 </section>
+
+<!-- ONE PSS -->
+<section class="page" id="page-onepss">
+  <div class="page-header">
+    <div>
+      <h2>One PSS</h2>
+      <p class="meta">
+        Iniciativas sincronizadas desde los registros semanales de cada elemento
+      </p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi blue">
+      <div class="label">Iniciativas</div>
+      <div class="value" id="onePssKpiTotal">0</div>
+      <div class="sub">Registros visibles</div>
+    </div>
+
+    <div class="kpi">
+      <div class="label">En curso</div>
+      <div class="value" id="onePssKpiIniciado">0</div>
+      <div class="sub">Estado iniciado</div>
+    </div>
+
+    <div class="kpi dark">
+      <div class="label">Completas</div>
+      <div class="value" id="onePssKpiCompleto">0</div>
+      <div class="sub">Estado completo</div>
+    </div>
+
+    <div class="kpi amber">
+      <div class="label">Elementos</div>
+      <div class="value" id="onePssKpiElementos">0</div>
+      <div class="sub">Con iniciativas cargadas</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <input
+      type="text"
+      id="onePssSearch"
+      placeholder="Buscar por iniciativa, owner, detalle o dependencia..."
+      oninput="renderOnePss()"
+    >
+
+    <select id="onePssFilterElemento" onchange="renderOnePss()">
+      <option value="">Todos los elementos</option>
+    </select>
+
+    <select id="onePssFilterEstado" onchange="renderOnePss()">
+      <option value="">Todos los estados</option>
+      <option value="No iniciado">No iniciado</option>
+      <option value="Iniciado">Iniciado</option>
+      <option value="Completo">Completo</option>
+      <option value="On hold">On hold</option>
+    </select>
+
+    <select id="onePssFilterOwner" onchange="renderOnePss()">
+      <option value="">Todos los responsables</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Elemento</th>
+          <th>Iniciativa</th>
+          <th>Owner</th>
+          <th>Co-owner</th>
+          <th>Estado</th>
+          <th>Dependencia</th>
+          <th>Deadline</th>
+          <th>Stopper</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="onePssTbody"></tbody>
+    </table>
+  </div>
+</section>
+    
     <!-- TEAM -->
     <section class="page" id="page-team">
       <div class="page-header">
@@ -1193,6 +1278,26 @@ laura.smith@bayer.com , editor , Impo &amp; Expo</pre>
   </div>
 </div>
 
+  <div class="modal-overlay" id="onePssDetailModal">
+  <div class="modal" style="max-width:860px">
+    <div class="modal-header">
+      <h3 id="onePssDetailTitle">Detalle One PSS</h3>
+      <button class="btn-icon" onclick="closeModal('onePssDetailModal')">×</button>
+    </div>
+
+    <div class="modal-body" id="onePssDetailBody"></div>
+
+    <div class="modal-footer">
+      <button
+        class="btn btn-secondary"
+        onclick="closeModal('onePssDetailModal')"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1273,6 +1378,7 @@ const SEED = {
 ],
 
   recognitions: [],
+  onePss: []
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1573,6 +1679,9 @@ async function loadFromAPI() {
     if (data.recognitions) state.recognitions = data.recognitions;
 recognitions = state.recognitions;
     }
+    if (data.onePss) {
+  state.onePss = data.onePss;
+}
     if (data.config) {
       state.config = {
         cycleStart: data.config.cycle_start || data.config.cyclestart || SEED.config.cycleStart,
@@ -1768,6 +1877,190 @@ function goToTeamView(section,team){
   if(section==='outputs') renderOutputs(); else renderTasks();
   applyRolePermissions();
 }
+
+function escHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function onePssPillClass(status) {
+  const s = String(status || '').trim().toLowerCase();
+
+  if (s.includes('completo')) return 'pill-completado';
+  if (s.includes('iniciado')) return 'pill-en-progreso';
+  if (s.includes('hold')) return 'pill-bloqueada';
+  if (s.includes('no iniciado')) return 'pill-no-iniciado';
+
+  return 'pill-no-iniciado';
+}
+
+function fillOnePssFilters(rows) {
+  const elementoSelect = document.getElementById('onePssFilterElemento');
+  const ownerSelect = document.getElementById('onePssFilterOwner');
+
+  if (!elementoSelect || !ownerSelect) return;
+
+  const currentElemento = elementoSelect.value;
+  const currentOwner = ownerSelect.value;
+
+  const elementos = [...new Set(
+    rows.map(r => r.elemento).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'es'));
+
+  const owners = [...new Set(
+    rows.map(r => r.owner).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'es'));
+
+  elementoSelect.innerHTML =
+    '<option value="">Todos los elementos</option>' +
+    elementos.map(v =>
+      `<option value="${escHtml(v)}">${escHtml(v)}</option>`
+    ).join('');
+
+  ownerSelect.innerHTML =
+    '<option value="">Todos los responsables</option>' +
+    owners.map(v =>
+      `<option value="${escHtml(v)}">${escHtml(v)}</option>`
+    ).join('');
+
+  elementoSelect.value = elementos.includes(currentElemento) ? currentElemento : '';
+  ownerSelect.value = owners.includes(currentOwner) ? currentOwner : '';
+}
+
+function renderOnePss() {
+  const allRows = Array.isArray(state.onePss) ? state.onePss : [];
+
+  const search = (
+    document.getElementById('onePssSearch')?.value || ''
+  ).trim().toLowerCase();
+
+  const elemento = document.getElementById('onePssFilterElemento')?.value || '';
+  const estado = document.getElementById('onePssFilterEstado')?.value || '';
+  const owner = document.getElementById('onePssFilterOwner')?.value || '';
+
+  fillOnePssFilters(allRows);
+
+  const rows = allRows
+    .filter(r => !elemento || r.elemento === elemento)
+    .filter(r => !estado || r.estado === estado)
+    .filter(r => !owner || r.owner === owner)
+    .filter(r => {
+      if (!search) return true;
+
+      const searchable = [
+        r.id,
+        r.elemento,
+        r.nombreIniciativa,
+        r.owner,
+        r.coOwner,
+        r.detalle,
+        r.dependencia,
+        r.comentarios,
+        r.stopper
+      ].join(' ').toLowerCase();
+
+      return searchable.includes(search);
+    })
+    .sort((a, b) => {
+      const ea = String(a.elemento || '');
+      const eb = String(b.elemento || '');
+      if (ea !== eb) return ea.localeCompare(eb, 'es');
+      return String(a.id || '').localeCompare(String(b.id || ''), 'es');
+    });
+
+  const tbody = document.getElementById('onePssTbody');
+  if (!tbody) return;
+
+  const byEstado = status =>
+    rows.filter(r => String(r.estado || '').toLowerCase().includes(status)).length;
+
+  document.getElementById('onePssKpiTotal').textContent = rows.length;
+  document.getElementById('onePssKpiIniciado').textContent = byEstado('iniciado');
+  document.getElementById('onePssKpiCompleto').textContent = byEstado('completo');
+
+  document.getElementById('onePssKpiElementos').textContent =
+    new Set(rows.map(r => r.elemento).filter(Boolean)).size;
+
+  if (!rows.length) {
+    tbody.innerHTML =
+      '<tr><td colspan="10" class="empty">No hay iniciativas One PSS para los filtros seleccionados.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><strong>${escHtml(r.id)}</strong></td>
+      <td>${r.elemento ? `<span class="pill">${escHtml(r.elemento)}</span>` : '—'}</td>
+      <td>${escHtml(r.nombreIniciativa)}</td>
+      <td>${escHtml(r.owner || '—')}</td>
+      <td>${escHtml(r.coOwner || '—')}</td>
+      <td><span class="pill ${onePssPillClass(r.estado)}">${escHtml(r.estado || 'Sin estado')}</span></td>
+      <td>${escHtml(r.dependencia || '—')}</td>
+      <td>${escHtml(r.deadlineFecha || '—')}</td>
+      <td>${escHtml(r.stopper || '—')}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="openOnePssDetail('${escHtml(r.id)}')">
+          Ver
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openOnePssDetail(id) {
+  const r = (state.onePss || []).find(x => x.id === id);
+  if (!r) return;
+
+  document.getElementById('onePssDetailTitle').textContent =
+    `${r.id} · ${r.nombreIniciativa || 'Iniciativa One PSS'}`;
+
+  const row = (label, value) => `
+    <div class="form-group">
+      <label>${label}</label>
+      <div style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;white-space:pre-wrap;line-height:1.5">
+        ${escHtml(value || '—')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('onePssDetailBody').innerHTML = `
+    <div class="form-grid">
+      ${row('Elemento', r.elemento)}
+      ${row('Estado', r.estado)}
+      ${row('Owner', r.owner)}
+      ${row('Co-owner', r.coOwner)}
+      ${row('Fecha de inicio', r.fechaInicio)}
+      ${row('Deadline / cierre', r.deadlineFecha)}
+      ${row('Dependencia', r.dependencia)}
+      ${row('Stopper', r.stopper)}
+      <div class="form-group full">
+        <label>Detalle</label>
+        <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;white-space:pre-wrap;line-height:1.55">
+          ${escHtml(r.detalle || '—')}
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>Comentarios</label>
+        <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;white-space:pre-wrap;line-height:1.55">
+          ${escHtml(r.comentarios || '—')}
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>Fuente</label>
+        <div style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+          ${escHtml(r.sourceFile || '—')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('onePssDetailModal').classList.add('show');
+}
+  
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 let charts={};
@@ -3255,6 +3548,7 @@ function renderAll() {
   renderTasks();
   renderTeam();
   renderRecognitions();
+  renderOnePss();
 
   requests = state.requests || [];
 
