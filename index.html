@@ -1695,8 +1695,12 @@ async function loadFromAPI() {
     if (data.recognitions) state.recognitions = data.recognitions;
 recognitions = state.recognitions;
     }
-    if (data.onePss) {
-  state.onePss = data.onePss;
+   if (data.onePss) {
+  state.onePss = data.onePss.map(r => ({
+    ...r,
+    elemento: normalizeOnePssElemento(r.elemento)
+  }));
+  onePss = state.onePss;
 }
     if (data.config) {
       state.config = {
@@ -1907,6 +1911,37 @@ function escHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+function normalizeOnePssElemento(v) {
+  const s = String(v || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!s) return 'general';
+  if (s.includes('equipos multidisciplin')) return 'multidisciplinary_teams';
+  if (s.includes('strategy') || s.includes('performance') || s.includes('strat') || s.includes('perfo')) return 'strategy_performance';
+  if (s.includes('dms') || s.includes('problem solving')) return 'dms_problem_solving';
+  if (s.includes('knowledge')) return 'knowledge_management';
+  if (s.includes('lwa')) return 'lwa_improvements';
+  return 'general';
+}
+
+function onePssElementoLabel(v) {
+  const map = {
+    general: 'General',
+    multidisciplinary_teams: 'Equipos Multidisciplinarios',
+    strategy_performance: 'Strategy Performance',
+    dms_problem_solving: 'DMS Problem Solving',
+    knowledge_management: 'Knowledge Management',
+    lwa_improvements: 'LWA Improvements'
+  };
+  return map[v] || v || '-';
+}
+
+
+  
 function onePssPillClass(status) {
   const s = String(status || '').trim().toLowerCase();
 
@@ -1966,11 +2001,11 @@ function renderOnePss() {
   const ownerSelect = document.getElementById('onePssFilterOwner');
   const subtitle = document.getElementById('onePssSubtitle');
 
-  if (subtitle) {
-    subtitle.textContent = onePssActiveView === 'all'
-      ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
-      : `Vista de ${onePssActiveView} · Iniciativas sincronizadas desde su registro semanal`;
-  }
+ if (subtitle) {
+  subtitle.textContent = onePssActiveView === 'all'
+    ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
+    : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
+}
 
   if (elementoSelect) {
     if (onePssActiveView === 'all') {
@@ -2047,7 +2082,7 @@ function renderOnePss() {
   tbody.innerHTML = rows.map(r => `
     <tr>
       <td><strong>${escHtml(r.id)}</strong></td>
-      <td>${r.elemento ? `<span class="pill">${escHtml(r.elemento)}</span>` : '—'}</td>
+      <td>${r.elemento ? `<span class="pill">${escHtml(onePssElementoLabel(r.elemento))}</span>` : ''}</td>
       <td>${escHtml(r.nombreIniciativa || '—')}</td>
       <td>${escHtml(r.owner || '—')}</td>
       <td>${escHtml(r.coOwner || '—')}</td>
@@ -2082,7 +2117,7 @@ function openOnePssDetail(id) {
 
   document.getElementById('onePssDetailBody').innerHTML = `
     <div class="form-grid">
-      ${row('Elemento', r.elemento)}
+      ${row('Elemento', onePssElementoLabel(r.elemento))}
       ${row('Estado', r.estado)}
       ${row('Owner', r.owner)}
       ${row('Co-owner', r.coOwner)}
