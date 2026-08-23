@@ -8,9 +8,19 @@ function sbHeaders(extra) {
   }, extra || {});
 }
 
-async function upsert(table, rows) {
-  if (!rows || !rows.length) return;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+function normalizeElemento(v) {
+  const s = String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  if (s.includes('knowledge')) return 'knowledge_management';
+  if (s.includes('dms')) return 'dms_problem_solving';
+  if (s.includes('strategy') || s.includes('strat')) return 'strategy_performance';
+  if (s.includes('lwa')) return 'lwa_improvements';
+  if (s.includes('multidisciplin')) return 'multidisciplinary_teams';
+  return 'general';
+}
+
+async function upsertRows(rows) {
+  if (!rows.length) return;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/one_pss`, {
     method: 'POST',
     headers: sbHeaders({
       'Content-Type': 'application/json',
@@ -18,63 +28,51 @@ async function upsert(table, rows) {
     }),
     body: JSON.stringify(rows)
   });
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`Error guardando ${table} (${res.status}): ${detail}`);
-  }
+  if (!res.ok) throw new Error(await res.text());
 }
 
-async function deleteRemoved(table, keepIds) {
+async function deleteRemovedByElemento(elemento, keepIds) {
   let url;
-  if (!keepIds || !keepIds.length) {
-    url = `${SUPABASE_URL}/rest/v1/${table}?id=neq.null`;
+  if (!keepIds.length) {
+    url = `${SUPABASE_URL}/rest/v1/one_pss?elemento=eq.${encodeURIComponent(elemento)}`;
   } else {
-    const list = keepIds
-      .map(id => '"' + String(id).replace(/"/g, '\\"') + '"')
-      .join(',');
-    url = `${SUPABASE_URL}/rest/v1/${table}?id=not.in.(${encodeURIComponent(list)})`;
+    const list = keepIds.map(id => `"${String(id).replace(/"/g, '\\"')}"`).join(',');
+    url = `${SUPABASE_URL}/rest/v1/one_pss?elemento=eq.${encodeURIComponent(elemento)}&id=not.in.(${encodeURIComponent(list)})`;
   }
-
-  const res = await fetch(url, {
-    method: 'DELETE',
-    headers: sbHeaders()
-  });
-
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`Error limpiando ${table} (${res.status}): ${detail}`);
-  }
+  const res = await fetch(url, { method: 'DELETE', headers: sbHeaders() });
+  if (!res.ok) throw new Error(await res.text());
 }
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { sourceFile = '', elemento = '', rows = [] } = req.body || {};
+    const body = req.body || {};
+    const elemento = normalizeElemento(body.elemento);
+    const sourceFile = body.sourceFile || '';
+    const rows = Array.isArray(body.rows) ? body.rows : [];
 
-    const mapped = (rows || []).map(r => ({
-  id: r.ID ?? '',
-  nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
-  detalle: r['Detalle'] ?? '',
-  owner: r['Owner'] ?? '',
-  co_owner: r['Co Owner'] ?? '',
-  fecha_inicio: r['Fecha inicio'] ?? '',
-  estado: r['Estado'] ?? '',
-  dependencia: r['Dependencia'] ?? '',
-  deadline_fecha: r['Deadline (fecha)'] ?? '',
-  stopper: r['Stopper'] ?? '',
-  comentarios: r['Comentarios'] ?? '',
-  source_file: sourceFile || '',
-  elemento: elemento || ''
-})).filter(r => r.id && r.nombre_iniciativa);
+    const normalizedRows = rows.map((r, i) => ({
+      id: r.id || `${elemento}|${i + 1}`,
+      elemento,
+      nombre_iniciativa: r.nombreIniciativa || '',
+      detalle: r.detalle || '',
+      owner: r.owner || '',
+      co_owner: r.coOwner || '',
+      fecha_inicio: r.fechaInicio || null,
+      estado: r.estado || '',
+      dependencia: r.dependencia || '',
+      deadline_fecha: r.deadlineFecha || null,
+      stopper: r.stopper || '',
+      comentarios: r.comentarios || '',
+      source_file: sourceFile
+    }));
 
-    await upsert('one_pss', mapped);
-    await deleteRemoved('one_pss', mapped.map(r => r.id));
+    await upsertRows(normalizedRows);
+    await deleteRemovedByElemento(elemento, normalizedRows.map(r => r.id));
 
-    return res.status(200).json({ ok: true, count: mapped.length });
+    res.status(200).json({ ok: true, elemento, total: normalizedRows.length });
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message });
   }
 };
