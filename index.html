@@ -1696,10 +1696,10 @@ async function loadFromAPI() {
     if (data.recognitions) state.recognitions = data.recognitions;
 recognitions = state.recognitions;
     }
-   if (data.onePss) {
+   if (Array.isArray(data.onePss)) {
   state.onePss = data.onePss.map(r => ({
     ...r,
-    elemento: normalizeOnePssElemento(r.elemento)
+    elemento: normalizeOnePssElemento(r?.elemento || 'General')
   }));
   onePss = state.onePss;
 }
@@ -3716,34 +3716,41 @@ function setModalEditable(modalId, editable){
 
 
   // ─── INIT ─────────────────────────────────────────────────────────────────────
-['requestImpact', 'requestUrgency'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) {
-    el.addEventListener('change', () => {
-      const impact = Number(document.getElementById('requestImpact')?.value || 0);
-      const urgency = Number(document.getElementById('requestUrgency')?.value || 0);
-      const suggestedEl = document.getElementById('requestSuggestedPriority');
-      if (suggestedEl) {
-        suggestedEl.value = calculateSuggestedPriority(impact, 0, urgency);
-      }
-    });
-  }
-});
+document.addEventListener('DOMContentLoaded', () => {
+  ['requestImpact', 'requestUrgency'].forEach(id => {
+    const el = document.getElementById(id);
 
-document.addEventListener('DOMContentLoaded', function() {
+    if (el) {
+      el.addEventListener('change', () => {
+        const impact = Number(document.getElementById('requestImpact')?.value || 0);
+        const urgency = Number(document.getElementById('requestUrgency')?.value || 0);
+        const suggestedEl = document.getElementById('requestSuggestedPriority');
+
+        if (suggestedEl) {
+          suggestedEl.value = calculateSuggestedPriority(impact, 0, urgency);
+        }
+      });
+    }
+  });
+
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) closeAnyModal ? closeAnyModal() : e.stopPropagation();
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) {
+        closeAnyModal?.();
+      }
     });
   });
 
   document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
+    modal.addEventListener('click', e => e.stopPropagation());
   });
 
   buildTeamNav();
   applyFormsAdminVisibility();
-  initApp();
+
+  initApp().catch(error => {
+    console.error('Error crítico al iniciar el tablero:', error);
+    showLoading(false);
+    showLogin();
+  });
 });
