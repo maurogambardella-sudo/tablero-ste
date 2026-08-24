@@ -240,6 +240,24 @@ tbody tr:hover { background: var(--bayer-light); }
 .required-star{color:#DC2626;font-weight:700;margin-left:2px;}
 .field-error{border-color:#DC2626 !important; box-shadow:0 0 0 1px rgba(220,38,38,.15);}
 
+/* Diagnóstico y recuperación visual del dashboard */
+#page-dashboard.active {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.main {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 100vh;
+}
+
+#page-dashboard {
+  min-height: 100vh;
+}
+
 </style>
 </head>
 <body>
@@ -1729,11 +1747,18 @@ recognitions = state.recognitions;
     console.warn('No se pudo cargar desde API, usando datos locales', e);
     setSyncStatus(false);
   } finally {
-    showLoading(false);
-    renderAll();
-    applyFormsAdminVisibility();
-    applyRolePermissions();
-  }
+  showLoading(false);
+
+  forceDashboardVisible();
+
+  renderAll();
+
+  applyFormsAdminVisibility();
+  applyRolePermissions();
+
+  requestAnimationFrame(() => {
+    forceDashboardVisible();
+  });
 }
 
 // ─── API: GUARDAR EN SUPABASE ─────────────────────────────────────────────────
@@ -1778,6 +1803,38 @@ function safeJSON(val, fallback) {
   if (Array.isArray(val)) return val;
   try { return JSON.parse(val || '[]'); } catch { return fallback; }
 }
+
+function forceDashboardVisible() {
+  const main = document.querySelector('.main');
+  const dashboard = document.getElementById('page-dashboard');
+
+  if (main) {
+    main.style.display = 'block';
+    main.style.visibility = 'visible';
+    main.style.opacity = '1';
+  }
+
+  if (dashboard) {
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+      page.style.display = 'none';
+    });
+
+    dashboard.classList.add('active');
+    dashboard.style.display = 'block';
+    dashboard.style.visibility = 'visible';
+    dashboard.style.opacity = '1';
+  }
+
+  console.log('Dashboard forzado como visible:', {
+    mainExists: !!main,
+    dashboardExists: !!dashboard,
+    dashboardClass: dashboard?.className,
+    dashboardDisplay: dashboard ? getComputedStyle(dashboard).display : 'no existe'
+  });
+}
+
+  
 function showLoading(show) {
   const overlay = document.getElementById('loadingOverlay');
 
