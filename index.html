@@ -1861,8 +1861,12 @@ document.querySelectorAll('.nav-link').forEach(link=>{
 }
 
 if (page === 'onepss') {
+      const view = link.dataset.onepssView || 'all';
+      onePssActiveView = view;
+      document.querySelectorAll('#navSubOnePss .nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
       renderOnePss();
-  }
+    }
   });
 });
 // Construye los submenús por equipo dentro de Outputs y Tasks.
