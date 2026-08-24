@@ -337,13 +337,14 @@ tbody tr:hover { background: var(--bayer-light); }
     <span class="icon">◈</span> One PSS
     <span class="nav-caret">▶</span>
   </a>
-  <div class="nav-sub" id="navSubOnePss">
-   <a class="nav-link all-teams" data-page="onepss" data-onepss-view="all">General</a>
-<a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinary_teams">Equipos Multidisciplinarios</a>
-<a class="nav-link" data-page="onepss" data-onepss-view="strategy_performance">Strategy & Performance</a>
-<a class="nav-link" data-page="onepss" data-onepss-view="dms_problem_solving">DMS Problem Solving</a>
-<a class="nav-link" data-page="onepss" data-onepss-view="knowledge_management">Knowledge Management</a>
-<a class="nav-link" data-page="onepss" data-onepss-view="lwa_improvements">LWA & Improvements</a>
+<div class="nav-sub" id="navSubOnePss">
+  <a class="nav-link all-teams active" data-page="onepss" data-onepss-view="all">General</a>
+  <a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinaryteams">Equipos Multidisciplinarios</a>
+  <a class="nav-link" data-page="onepss" data-onepss-view="strategyperformance">Strategy &amp; Performance</a>
+  <a class="nav-link" data-page="onepss" data-onepss-view="dmsproblemsolving">DMS &amp; Problem Solving</a>
+  <a class="nav-link" data-page="onepss" data-onepss-view="knowledgemanagement">Knowledge Management</a>
+  <a class="nav-link" data-page="onepss" data-onepss-view="lwaimprovements">LWA &amp; Improvements</a>
+</div>
   </div>
 </div>
       <a class="nav-link" data-page="team"><span class="icon">👥</span> Equipo</a>
@@ -1902,6 +1903,14 @@ function goToTeamView(section,team){
   applyRolePermissions();
 }
 
+function goToOnePssView(elementoKey) {
+  onePssActiveView = elementoKey;
+  document.querySelectorAll('#navSubOnePss a').forEach(a => a.classList.remove('active'));
+  const activeLink = document.querySelector(`#navSubOnePss a[data-elemento="${elementoKey}"]`);
+  if (activeLink) activeLink.classList.add('active');
+  renderOnePss();
+}  
+
 function escHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -1916,15 +1925,15 @@ function normalizeOnePssElemento(v) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/[^a-z]/g, '')
     .trim();
 
   if (!s) return 'general';
-  if (s.includes('equipos multidisciplin')) return 'multidisciplinary_teams';
-  if (s.includes('strategy') || s.includes('performance') || s.includes('strat') || s.includes('perfo')) return 'strategy_performance';
-  if (s.includes('dms') || s.includes('problem solving')) return 'dms_problem_solving';
-  if (s.includes('knowledge')) return 'knowledge_management';
-  if (s.includes('lwa')) return 'lwa_improvements';
+  if (s.includes('equiposmultidisciplin')) return 'multidisciplinaryteams';
+  if (s.includes('strategy') || s.includes('performance') || s.includes('strat') || s.includes('perfo')) return 'strategyperformance';
+  if (s.includes('dms') || s.includes('problemsolving')) return 'dmsproblemsolving';
+  if (s.includes('knowledge')) return 'knowledgemanagement';
+  if (s.includes('lwa')) return 'lwaimprovements';
   return 'general';
 }
 
@@ -1989,8 +1998,8 @@ function fillOnePssFilters(rows) {
 function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
   const scopedRows = onePssActiveView === 'all'
-    ? allRows
-    : allRows.filter(r => (r.elemento || '') === onePssActiveView);
+  ? allRows
+  : allRows.filter(r => normalizeOnePssElemento(r.elemento) === onePssActiveView);
 
   const search = (
     document.getElementById('onePssSearch')?.value || ''
@@ -3741,6 +3750,24 @@ document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
           if (sub) sub.classList.add('open');
         });
       });
+
+  document.querySelectorAll('#navSubOnePss .nav-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    const view = link.dataset.onepssView || 'all';
+    onePssActiveView = view;
+
+    document.querySelectorAll('#navSubOnePss .nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-onepss');
+    if (target) target.classList.add('active');
+
+    renderOnePss();
+  });
+});
   
 buildTeamNav();
 applyFormsAdminVisibility();
