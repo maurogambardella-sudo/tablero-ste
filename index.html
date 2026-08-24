@@ -3734,9 +3734,6 @@ document.addEventListener('DOMContentLoaded', function() {
     modal.addEventListener('click', function(e) { e.stopPropagation(); });
   });
 
-  buildTeamNav();
-  applyFormsAdminVisibility();
-  initApp();
 });
 
 document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
@@ -3755,23 +3752,7 @@ document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
         });
       });
 
-  document.querySelectorAll('#navSubOnePss .nav-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-
-    const view = link.dataset.onepssView || 'all';
-    onePssActiveView = view;
-
-    document.querySelectorAll('#navSubOnePss .nav-link').forEach(l => l.classList.remove('active'));
-    link.classList.add('active');
-
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById('page-onepss');
-    if (target) target.classList.add('active');
-
-    renderOnePss();
-  });
-});
+ 
   
 buildTeamNav();
 applyFormsAdminVisibility();
