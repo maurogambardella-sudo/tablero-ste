@@ -1866,16 +1866,17 @@ document.querySelectorAll('.nav-link').forEach(link => {
     const page = link.dataset.page;
     if (!page) return;
 
-    document.querySelectorAll('.nav-link').forEach(l => {
-      l.classList.remove('active');
+    if (page === 'admin' && !isAdmin()) {
+      toast('Solo el administrador puede acceder a Administración.');
+      return;
+    }
+
+    document.querySelectorAll('.nav-link').forEach(item => {
+      item.classList.remove('active');
     });
 
-    document.querySelectorAll('.nav-sub a').forEach(a => {
-      a.classList.remove('active');
-    });
-
-    document.querySelectorAll('.page').forEach(p => {
-      p.classList.remove('active');
+    document.querySelectorAll('.page').forEach(section => {
+      section.classList.remove('active');
     });
 
     const targetPage = document.getElementById(`page-${page}`);
@@ -1885,30 +1886,55 @@ document.querySelectorAll('.nav-link').forEach(link => {
       return;
     }
 
-    link.classList.add('active');
     targetPage.classList.add('active');
+    link.classList.add('active');
 
     if (page === 'admin') {
-      if (!isAdmin()) {
-        toast('Solo el administrador puede acceder a Administración.');
-
-        document.getElementById('page-dashboard')?.classList.add('active');
-        document.querySelector('[data-page="dashboard"]')?.classList.add('active');
-        return;
-      }
-
       loadUsers();
+      return;
     }
 
     if (page === 'onepss') {
       onePssActiveView = link.dataset.onepssView || 'all';
 
-      document.querySelectorAll('#navSubOnePss .nav-link').forEach(l => {
-        l.classList.remove('active');
+      document.querySelectorAll('#navSubOnePss .nav-link').forEach(item => {
+        item.classList.toggle(
+          'active',
+          item.dataset.onepssView === onePssActiveView
+        );
       });
 
-      link.classList.add('active');
       renderOnePss();
+      return;
+    }
+
+    if (page === 'outcomes') {
+      renderOutcomes();
+      return;
+    }
+
+    if (page === 'recognitions') {
+      renderRecognitions();
+      return;
+    }
+
+    if (page === 'forms-initiatives') {
+      renderInitiativesPage();
+      return;
+    }
+
+    if (page === 'forms-communication') {
+      renderCommunicationPage();
+      return;
+    }
+
+    if (page === 'forms-evaluation') {
+      renderEvaluationPage();
+      return;
+    }
+
+    if (page === 'forms-dashboard') {
+      renderFormsDashboard();
     }
   });
 });
@@ -1951,11 +1977,19 @@ function goToTeamView(section,team){
   applyRolePermissions();
 }
 
-function goToOnePssView(elementoKey) {
-  onePssActiveView = elementoKey;
-  document.querySelectorAll('#navSubOnePss a').forEach(a => a.classList.remove('active'));
-  const activeLink = document.querySelector(`#navSubOnePss a[data-elemento="${elementoKey}"]`);
-  if (activeLink) activeLink.classList.add('active');
+function goToOnePssView(viewKey) {
+  onePssActiveView = viewKey || 'all';
+
+  document.querySelectorAll('#navSubOnePss a').forEach(a => {
+    a.classList.toggle('active', a.dataset.onepssView === onePssActiveView);
+  });
+
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+  });
+
+  document.getElementById('page-onepss')?.classList.add('active');
+
   renderOnePss();
 }  
 
@@ -2079,6 +2113,12 @@ function renderOnePss() {
     elementoSelect.value = onePssActiveView;
     elementoSelect.disabled = true;
   }
+
+  if (onePssActiveView && onePssActiveView !== 'all') {
+  rows = rows.filter(row =>
+    normalizeOnePssElemento(row.elemento) === onePssActiveView
+  );
+}
 
   const elemento = elementoSelect?.value || '';
   const estado = estadoSelect?.value || '';
