@@ -1746,15 +1746,21 @@ recognitions = state.recognitions;
   } catch (e) {
     console.warn('No se pudo cargar desde API, usando datos locales', e);
     setSyncStatus(false);
-  } finally {
-  showLoading(false);
+    } finally {
+    showLoading(false);
 
-  forceDashboardVisible();
+    forceDashboardVisible();
 
-  renderAll();
+    try {
+      renderAll();
+    } catch (error) {
+      console.error('Error al renderizar el tablero:', error);
+    }
 
-  applyFormsAdminVisibility();
-  applyRolePermissions();
+    applyFormsAdminVisibility();
+    applyRolePermissions();
+  }
+}
 
   requestAnimationFrame(() => {
     forceDashboardVisible();
@@ -1815,7 +1821,7 @@ function forceDashboardVisible() {
   }
 
   if (dashboard) {
-    document.querySelectorAll('.page').forEach(page => {
+    document.querySelectorAll('.page').forEach(function(page) {
       page.classList.remove('active');
       page.style.display = 'none';
     });
@@ -1825,15 +1831,7 @@ function forceDashboardVisible() {
     dashboard.style.visibility = 'visible';
     dashboard.style.opacity = '1';
   }
-
-  console.log('Dashboard forzado como visible:', {
-    mainExists: !!main,
-    dashboardExists: !!dashboard,
-    dashboardClass: dashboard?.className,
-    dashboardDisplay: dashboard ? getComputedStyle(dashboard).display : 'no existe'
-  });
-}
-
+}  
   
 function showLoading(show) {
   const overlay = document.getElementById('loadingOverlay');
@@ -4114,53 +4112,33 @@ function setModalEditable(modalId, editable){
 
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', function() {
   try {
-    ['requestImpact', 'requestUrgency'].forEach(id => {
-      const el = document.getElementById(id);
+    buildTeamNav();
 
-      if (!el) return;
-
-      el.addEventListener('change', () => {
-        const impact = Number(document.getElementById('requestImpact')?.value || 0);
-        const urgency = Number(document.getElementById('requestUrgency')?.value || 0);
-        const suggestedEl = document.getElementById('requestSuggestedPriority');
-
-        if (suggestedEl) {
-          suggestedEl.value = calculateSuggestedPriority(impact, 0, urgency);
-        }
-      });
-    });
-
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', e => {
-        if (e.target === overlay && typeof closeAnyModal === 'function') {
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(event) {
+        if (event.target === overlay) {
           closeAnyModal();
         }
       });
     });
 
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', e => e.stopPropagation());
+    document.querySelectorAll('.modal').forEach(function(modal) {
+      modal.addEventListener('click', function(event) {
+        event.stopPropagation();
+      });
     });
 
-    buildTeamNav();
     applyFormsAdminVisibility();
 
-    await initApp();
+    initApp().catch(function(error) {
+      console.error('Error fatal al iniciar:', error);
+      showLoading(false);
+    });
   } catch (error) {
-    console.error('Error crítico durante el inicio:', error);
-
+    console.error('Error al preparar la aplicación:', error);
     showLoading(false);
-
-    const authOverlay = document.getElementById('authOverlay');
-    if (authOverlay) {
-      authOverlay.classList.remove('hidden');
-    }
-
-    alert(
-      'El tablero no pudo iniciar. Abrí la consola del navegador (F12 > Console) y copiá el primer error en rojo.'
-    );
   }
 });
 
