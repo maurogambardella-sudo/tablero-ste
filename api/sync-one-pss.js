@@ -66,10 +66,10 @@ module.exports = async function handler(req, res) {
       detalle: r['Detalle'] ?? '',
       owner: r['Owner'] ?? '',
       co_owner: r['Co Owner'] ?? '',
-      fecha_inicio: r['Fecha inicio'] ?? '',
+      fecha_inicio: normalizeDate(r['Fecha inicio']),
       estado: r['Estado'] ?? '',
       dependencia: r['Dependencia'] ?? '',
-      deadline_fecha: r['Deadline (fecha)'] ?? '',
+      deadline_fecha: normalizeDate(r['Deadline (fecha)']),
       stopper: r['Stopper'] ?? '',
       comentarios: r['Comentarios'] ?? '',
       source_file: sourceFile || '',
@@ -78,6 +78,39 @@ module.exports = async function handler(req, res) {
 
     await upsert('one_pss', mapped);
     await deleteRemovedByElemento('one_pss', elemento, mapped.map(r => r.id));
+
+    function excelSerialToDate(serial) {
+  const n = Number(serial);
+  if (!Number.isFinite(n)) return '';
+  const utcDays = Math.floor(n - 25569);
+  const utcValue = utcDays * 86400;
+  const dateInfo = new Date(utcValue * 1000);
+
+  const yyyy = dateInfo.getUTCFullYear();
+  const mm = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(dateInfo.getUTCDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function normalizeDate(value) {
+  if (value === null || value === undefined) return '';
+  const raw = String(value).trim();
+  if (!raw) return '';
+
+  if (/^\d+(\.\d+)?$/.test(raw)) {
+    return excelSerialToDate(raw);
+  }
+
+  const parsed = new Date(raw);
+  if (!isNaN(parsed.getTime())) {
+    const yyyy = parsed.getUTCFullYear();
+    const mm = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(parsed.getUTCDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  return raw;
+}
 
     return res.status(200).json({ ok: true, count: mapped.length, elemento });
   } catch (e) {
