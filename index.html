@@ -3724,15 +3724,19 @@ function setModalEditable(modalId, editable){
   }
 });
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function(e){
-      if (e.target === overlay) { e.stopPropagation(); }
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeAnyModal ? closeAnyModal() : e.stopPropagation();
     });
   });
   document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', function(e){ e.stopPropagation(); });
+    modal.addEventListener('click', function(e) { e.stopPropagation(); });
   });
+
+  buildTeamNav();
+  applyFormsAdminVisibility();
+  initApp();
 });
 
 document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
