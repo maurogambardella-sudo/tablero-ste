@@ -2306,10 +2306,222 @@ function renderTasksTracking(){
 }
 function navToOutput(id){const o=state.outputs.find(x=>x.id===id);goToTeamView('outputs',o?(o.team||''):'');openOutputModal(id);}
 function goToTask(id){const t=state.tasks.find(x=>x.id===id);goToTeamView('tasks',t?(t.team||''):'');openTaskModal(id);}
-function drawComparisonBars(id,labels,rv,ev){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Real',data:rv,backgroundColor:'#66B512',borderRadius:4},{label:'Esperado',data:ev,backgroundColor:'#0091DF',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}}}});}
-function drawBarChart(id,data,color){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'bar',data:{labels:data.map(d=>d.label),datasets:[{data:data.map(d=>d.value),backgroundColor:color,borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{grid:{display:false}}}}});}
-function drawDoughnut(id,labels,values,colors){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}},cutout:'60%'}});}
-function drawStackedChart(id,labels,ov,dv){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Abiertas',data:ov,backgroundColor:'#F59E0B',borderRadius:4},{label:'Completadas',data:dv,backgroundColor:'#10B981',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true}}}});}
+function drawComparisonBars(id, labels, realValues, expectedValues) {
+  const canvas = document.getElementById(id);
+
+  if (!canvas) {
+    console.warn(`No se encontró el canvas: ${id}`);
+    return;
+  }
+
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js no está disponible.');
+    return;
+  }
+
+  try {
+    if (charts[id]) {
+      charts[id].destroy();
+    }
+
+    charts[id] = new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Real',
+            data: realValues,
+            backgroundColor: '#66B512',
+            borderRadius: 4
+          },
+          {
+            label: 'Esperado',
+            data: expectedValues,
+            backgroundColor: '#0091DF',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { size: 11 } }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: value => `${value}%`
+            }
+          },
+          y: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error(`Error al renderizar gráfico ${id}:`, error);
+  }
+}
+function drawBarChart(id, data, color) {
+  const canvas = document.getElementById(id);
+
+  if (!canvas) {
+    console.warn(`No se encontró el canvas: ${id}`);
+    return;
+  }
+
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js no está disponible.');
+    return;
+  }
+
+  try {
+    if (charts[id]) {
+      charts[id].destroy();
+    }
+
+    charts[id] = new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: data.map(item => item.label),
+        datasets: [{
+          data: data.map(item => item.value),
+          backgroundColor: color,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { beginAtZero: true },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  } catch (error) {
+    console.error(`Error al renderizar gráfico ${id}:`, error);
+  }
+}
+function drawDoughnut(id, labels, values, colors) {
+  const canvas = document.getElementById(id);
+
+  if (!canvas) {
+    console.warn(`No se encontró el canvas: ${id}`);
+    return;
+  }
+
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js no está disponible.');
+    return;
+  }
+
+  try {
+    if (charts[id]) {
+      charts[id].destroy();
+    }
+
+    charts[id] = new Chart(canvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { font: { size: 11 } }
+          }
+        },
+        cutout: '60%'
+      }
+    });
+  } catch (error) {
+    console.error(`Error al renderizar gráfico ${id}:`, error);
+  }
+}
+function drawStackedChart(id, labels, openValues, doneValues) {
+  const canvas = document.getElementById(id);
+
+  if (!canvas) {
+    console.warn(`No se encontró el canvas: ${id}`);
+    return;
+  }
+
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js no está disponible.');
+    return;
+  }
+
+  try {
+    if (charts[id]) {
+      charts[id].destroy();
+    }
+
+    charts[id] = new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Abiertas',
+            data: openValues,
+            backgroundColor: '#F59E0B',
+            borderRadius: 4
+          },
+          {
+            label: 'Completadas',
+            data: doneValues,
+            backgroundColor: '#10B981',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { size: 11 } }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error(`Error al renderizar gráfico ${id}:`, error);
+  }
+}
 
 // ─── OUTCOMES ─────────────────────────────────────────────────────────────────
 function renderOutcomes(){
@@ -3726,23 +3938,69 @@ async function resetDemo(){
 
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
 function renderAll() {
-  initFilters();
-  renderDashboard();
-  renderOutcomes();
-  renderOutputs();
-  renderTasks();
-  renderTeam();
-  renderRecognitions();
-  renderOnePss();
+  try {
+    initFilters();
+  } catch (error) {
+    console.error('Error en initFilters:', error);
+  }
 
-  requests = state.requests || [];
+  try {
+    renderDashboard();
+  } catch (error) {
+    console.error('Error en renderDashboard:', error);
+  }
 
-  renderInitiativesPage();
-  renderCommunicationPage();
-  renderEvaluationPage();
-  renderFormsDashboard();
+  try {
+    renderOutcomes();
+  } catch (error) {
+    console.error('Error en renderOutcomes:', error);
+  }
 
-  applyRolePermissions();
+  try {
+    renderOutputs();
+  } catch (error) {
+    console.error('Error en renderOutputs:', error);
+  }
+
+  try {
+    renderTasks();
+  } catch (error) {
+    console.error('Error en renderTasks:', error);
+  }
+
+  try {
+    renderTeam();
+  } catch (error) {
+    console.error('Error en renderTeam:', error);
+  }
+
+  try {
+    renderRecognitions();
+  } catch (error) {
+    console.error('Error en renderRecognitions:', error);
+  }
+
+  try {
+    renderOnePss();
+  } catch (error) {
+    console.error('Error en renderOnePss:', error);
+  }
+
+  try {
+    requests = state.requests || [];
+    renderInitiativesPage();
+    renderCommunicationPage();
+    renderEvaluationPage();
+    renderFormsDashboard();
+  } catch (error) {
+    console.error('Error al renderizar Formularios:', error);
+  }
+
+  try {
+    applyRolePermissions();
+  } catch (error) {
+    console.error('Error en permisos:', error);
+  }
 }
 
 // ─── PERMISOS SEGÚN ROL ───────────────────────────────────────────────────────
