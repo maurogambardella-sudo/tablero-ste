@@ -1850,7 +1850,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     document.querySelectorAll('.nav-sub a').forEach(a=>a.classList.remove('active'));
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     link.classList.add('active');
-    document.getElementById('page-'+page).classList.add('active');
+    document.getElementById('page-' + page)?.classList.add('active');
     if (page === 'admin') {
   if (!isAdmin()) {
     toast('Solo el administrador puede acceder a Administración.');
@@ -1869,6 +1869,7 @@ if (page === 'onepss') {
     }
   });
 });
+  
 // Construye los submenús por equipo dentro de Outputs y Tasks.
 function buildTeamNav(){
   const mk=(section)=>{
@@ -3713,7 +3714,8 @@ function setModalEditable(modalId, editable){
   });
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+  // ─── INIT ─────────────────────────────────────────────────────────────────────
 ['requestImpact', 'requestUrgency'].forEach(id => {
   const el = document.getElementById(id);
   if (el) {
@@ -3734,36 +3736,14 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.target === overlay) closeAnyModal ? closeAnyModal() : e.stopPropagation();
     });
   });
+
   document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', function(e) { e.stopPropagation(); });
+    modal.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
   });
 
+  buildTeamNav();
+  applyFormsAdminVisibility();
+  initApp();
 });
-
-document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          const page = link.dataset.page;
-          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-          link.classList.add('active');
-          const target = document.getElementById(`page-${page}`);
-          if (target) target.classList.add('active');
-          const parent = document.querySelector('.nav-parent[data-group="forms"]');
-          if (parent) parent.classList.add('expanded');
-          const sub = document.getElementById('navSubForms');
-          if (sub) sub.classList.add('open');
-        });
-      });
-
- 
-  
-buildTeamNav();
-applyFormsAdminVisibility();
-initApp();
-</script>
-</body>
-</html>
-
-
-      
