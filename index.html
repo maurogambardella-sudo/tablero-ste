@@ -1779,8 +1779,24 @@ function safeJSON(val, fallback) {
   try { return JSON.parse(val || '[]'); } catch { return fallback; }
 }
 function showLoading(show) {
-  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+  const overlay = document.getElementById('loadingOverlay');
+
+  if (!overlay) return;
+
+  overlay.style.display = show ? 'flex' : 'none';
 }
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const overlay = document.getElementById('loadingOverlay');
+
+    if (overlay && overlay.style.display !== 'none') {
+      console.warn('Se cerró el loading overlay por timeout de seguridad.');
+      overlay.style.display = 'none';
+    }
+  }, 12000);
+});
+  
 function setSyncStatus(ok) {
   const el = document.getElementById('syncStatus');
   if (!el) return;
@@ -1843,27 +1859,54 @@ function isOverdue(t){return t.end&&t.end<todayStr()&&t.status!=='Completada';}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}
 
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
-document.querySelectorAll('.nav-link').forEach(link=>{
-  link.addEventListener('click',()=>{
-    const page=link.dataset.page;
-    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-    document.querySelectorAll('.nav-sub a').forEach(a=>a.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    link.classList.add('active');
-    document.getElementById('page-' + page)?.classList.add('active');
-    if (page === 'admin') {
-  if (!isAdmin()) {
-    toast('Solo el administrador puede acceder a Administración.');
-    document.getElementById('page-dashboard')?.classList.add('active');
-    return;
-  }
-  loadUsers();
-}
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
 
-if (page === 'onepss') {
-      const view = link.dataset.onepssView || 'all';
-      onePssActiveView = view;
-      document.querySelectorAll('#navSubOnePss .nav-link').forEach(l => l.classList.remove('active'));
+    const page = link.dataset.page;
+    if (!page) return;
+
+    document.querySelectorAll('.nav-link').forEach(l => {
+      l.classList.remove('active');
+    });
+
+    document.querySelectorAll('.nav-sub a').forEach(a => {
+      a.classList.remove('active');
+    });
+
+    document.querySelectorAll('.page').forEach(p => {
+      p.classList.remove('active');
+    });
+
+    const targetPage = document.getElementById(`page-${page}`);
+
+    if (!targetPage) {
+      console.warn(`No se encontró la página: page-${page}`);
+      return;
+    }
+
+    link.classList.add('active');
+    targetPage.classList.add('active');
+
+    if (page === 'admin') {
+      if (!isAdmin()) {
+        toast('Solo el administrador puede acceder a Administración.');
+
+        document.getElementById('page-dashboard')?.classList.add('active');
+        document.querySelector('[data-page="dashboard"]')?.classList.add('active');
+        return;
+      }
+
+      loadUsers();
+    }
+
+    if (page === 'onepss') {
+      onePssActiveView = link.dataset.onepssView || 'all';
+
+      document.querySelectorAll('#navSubOnePss .nav-link').forEach(l => {
+        l.classList.remove('active');
+      });
+
       link.classList.add('active');
       renderOnePss();
     }
@@ -3715,12 +3758,14 @@ function setModalEditable(modalId, editable){
 }
 
 
-  // ─── INIT ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  ['requestImpact', 'requestUrgency'].forEach(id => {
-    const el = document.getElementById(id);
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    ['requestImpact', 'requestUrgency'].forEach(id => {
+      const el = document.getElementById(id);
 
-    if (el) {
+      if (!el) return;
+
       el.addEventListener('change', () => {
         const impact = Number(document.getElementById('requestImpact')?.value || 0);
         const urgency = Number(document.getElementById('requestUrgency')?.value || 0);
@@ -3730,29 +3775,38 @@ document.addEventListener('DOMContentLoaded', () => {
           suggestedEl.value = calculateSuggestedPriority(impact, 0, urgency);
         }
       });
-    }
-  });
-
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay) {
-        closeAnyModal?.();
-      }
     });
-  });
 
-  document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', e => e.stopPropagation());
-  });
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', e => {
+        if (e.target === overlay && typeof closeAnyModal === 'function') {
+          closeAnyModal();
+        }
+      });
+    });
 
-  buildTeamNav();
-  applyFormsAdminVisibility();
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', e => e.stopPropagation());
+    });
 
-  initApp().catch(error => {
-    console.error('Error crítico al iniciar el tablero:', error);
+    buildTeamNav();
+    applyFormsAdminVisibility();
+
+    await initApp();
+  } catch (error) {
+    console.error('Error crítico durante el inicio:', error);
+
     showLoading(false);
-    showLogin();
-  });
+
+    const authOverlay = document.getElementById('authOverlay');
+    if (authOverlay) {
+      authOverlay.classList.remove('hidden');
+    }
+
+    alert(
+      'El tablero no pudo iniciar. Abrí la consola del navegador (F12 > Console) y copiá el primer error en rojo.'
+    );
+  }
 });
 
 </script>
