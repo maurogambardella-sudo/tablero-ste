@@ -153,7 +153,7 @@ function mapOnePss(r) {
     stopper: r.stopper ?? '',
     comentarios: r.comentarios ?? '',
     sourceFile: r.source_file ?? '',
-    elemento: r.elemento ?? ''
+    elemento: normalizeElemento(r.elemento ?? '')
   };
 }
 
