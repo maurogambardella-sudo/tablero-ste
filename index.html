@@ -2125,8 +2125,8 @@ function fillOnePssFilters(rows) {
 function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
   const scopedRows = onePssActiveView === 'all'
-  ? allRows
-  : allRows.filter(r => normalizeOnePssElemento(r.elemento) === onePssActiveView);
+    ? allRows
+    : allRows.filter(r => normalizeOnePssElemento(r.elemento) === onePssActiveView);
 
   const search = (
     document.getElementById('onePssSearch')?.value || ''
@@ -2137,11 +2137,11 @@ function renderOnePss() {
   const ownerSelect = document.getElementById('onePssFilterOwner');
   const subtitle = document.getElementById('onePssSubtitle');
 
- if (subtitle) {
-  subtitle.textContent = onePssActiveView === 'all'
-    ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
-    : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
-}
+  if (subtitle) {
+    subtitle.textContent = onePssActiveView === 'all'
+      ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
+      : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
+  }
 
   if (elementoSelect) {
     if (onePssActiveView === 'all') {
@@ -2158,12 +2158,6 @@ function renderOnePss() {
     elementoSelect.value = onePssActiveView;
     elementoSelect.disabled = true;
   }
-
-  if (onePssActiveView && onePssActiveView !== 'all') {
-  rows = rows.filter(row =>
-    normalizeOnePssElemento(row.elemento) === onePssActiveView
-  );
-}
 
   const elemento = elementoSelect?.value || '';
   const estado = estadoSelect?.value || '';
