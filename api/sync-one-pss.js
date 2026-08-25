@@ -45,7 +45,7 @@ function normalizeElemento(value) {
     s.includes('lwaimprovements')
   ) return 'lwaimprovements';
 
-  return 'general';
+  throw new Error(`Elemento no reconocido: ${raw}`);
 }
 
 const normalizedElemento = normalizeElemento(elemento);
