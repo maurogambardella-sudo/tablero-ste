@@ -1915,60 +1915,22 @@ function escHtml(value) {
 }
 
 function normalizeOnePssElemento(value) {
-  const text = String(value ?? "")
+  const text = String(value ?? '')
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, ' ')
     .trim();
 
-  if (!text) return "general";
+  if (!text) return 'general';
+  if (text.includes('equipos multidisciplinarios') || text.includes('equipo multidisciplinario') || text.includes('multidisciplinary teams') || text.includes('multidisciplinary team') || text.includes('multidisciplinaryteams')) return 'multidisciplinaryteams';
+  if (text.includes('strategy performance') || text.includes('estrategia y desempeno') || text.includes('strategyperformance')) return 'strategyperformance';
+  if (text.includes('dms') || text.includes('problem solving') || text.includes('dmsproblemsolving')) return 'dmsproblemsolving';
+  if (text.includes('knowledge management') || text.includes('gestion del conocimiento') || text.includes('knowledgemanagement')) return 'knowledgemanagement';
+  if (text.includes('lwa') || text.includes('lean waste') || text.includes('improvements') || text.includes('lwaimprovements')) return 'lwaimprovements';
 
-  if (
-    text.includes("equipos multidisciplinarios") ||
-    text.includes("equipo multidisciplinario") ||
-    text.includes("multidisciplinary teams") ||
-    text.includes("multidisciplinary team")
-  ) {
-    return "multidisciplinaryteams";
-  }
-
-  if (
-    text.includes("strategy performance") ||
-    text.includes("strategy & performance") ||
-    text.includes("estrategia performance") ||
-    text.includes("strategy") ||
-    text.includes("performance")
-  ) {
-    return "strategyperformance";
-  }
-
-  if (
-    text.includes("dms") ||
-    text.includes("problem solving") ||
-    text.includes("solucion de problemas")
-  ) {
-    return "dmsproblemsolving";
-  }
-
-  if (
-    text.includes("knowledge management") ||
-    text.includes("gestion del conocimiento") ||
-    text.includes("knowledge")
-  ) {
-    return "knowledgemanagement";
-  }
-
-  if (
-    text.includes("lwa") ||
-    text.includes("lean waste") ||
-    text.includes("improvements") ||
-    text.includes("mejoras")
-  ) {
-    return "lwaimprovements";
-  }
-
-  return "general";
+  console.warn('Elemento One PSS no reconocido:', value);
+  return 'general';
 }
 
 function onePssElementoLabel(v) {
