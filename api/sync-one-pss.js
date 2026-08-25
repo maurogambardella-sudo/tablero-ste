@@ -8,6 +8,45 @@ function sbHeaders(extra) {
   }, extra || {});
 }
 
+function normalizeElemento(value) {
+  const s = String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z]/g, '');
+
+  if (s.includes('equiposmultidisciplin')) return 'multidisciplinaryteams';
+  if (s.includes('strategy') || s.includes('performance')) return 'strategyperformance';
+  if (s.includes('dms') || s.includes('problemsolving')) return 'dmsproblemsolving';
+  if (s.includes('knowledge')) return 'knowledgemanagement';
+  if (s.includes('lwa')) return 'lwaimprovements';
+  return 'general';
+}
+
+const normalizedElemento = normalizeElemento(elemento);
+
+const mapped = (rows || []).map(r => ({
+  id: r.ID ?? '',
+  nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
+  detalle: r['Detalle'] ?? '',
+  owner: r['Owner'] ?? '',
+  co_owner: r['Co Owner'] ?? '',
+  fecha_inicio: normalizeDate(r['Fecha inicio']),
+  estado: r['Estado'] ?? '',
+  dependencia: r['Dependencia'] ?? '',
+  deadline_fecha: normalizeDate(r['Deadline (fecha)']),
+  stopper: r['Stopper'] ?? '',
+  comentarios: r['Comentarios'] ?? '',
+  source_file: sourceFile || '',
+  elemento: normalizedElemento
+})).filter(r => r.id && r.nombre_iniciativa);
+
+await upsert('one_pss', mapped);
+await deleteRemovedByElemento('one_pss', normalizedElemento, mapped.map(r => r.id));
+
+
+
+
 async function upsert(table, rows) {
   if (!rows || !rows.length) return;
 
