@@ -9,17 +9,42 @@ function sbHeaders(extra) {
 }
 
 function normalizeElemento(value) {
-  const s = String(value || '')
+  const raw = String(value || '').trim();
+
+  const s = raw
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z]/g, '');
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]/g, '');
 
-  if (s.includes('equiposmultidisciplin')) return 'multidisciplinaryteams';
-  if (s.includes('strategy') || s.includes('performance')) return 'strategyperformance';
-  if (s.includes('dms') || s.includes('problemsolving')) return 'dmsproblemsolving';
-  if (s.includes('knowledge')) return 'knowledgemanagement';
-  if (s.includes('lwa')) return 'lwaimprovements';
+  if (
+    s === 'multidisciplinaryteams' ||
+    s.includes('equiposmultidisciplinarios') ||
+    s.includes('equipomultidisciplinario')
+  ) return 'multidisciplinaryteams';
+
+  if (
+    s === 'strategyperformance' ||
+    s.includes('strategyperformance') ||
+    s.includes('strategicperformance')
+  ) return 'strategyperformance';
+
+  if (
+    s === 'dmsproblemsolving' ||
+    s.includes('dmsproblemsolving')
+  ) return 'dmsproblemsolving';
+
+  if (
+    s === 'knowledgemanagement' ||
+    s.includes('knowledgemanagement')
+  ) return 'knowledgemanagement';
+
+  if (
+    s === 'lwaimprovements' ||
+    s.includes('lwaimprovements')
+  ) return 'lwaimprovements';
+
   return 'general';
 }
 
