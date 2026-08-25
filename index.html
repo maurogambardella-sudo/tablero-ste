@@ -240,18 +240,6 @@ tbody tr:hover { background: var(--bayer-light); }
 .required-star{color:#DC2626;font-weight:700;margin-left:2px;}
 .field-error{border-color:#DC2626 !important; box-shadow:0 0 0 1px rgba(220,38,38,.15);}
 
-/* Diagnóstico y recuperación visual del dashboard */
-#page-dashboard.active {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-
-#page-dashboard {
-  min-height: 100vh;
-}
-
 </style>
 </head>
 <body>
@@ -349,14 +337,13 @@ tbody tr:hover { background: var(--bayer-light); }
     <span class="icon">◈</span> One PSS
     <span class="nav-caret">▶</span>
   </a>
-<div class="nav-sub" id="navSubOnePss">
-  <a class="nav-link all-teams active" data-page="onepss" data-onepss-view="all">General</a>
-  <a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinaryteams">Equipos Multidisciplinarios</a>
-  <a class="nav-link" data-page="onepss" data-onepss-view="strategyperformance">Strategy &amp; Performance</a>
-  <a class="nav-link" data-page="onepss" data-onepss-view="dmsproblemsolving">DMS &amp; Problem Solving</a>
-  <a class="nav-link" data-page="onepss" data-onepss-view="knowledgemanagement">Knowledge Management</a>
-  <a class="nav-link" data-page="onepss" data-onepss-view="lwaimprovements">LWA &amp; Improvements</a>
-</div>
+  <div class="nav-sub" id="navSubOnePss">
+   <a class="nav-link all-teams" data-page="onepss" data-onepss-view="all">General</a>
+<a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinary_teams">Equipos Multidisciplinarios</a>
+<a class="nav-link" data-page="onepss" data-onepss-view="strategy_performance">Strategy & Performance</a>
+<a class="nav-link" data-page="onepss" data-onepss-view="dms_problem_solving">DMS Problem Solving</a>
+<a class="nav-link" data-page="onepss" data-onepss-view="knowledge_management">Knowledge Management</a>
+<a class="nav-link" data-page="onepss" data-onepss-view="lwa_improvements">LWA & Improvements</a>
   </div>
 </div>
       <a class="nav-link" data-page="team"><span class="icon">👥</span> Equipo</a>
@@ -1708,10 +1695,10 @@ async function loadFromAPI() {
     if (data.recognitions) state.recognitions = data.recognitions;
 recognitions = state.recognitions;
     }
-   if (Array.isArray(data.onePss)) {
+   if (data.onePss) {
   state.onePss = data.onePss.map(r => ({
     ...r,
-    elemento: normalizeOnePssElemento(r?.elemento || 'General')
+    elemento: normalizeOnePssElemento(r.elemento)
   }));
   onePss = state.onePss;
 }
@@ -1740,18 +1727,13 @@ recognitions = state.recognitions;
   } catch (e) {
     console.warn('No se pudo cargar desde API, usando datos locales', e);
     setSyncStatus(false);
-    } finally {
-  showLoading(false);
-
-renderAll();
-applyFormsAdminVisibility();
-applyRolePermissions();
-
+  } finally {
+    showLoading(false);
+    renderAll();
     applyFormsAdminVisibility();
     applyRolePermissions();
   }
 }
-
 
 // ─── API: GUARDAR EN SUPABASE ─────────────────────────────────────────────────
 async function saveState() {
@@ -1795,49 +1777,9 @@ function safeJSON(val, fallback) {
   if (Array.isArray(val)) return val;
   try { return JSON.parse(val || '[]'); } catch { return fallback; }
 }
-
-function forceDashboardVisible() {
-  const main = document.querySelector('.main');
-  const dashboard = document.getElementById('page-dashboard');
-
-  if (main) {
-    main.style.display = 'block';
-    main.style.visibility = 'visible';
-    main.style.opacity = '1';
-  }
-
-  if (dashboard) {
-    document.querySelectorAll('.page').forEach(function(page) {
-      page.classList.remove('active');
-      page.style.display = 'none';
-    });
-
-    dashboard.classList.add('active');
-    dashboard.style.display = 'block';
-    dashboard.style.visibility = 'visible';
-    dashboard.style.opacity = '1';
-  }
-}  
-  
 function showLoading(show) {
-  const overlay = document.getElementById('loadingOverlay');
-
-  if (!overlay) return;
-
-  overlay.style.display = show ? 'flex' : 'none';
+  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
 }
-
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    const overlay = document.getElementById('loadingOverlay');
-
-    if (overlay && overlay.style.display !== 'none') {
-      console.warn('Se cerró el loading overlay por timeout de seguridad.');
-      overlay.style.display = 'none';
-    }
-  }, 12000);
-});
-  
 function setSyncStatus(ok) {
   const el = document.getElementById('syncStatus');
   if (!el) return;
@@ -1900,86 +1842,28 @@ function isOverdue(t){return t.end&&t.end<todayStr()&&t.status!=='Completada';}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}
 
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', event => {
-    event.preventDefault();
-
-    const page = link.dataset.page;
-    if (!page) return;
-
-    if (page === 'admin' && !isAdmin()) {
-      toast('Solo el administrador puede acceder a Administración.');
-      return;
-    }
-
-    document.querySelectorAll('.nav-link').forEach(item => {
-      item.classList.remove('active');
-    });
-
-    document.querySelectorAll('.page').forEach(section => {
-      section.classList.remove('active');
-    });
-
-    const targetPage = document.getElementById(`page-${page}`);
-
-    if (!targetPage) {
-      console.warn(`No se encontró la página: page-${page}`);
-      return;
-    }
-
-    targetPage.classList.add('active');
+document.querySelectorAll('.nav-link').forEach(link=>{
+  link.addEventListener('click',()=>{
+    const page=link.dataset.page;
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    document.querySelectorAll('.nav-sub a').forEach(a=>a.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     link.classList.add('active');
-
+    document.getElementById('page-'+page).classList.add('active');
     if (page === 'admin') {
-      loadUsers();
-      return;
-    }
+  if (!isAdmin()) {
+    toast('Solo el administrador puede acceder a Administración.');
+    document.getElementById('page-dashboard')?.classList.add('active');
+    return;
+  }
+  loadUsers();
+}
 
-    if (page === 'onepss') {
-      onePssActiveView = link.dataset.onepssView || 'all';
-
-      document.querySelectorAll('#navSubOnePss .nav-link').forEach(item => {
-        item.classList.toggle(
-          'active',
-          item.dataset.onepssView === onePssActiveView
-        );
-      });
-
+if (page === 'onepss') {
       renderOnePss();
-      return;
-    }
-
-    if (page === 'outcomes') {
-      renderOutcomes();
-      return;
-    }
-
-    if (page === 'recognitions') {
-      renderRecognitions();
-      return;
-    }
-
-    if (page === 'forms-initiatives') {
-      renderInitiativesPage();
-      return;
-    }
-
-    if (page === 'forms-communication') {
-      renderCommunicationPage();
-      return;
-    }
-
-    if (page === 'forms-evaluation') {
-      renderEvaluationPage();
-      return;
-    }
-
-    if (page === 'forms-dashboard') {
-      renderFormsDashboard();
-    }
+  }
   });
 });
-  
 // Construye los submenús por equipo dentro de Outputs y Tasks.
 function buildTeamNav(){
   const mk=(section)=>{
@@ -2018,22 +1902,6 @@ function goToTeamView(section,team){
   applyRolePermissions();
 }
 
-function goToOnePssView(viewKey) {
-  onePssActiveView = viewKey || 'all';
-
-  document.querySelectorAll('#navSubOnePss a').forEach(a => {
-    a.classList.toggle('active', a.dataset.onepssView === onePssActiveView);
-  });
-
-  document.querySelectorAll('.page').forEach(page => {
-    page.classList.remove('active');
-  });
-
-  document.getElementById('page-onepss')?.classList.add('active');
-
-  renderOnePss();
-}  
-
 function escHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -2048,15 +1916,15 @@ function normalizeOnePssElemento(v) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z]/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
 
   if (!s) return 'general';
-  if (s.includes('equiposmultidisciplin')) return 'multidisciplinaryteams';
-  if (s.includes('strategy') || s.includes('performance') || s.includes('strat') || s.includes('perfo')) return 'strategyperformance';
-  if (s.includes('dms') || s.includes('problemsolving')) return 'dmsproblemsolving';
-  if (s.includes('knowledge')) return 'knowledgemanagement';
-  if (s.includes('lwa')) return 'lwaimprovements';
+  if (s.includes('equipos multidisciplin')) return 'multidisciplinary_teams';
+  if (s.includes('strategy') || s.includes('performance') || s.includes('strat') || s.includes('perfo')) return 'strategy_performance';
+  if (s.includes('dms') || s.includes('problem solving')) return 'dms_problem_solving';
+  if (s.includes('knowledge')) return 'knowledge_management';
+  if (s.includes('lwa')) return 'lwa_improvements';
   return 'general';
 }
 
@@ -2122,7 +1990,7 @@ function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
   const scopedRows = onePssActiveView === 'all'
     ? allRows
-    : allRows.filter(r => normalizeOnePssElemento(r.elemento) === onePssActiveView);
+    : allRows.filter(r => (r.elemento || '') === onePssActiveView);
 
   const search = (
     document.getElementById('onePssSearch')?.value || ''
@@ -2133,11 +2001,11 @@ function renderOnePss() {
   const ownerSelect = document.getElementById('onePssFilterOwner');
   const subtitle = document.getElementById('onePssSubtitle');
 
-  if (subtitle) {
-    subtitle.textContent = onePssActiveView === 'all'
-      ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
-      : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
-  }
+ if (subtitle) {
+  subtitle.textContent = onePssActiveView === 'all'
+    ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
+    : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
+}
 
   if (elementoSelect) {
     if (onePssActiveView === 'all') {
@@ -2341,222 +2209,10 @@ function renderTasksTracking(){
 }
 function navToOutput(id){const o=state.outputs.find(x=>x.id===id);goToTeamView('outputs',o?(o.team||''):'');openOutputModal(id);}
 function goToTask(id){const t=state.tasks.find(x=>x.id===id);goToTeamView('tasks',t?(t.team||''):'');openTaskModal(id);}
-function drawComparisonBars(id, labels, realValues, expectedValues) {
-  const canvas = document.getElementById(id);
-
-  if (!canvas) {
-    console.warn(`No se encontró el canvas: ${id}`);
-    return;
-  }
-
-  if (typeof Chart === 'undefined') {
-    console.warn('Chart.js no está disponible.');
-    return;
-  }
-
-  try {
-    if (charts[id]) {
-      charts[id].destroy();
-    }
-
-    charts[id] = new Chart(canvas.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Real',
-            data: realValues,
-            backgroundColor: '#66B512',
-            borderRadius: 4
-          },
-          {
-            label: 'Esperado',
-            data: expectedValues,
-            backgroundColor: '#0091DF',
-            borderRadius: 4
-          }
-        ]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { font: { size: 11 } }
-          }
-        },
-        scales: {
-          x: {
-            beginAtZero: true,
-            max: 100,
-            ticks: {
-              callback: value => `${value}%`
-            }
-          },
-          y: {
-            grid: { display: false }
-          }
-        }
-      }
-    });
-  } catch (error) {
-    console.error(`Error al renderizar gráfico ${id}:`, error);
-  }
-}
-function drawBarChart(id, data, color) {
-  const canvas = document.getElementById(id);
-
-  if (!canvas) {
-    console.warn(`No se encontró el canvas: ${id}`);
-    return;
-  }
-
-  if (typeof Chart === 'undefined') {
-    console.warn('Chart.js no está disponible.');
-    return;
-  }
-
-  try {
-    if (charts[id]) {
-      charts[id].destroy();
-    }
-
-    charts[id] = new Chart(canvas.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: data.map(item => item.label),
-        datasets: [{
-          data: data.map(item => item.value),
-          backgroundColor: color,
-          borderRadius: 6
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: { beginAtZero: true },
-          y: { grid: { display: false } }
-        }
-      }
-    });
-  } catch (error) {
-    console.error(`Error al renderizar gráfico ${id}:`, error);
-  }
-}
-function drawDoughnut(id, labels, values, colors) {
-  const canvas = document.getElementById(id);
-
-  if (!canvas) {
-    console.warn(`No se encontró el canvas: ${id}`);
-    return;
-  }
-
-  if (typeof Chart === 'undefined') {
-    console.warn('Chart.js no está disponible.');
-    return;
-  }
-
-  try {
-    if (charts[id]) {
-      charts[id].destroy();
-    }
-
-    charts[id] = new Chart(canvas.getContext('2d'), {
-      type: 'doughnut',
-      data: {
-        labels,
-        datasets: [{
-          data: values,
-          backgroundColor: colors,
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: { font: { size: 11 } }
-          }
-        },
-        cutout: '60%'
-      }
-    });
-  } catch (error) {
-    console.error(`Error al renderizar gráfico ${id}:`, error);
-  }
-}
-function drawStackedChart(id, labels, openValues, doneValues) {
-  const canvas = document.getElementById(id);
-
-  if (!canvas) {
-    console.warn(`No se encontró el canvas: ${id}`);
-    return;
-  }
-
-  if (typeof Chart === 'undefined') {
-    console.warn('Chart.js no está disponible.');
-    return;
-  }
-
-  try {
-    if (charts[id]) {
-      charts[id].destroy();
-    }
-
-    charts[id] = new Chart(canvas.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Abiertas',
-            data: openValues,
-            backgroundColor: '#F59E0B',
-            borderRadius: 4
-          },
-          {
-            label: 'Completadas',
-            data: doneValues,
-            backgroundColor: '#10B981',
-            borderRadius: 4
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { font: { size: 11 } }
-          }
-        },
-        scales: {
-          x: {
-            stacked: true,
-            grid: { display: false }
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true
-          }
-        }
-      }
-    });
-  } catch (error) {
-    console.error(`Error al renderizar gráfico ${id}:`, error);
-  }
-}
+function drawComparisonBars(id,labels,rv,ev){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Real',data:rv,backgroundColor:'#66B512',borderRadius:4},{label:'Esperado',data:ev,backgroundColor:'#0091DF',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}}}});}
+function drawBarChart(id,data,color){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'bar',data:{labels:data.map(d=>d.label),datasets:[{data:data.map(d=>d.value),backgroundColor:color,borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{grid:{display:false}}}}});}
+function drawDoughnut(id,labels,values,colors){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}},cutout:'60%'}});}
+function drawStackedChart(id,labels,ov,dv){if(charts[id])charts[id].destroy();const ctx=document.getElementById(id).getContext('2d');charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Abiertas',data:ov,backgroundColor:'#F59E0B',borderRadius:4},{label:'Completadas',data:dv,backgroundColor:'#10B981',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true}}}});}
 
 // ─── OUTCOMES ─────────────────────────────────────────────────────────────────
 function renderOutcomes(){
@@ -3982,7 +3638,8 @@ function renderAll() {
   renderRecognitions();
   renderOnePss();
 
-  requests = state.requests;
+  requests = state.requests || [];
+
   renderInitiativesPage();
   renderCommunicationPage();
   renderEvaluationPage();
@@ -4043,38 +3700,54 @@ function setModalEditable(modalId, editable){
   });
 }
 
-
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  try {
-    buildTeamNav();
-
-    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
-      overlay.addEventListener('click', function(event) {
-        if (event.target === overlay) {
-          closeAnyModal();
-        }
-      });
+['requestImpact', 'requestUrgency'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('change', () => {
+      const impact = Number(document.getElementById('requestImpact')?.value || 0);
+      const urgency = Number(document.getElementById('requestUrgency')?.value || 0);
+      const suggestedEl = document.getElementById('requestSuggestedPriority');
+      if (suggestedEl) {
+        suggestedEl.value = calculateSuggestedPriority(impact, 0, urgency);
+      }
     });
-
-    document.querySelectorAll('.modal').forEach(function(modal) {
-      modal.addEventListener('click', function(event) {
-        event.stopPropagation();
-      });
-    });
-
-    applyFormsAdminVisibility();
-
-    initApp().catch(function(error) {
-      console.error('Error fatal al iniciar:', error);
-      showLoading(false);
-    });
-  } catch (error) {
-    console.error('Error al preparar la aplicación:', error);
-    showLoading(false);
   }
 });
 
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e){
+      if (e.target === overlay) { e.stopPropagation(); }
+    });
+  });
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', function(e){ e.stopPropagation(); });
+  });
+});
+
+document.querySelectorAll('#navSubForms .nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const page = link.dataset.page;
+          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          link.classList.add('active');
+          const target = document.getElementById(`page-${page}`);
+          if (target) target.classList.add('active');
+          const parent = document.querySelector('.nav-parent[data-group="forms"]');
+          if (parent) parent.classList.add('expanded');
+          const sub = document.getElementById('navSubForms');
+          if (sub) sub.classList.add('open');
+        });
+      });
+  
+buildTeamNav();
+applyFormsAdminVisibility();
+initApp();
 </script>
 </body>
 </html>
+
+
+      
