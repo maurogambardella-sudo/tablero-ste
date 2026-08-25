@@ -63,7 +63,7 @@ const mapped = (rows || []).map(r => ({
   stopper: r['Stopper'] ?? '',
   comentarios: r['Comentarios'] ?? '',
   source_file: sourceFile || '',
-  elemento: normalizedElemento
+  elemento: normalizeElemento(elemento || '')
 })).filter(r => r.id && r.nombre_iniciativa);
 
 await upsert('one_pss', mapped);
@@ -137,7 +137,7 @@ module.exports = async function handler(req, res) {
       stopper: r['Stopper'] ?? '',
       comentarios: r['Comentarios'] ?? '',
       source_file: sourceFile || '',
-      elemento: elemento || ''
+      elemento: normalizeElemento(elemento || '')
     })).filter(r => r.id && r.nombre_iniciativa);
 
     await upsert('one_pss', mapped);
