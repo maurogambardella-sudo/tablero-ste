@@ -1741,15 +1741,12 @@ recognitions = state.recognitions;
     console.warn('No se pudo cargar desde API, usando datos locales', e);
     setSyncStatus(false);
     } finally {
-    showLoading(false);
+  showLoading(false);
+}
 
-    forceDashboardVisible();
-
-    try {
-      renderAll();
-    } catch (error) {
-      console.error('Error al renderizar el tablero:', error);
-    }
+renderAll();
+applyFormsAdminVisibility();
+applyRolePermissions();
 
     applyFormsAdminVisibility();
     applyRolePermissions();
@@ -3977,69 +3974,22 @@ async function resetDemo(){
 
 // ─── RENDER ALL ───────────────────────────────────────────────────────────────
 function renderAll() {
-  try {
-    initFilters();
-  } catch (error) {
-    console.error('Error en initFilters:', error);
-  }
+  initFilters();
+  renderDashboard();
+  renderOutcomes();
+  renderOutputs();
+  renderTasks();
+  renderTeam();
+  renderRecognitions();
+  renderOnePss();
 
-  try {
-    renderDashboard();
-  } catch (error) {
-    console.error('Error en renderDashboard:', error);
-  }
+  requests = state.requests;
+  renderInitiativesPage();
+  renderCommunicationPage();
+  renderEvaluationPage();
+  renderFormsDashboard();
 
-  try {
-    renderOutcomes();
-  } catch (error) {
-    console.error('Error en renderOutcomes:', error);
-  }
-
-  try {
-    renderOutputs();
-  } catch (error) {
-    console.error('Error en renderOutputs:', error);
-  }
-
-  try {
-    renderTasks();
-  } catch (error) {
-    console.error('Error en renderTasks:', error);
-  }
-
-  try {
-    renderTeam();
-  } catch (error) {
-    console.error('Error en renderTeam:', error);
-  }
-
-  try {
-    renderRecognitions();
-  } catch (error) {
-    console.error('Error en renderRecognitions:', error);
-  }
-
-  try {
-    renderOnePss();
-  } catch (error) {
-    console.error('Error en renderOnePss:', error);
-  }
-
-  try {
-    requests = state.requests || [];
-    renderInitiativesPage();
-    renderCommunicationPage();
-    renderEvaluationPage();
-    renderFormsDashboard();
-  } catch (error) {
-    console.error('Error al renderizar Formularios:', error);
-  }
-
-  try {
-    applyRolePermissions();
-  } catch (error) {
-    console.error('Error en permisos:', error);
-  }
+  applyRolePermissions();
 }
 
 // ─── PERMISOS SEGÚN ROL ───────────────────────────────────────────────────────
