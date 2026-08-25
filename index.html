@@ -1698,8 +1698,9 @@ recognitions = state.recognitions;
    if (data.onePss) {
   state.onePss = data.onePss.map(r => ({
     ...r,
-    elemento: (r.elemento)
+    elemento: normalizeOnePssElemento(r.elemento)
   }));
+}
   onePss = state.onePss;
 }
     if (data.config) {
@@ -2032,9 +2033,9 @@ function fillOnePssFilters(rows) {
 function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
 
-  const scopedRows = onePssActiveView === "all"
-    ? allRows
-    : allRows.filter(row => row.elemento === onePssActiveView);
+  const scopedRows = onePssActiveView === 'all'
+  ? allRows
+  : allRows.filter(row => normalizeOnePssElemento(row.elemento) === onePssActiveView);
 
   const search = (document.getElementById("onePssSearch")?.value || "")
     .trim()
@@ -2071,7 +2072,7 @@ function renderOnePss() {
   const owner = ownerSelect?.value || "";
 
   const rows = scopedRows
-    .filter(row => !elemento || row.elemento === elemento)
+    .filter(row => !elemento || normalizeOnePssElemento(row.elemento) === elemento)
     .filter(row => !estado || row.estado === estado)
     .filter(row => !owner || row.owner === owner)
     .filter(row => {
