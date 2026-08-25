@@ -2028,6 +2028,21 @@ function fillOnePssFilters(rows) {
 
 function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
+  const onePssCounts = allRows.reduce((acc, row) => {
+  const key = normalizeOnePssElemento(row.elemento);
+  acc[key] = (acc[key] || 0) + 1;
+  return acc;
+}, {});
+
+console.table({
+  "General": onePssCounts.general || 0,
+  "Equipos Multidisciplinarios": onePssCounts.multidisciplinaryteams || 0,
+  "Strategy Performance": onePssCounts.strategyperformance || 0,
+  "DMS Problem Solving": onePssCounts.dmsproblemsolving || 0,
+  "Knowledge Management": onePssCounts.knowledgemanagement || 0,
+  "LWA Improvements": onePssCounts.lwaimprovements || 0,
+  "Total": allRows.length
+});
   const scopedRows = onePssActiveView === 'all'
     ? allRows
     : allRows.filter(r => (r.elemento || '') === onePssActiveView);
