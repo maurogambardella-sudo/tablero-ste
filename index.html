@@ -1845,6 +1845,9 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 document.querySelectorAll('.nav-link').forEach(link=>{
   link.addEventListener('click',()=>{
     const page=link.dataset.page;
+    if (page === "onepss") {
+  onePssActiveView = link.dataset.onepssView || "all";
+}
     document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
     document.querySelectorAll('.nav-sub a').forEach(a=>a.classList.remove('active'));
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
