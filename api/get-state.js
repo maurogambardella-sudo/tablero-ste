@@ -194,7 +194,7 @@ function normalizeElemento(value) {
     s.includes('lwaimprovements')
   ) return 'lwaimprovements';
 
-  return 'general';
+  throw new Error(`Elemento no reconocido: ${raw}`);
 }
 
 // team: los nombres coinciden (id, name, role, email) → no necesita mapeo
