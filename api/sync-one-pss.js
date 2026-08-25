@@ -68,7 +68,7 @@ const mapped = (rows || []).map(r => ({
 
 await upsert('one_pss', mapped);
 await deleteRemovedByElemento('one_pss', normalizedElemento, mapped.map(r => r.id));
-
+return res.status(200).json({ ok: true, count: mapped.length, elemento: normalizedElemento });
 
 
 
