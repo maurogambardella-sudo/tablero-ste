@@ -2066,13 +2066,16 @@ console.table({
 }
 
   if (elementoSelect) {
-    if (onePssActiveView === 'all') {
-      elementoSelect.disabled = false;
-    } else {
-      elementoSelect.value = onePssActiveView;
-      elementoSelect.disabled = true;
-    }
+  fillOnePssFilters(scopedRows);
+
+  if (onePssActiveView === "all") {
+    elementoSelect.value = "";
+    elementoSelect.disabled = false;
+  } else {
+    elementoSelect.value = onePssActiveView;
+    elementoSelect.disabled = true;
   }
+}
 
   fillOnePssFilters(scopedRows);
 
