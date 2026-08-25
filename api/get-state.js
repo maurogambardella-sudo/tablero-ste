@@ -157,6 +157,46 @@ function mapOnePss(r) {
   };
 }
 
+function normalizeElemento(value) {
+  const raw = String(value || '').trim();
+
+  const s = raw
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]/g, '');
+
+  if (
+    s === 'multidisciplinaryteams' ||
+    s.includes('equiposmultidisciplinarios') ||
+    s.includes('equipomultidisciplinario')
+  ) return 'multidisciplinaryteams';
+
+  if (
+    s === 'strategyperformance' ||
+    s.includes('strategyperformance') ||
+    s.includes('strategicperformance')
+  ) return 'strategyperformance';
+
+  if (
+    s === 'dmsproblemsolving' ||
+    s.includes('dmsproblemsolving')
+  ) return 'dmsproblemsolving';
+
+  if (
+    s === 'knowledgemanagement' ||
+    s.includes('knowledgemanagement')
+  ) return 'knowledgemanagement';
+
+  if (
+    s === 'lwaimprovements' ||
+    s.includes('lwaimprovements')
+  ) return 'lwaimprovements';
+
+  return 'general';
+}
+
 // team: los nombres coinciden (id, name, role, email) → no necesita mapeo
 
 module.exports = async function handler(req, res) {
