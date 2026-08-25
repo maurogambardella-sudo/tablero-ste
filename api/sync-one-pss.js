@@ -123,25 +123,28 @@ module.exports = async function handler(req, res) {
 
   try {
     const { sourceFile = '', elemento = '', rows = [] } = req.body || {};
+const normalizedElemento = normalizeElemento(elemento || '');
 
-    const mapped = (rows || []).map(r => ({
-      id: r.ID ?? '',
-      nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
-      detalle: r['Detalle'] ?? '',
-      owner: r['Owner'] ?? '',
-      co_owner: r['Co Owner'] ?? '',
-      fecha_inicio: normalizeDate(r['Fecha inicio']),
-      estado: r['Estado'] ?? '',
-      dependencia: r['Dependencia'] ?? '',
-      deadline_fecha: normalizeDate(r['Deadline (fecha)']),
-      stopper: r['Stopper'] ?? '',
-      comentarios: r['Comentarios'] ?? '',
-      source_file: sourceFile || '',
-      elemento: normalizeElemento(elemento || '')
-    })).filter(r => r.id && r.nombre_iniciativa);
+const mapped = (rows || []).map(r => ({
+  id: r.ID ?? '',
+  nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
+  detalle: r['Detalle'] ?? '',
+  owner: r['Owner'] ?? '',
+  co_owner: r['Co Owner'] ?? '',
+  fecha_inicio: normalizeDate(r['Fecha inicio']),
+  estado: r['Estado'] ?? '',
+  dependencia: r['Dependencia'] ?? '',
+  deadline_fecha: normalizeDate(r['Deadline (fecha)']),
+  stopper: r['Stopper'] ?? '',
+  comentarios: r['Comentarios'] ?? '',
+  source_file: sourceFile || '',
+  elemento: normalizedElemento
+})).filter(r => r.id && r.nombre_iniciativa);
 
-    await upsert('one_pss', mapped);
-    await deleteRemovedByElemento('one_pss', elemento, mapped.map(r => r.id));
+await upsert('one_pss', mapped);
+await deleteRemovedByElemento('one_pss', normalizedElemento, mapped.map(r => r.id));
+
+return res.status(200).json({ ok: true, count: mapped.length, elemento: normalizedElemento });
 
     function excelSerialToDate(serial) {
   const n = Number(serial);
