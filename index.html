@@ -2031,133 +2031,139 @@ function fillOnePssFilters(rows) {
 
 function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
-  const onePssCounts = allRows.reduce((acc, row) => {
-  const key = normalizeOnePssElemento(row.elemento);
-  acc[key] = (acc[key] || 0) + 1;
-  return acc;
-}, {});
 
-console.table({
-  "General": onePssCounts.general || 0,
-  "Equipos Multidisciplinarios": onePssCounts.multidisciplinaryteams || 0,
-  "Strategy Performance": onePssCounts.strategyperformance || 0,
-  "DMS Problem Solving": onePssCounts.dmsproblemsolving || 0,
-  "Knowledge Management": onePssCounts.knowledgemanagement || 0,
-  "LWA Improvements": onePssCounts.lwaimprovements || 0,
-  "Total": allRows.length
-});
-  const scopedRows = onePssActiveView === 'all'
+  const scopedRows = onePssActiveView === "all"
     ? allRows
-    : allRows.filter(r => (r.elemento || '') === onePssActiveView);
+    : allRows.filter(row => row.elemento === onePssActiveView);
 
-  const search = (
-    document.getElementById('onePssSearch')?.value || ''
-  ).trim().toLowerCase();
+  const search = (document.getElementById("onePssSearch")?.value || "")
+    .trim()
+    .toLowerCase();
 
-  const elementoSelect = document.getElementById('onePssFilterElemento');
-  const estadoSelect = document.getElementById('onePssFilterEstado');
-  const ownerSelect = document.getElementById('onePssFilterOwner');
-  const subtitle = document.getElementById('onePssSubtitle');
+  const elementoSelect = document.getElementById("onePssFilterElemento");
+  const estadoSelect = document.getElementById("onePssFilterEstado");
+  const ownerSelect = document.getElementById("onePssFilterOwner");
+  const subtitle = document.getElementById("onePssSubtitle");
 
- if (subtitle) {
-  subtitle.textContent = onePssActiveView === 'all'
-    ? 'Iniciativas sincronizadas desde los registros semanales de cada elemento'
-    : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
-}
+  if (subtitle) {
+    subtitle.textContent = onePssActiveView === "all"
+      ? "Iniciativas sincronizadas desde los registros semanales de cada elemento"
+      : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
+  }
+
+  fillOnePssFilters(scopedRows);
 
   if (elementoSelect) {
-  fillOnePssFilters(scopedRows);
-
-  if (onePssActiveView === "all") {
-    elementoSelect.value = "";
-    elementoSelect.disabled = false;
-  } else {
-    elementoSelect.value = onePssActiveView;
-    elementoSelect.disabled = true;
-  }
-}
-
-  fillOnePssFilters(scopedRows);
-
-  if (elementoSelect && onePssActiveView !== 'all') {
-    elementoSelect.value = onePssActiveView;
-    elementoSelect.disabled = true;
+    if (onePssActiveView === "all") {
+      elementoSelect.disabled = false;
+      elementoSelect.value = "";
+    } else {
+      elementoSelect.disabled = true;
+      elementoSelect.value = "";
+    }
   }
 
-  const elemento = elementoSelect?.value || '';
-  const estado = estadoSelect?.value || '';
-  const owner = ownerSelect?.value || '';
+  const elemento = onePssActiveView === "all"
+    ? (elementoSelect?.value || "")
+    : "";
+
+  const estado = estadoSelect?.value || "";
+  const owner = ownerSelect?.value || "";
 
   const rows = scopedRows
-    .filter(r => !elemento || r.elemento === elemento)
-    .filter(r => !estado || r.estado === estado)
-    .filter(r => !owner || r.owner === owner)
-    .filter(r => {
+    .filter(row => !elemento || row.elemento === elemento)
+    .filter(row => !estado || row.estado === estado)
+    .filter(row => !owner || row.owner === owner)
+    .filter(row => {
       if (!search) return true;
 
       const searchable = [
-        r.id,
-        r.elemento,
-        r.nombreIniciativa,
-        r.owner,
-        r.coOwner,
-        r.detalle,
-        r.dependencia,
-        r.comentarios,
-        r.stopper
-      ].join(' ').toLowerCase();
+        row.id,
+        row.elemento,
+        row.nombreIniciativa,
+        row.owner,
+        row.coOwner,
+        row.detalle,
+        row.dependencia,
+        row.comentarios,
+        row.stopper
+      ].join(" ").toLowerCase();
 
       return searchable.includes(search);
     })
     .sort((a, b) => {
-      const ea = String(a.elemento || '');
-      const eb = String(b.elemento || '');
-      if (ea !== eb) return ea.localeCompare(eb, 'es');
-      return String(a.id || '').localeCompare(String(b.id || ''), 'es');
+      const elementA = String(a.elemento || "");
+      const elementB = String(b.elemento || "");
+
+      if (elementA !== elementB) {
+        return elementA.localeCompare(elementB, "es");
+      }
+
+      return String(a.id || "").localeCompare(String(b.id || ""), "es");
     });
 
-  const tbody = document.getElementById('onePssTbody');
+  const tbody = document.getElementById("onePssTbody");
   if (!tbody) return;
 
-  const byEstado = status =>
-    rows.filter(r => String(r.estado || '').toLowerCase().includes(status)).length;
+  const countStatus = status =>
+    rows.filter(row =>
+      String(row.estado || "").toLowerCase().includes(status)
+    ).length;
 
-  const kpiTotal = document.getElementById('onePssKpiTotal');
-  const kpiIniciado = document.getElementById('onePssKpiIniciado');
-  const kpiCompleto = document.getElementById('onePssKpiCompleto');
-  const kpiElementos = document.getElementById('onePssKpiElementos');
+  const kpiTotal = document.getElementById("onePssKpiTotal");
+  const kpiIniciado = document.getElementById("onePssKpiIniciado");
+  const kpiCompleto = document.getElementById("onePssKpiCompleto");
+  const kpiElementos = document.getElementById("onePssKpiElementos");
 
   if (kpiTotal) kpiTotal.textContent = rows.length;
-  if (kpiIniciado) kpiIniciado.textContent = byEstado('iniciado');
-  if (kpiCompleto) kpiCompleto.textContent = byEstado('completo');
+  if (kpiIniciado) kpiIniciado.textContent = countStatus("iniciado");
+  if (kpiCompleto) kpiCompleto.textContent = countStatus("completo");
   if (kpiElementos) {
-    kpiElementos.textContent = new Set(rows.map(r => r.elemento).filter(Boolean)).size;
+    kpiElementos.textContent = new Set(
+      rows.map(row => row.elemento).filter(Boolean)
+    ).size;
   }
 
   if (!rows.length) {
-    tbody.innerHTML =
-      '<tr><td colspan="10" class="empty">No hay iniciativas One PSS para los filtros seleccionados.</td></tr>';
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" class="empty">
+          No hay iniciativas One PSS para los filtros seleccionados.
+        </td>
+      </tr>
+    `;
     return;
   }
 
-  tbody.innerHTML = rows.map(r => `
+  tbody.innerHTML = rows.map(row => `
     <tr>
-      <td><strong>${escHtml(r.id)}</strong></td>
-      <td>${r.elemento ? `<span class="pill">${escHtml(onePssElementoLabel(r.elemento))}</span>` : ''}</td>
-      <td>${escHtml(r.nombreIniciativa || '—')}</td>
-      <td>${escHtml(r.owner || '—')}</td>
-      <td>${escHtml(r.coOwner || '—')}</td>
-      <td><span class="pill ${onePssPillClass(r.estado)}">${escHtml(r.estado || 'Sin estado')}</span></td>
-      <td>${escHtml(r.dependencia || '—')}</td>
-      <td>${escHtml(r.deadlineFecha || '—')}</td>
-      <td>${escHtml(r.stopper || '—')}</td>
+      <td><strong>${escHtml(row.id)}</strong></td>
       <td>
-        <button class="btn btn-secondary btn-sm" onclick="openOnePssDetail('${escHtml(r.id)}')">
+        ${row.elemento
+          ? `<span class="pill">${escHtml(onePssElementoLabel(row.elemento))}</span>`
+          : ""}
+      </td>
+      <td>${escHtml(row.nombreIniciativa)}</td>
+      <td>${escHtml(row.owner)}</td>
+      <td>${escHtml(row.coOwner)}</td>
+      <td>
+        <span class="pill ${onePssPillClass(row.estado)}">
+          ${escHtml(row.estado || "Sin estado")}
+        </span>
+      </td>
+      <td>${escHtml(row.dependencia)}</td>
+      <td>${escHtml(row.deadlineFecha)}</td>
+      <td>${escHtml(row.stopper)}</td>
+      <td>
+        <button
+          class="btn btn-secondary btn-sm"
+          onclick="openOnePssDetail('${escHtml(row.id)}')"
+        >
           Ver
         </button>
       </td>
     </tr>
-  `).join('');
+  `).join("");
 }
 
 function openOnePssDetail(id) {
