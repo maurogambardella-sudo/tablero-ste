@@ -1926,7 +1926,7 @@ function normalizeOnePssElemento(value) {
   if (text.includes('equipos multidisciplinarios') || text.includes('equipo multidisciplinario') || text.includes('multidisciplinary teams') || text.includes('multidisciplinary team') || text.includes('multidisciplinaryteams')) return 'multidisciplinaryteams';
   if (text.includes('strategy performance') || text.includes('estrategia y desempeno') || text.includes('strategyperformance')) return 'strategyperformance';
   if (text.includes('dms') || text.includes('problem solving') || text.includes('dmsproblemsolving')) return 'dmsproblemsolving';
-  if (text.includes('Knowledge Management') || text.includes('gestion del conocimiento') || text.includes('knowledgemanagement')) return 'Knowledge Management';
+  if (text.includes('Knowledge Management') || text.includes('gestion del conocimiento') || text.includes('knowledgemanagement')) return 'knowledgemanagement';
   if (text.includes('lwa') || text.includes('lean waste') || text.includes('improvements') || text.includes('lwaimprovements')) return 'lwaimprovements';
 
   console.warn('Elemento One PSS no reconocido:', value);
@@ -1939,7 +1939,7 @@ function onePssElementoLabel(v) {
     multidisciplinary_teams: 'Equipos Multidisciplinarios',
     strategy_performance: 'Strategy & Performance',
     dms_problem_solving: 'DMS Problem Solving',
-    knowledge_management: 'Knowledge Management',
+    knowledgemanagement: 'Knowledge Management',
     lwa_improvements: 'LWA & Improvements'
   };
   return map[v] || v || '-';
@@ -1976,10 +1976,10 @@ function fillOnePssFilters(rows) {
   )].sort((a, b) => a.localeCompare(b, 'es'));
 
   elementoSelect.innerHTML =
-    '<option value="">Todos los elementos</option>' +
-    elementos.map(v =>
-      `<option value="${escHtml(v)}">${escHtml(v)}</option>`
-    ).join('');
+  '<option value="">Todos los elementos</option>' +
+  elementos.map(v =>
+    `<option value="${escHtml(v)}">${escHtml(onePssElementoLabel(v))}</option>`
+  ).join('');
 
   ownerSelect.innerHTML =
     '<option value="">Todos los responsables</option>' +
