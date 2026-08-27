@@ -342,7 +342,7 @@ tbody tr:hover { background: var(--bayer-light); }
 <a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinaryteams">Equipos Multidisciplinarios</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="strategy_performance">Strategy & Performance</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="dms_problem_solving">DMS Problem Solving</a>
-<a class="nav-link" data-page="onepss" data-onepss-view="knowledgemanagement">Knowledge Management</a>
+<a class="nav-link" data-page="onepss" data-onepss-view="Knowledge Management">Knowledge Management</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="lwa_improvements">LWA & Improvements</a>
   </div>
 </div>
@@ -1926,7 +1926,7 @@ function normalizeOnePssElemento(value) {
   if (text.includes('equipos multidisciplinarios') || text.includes('equipo multidisciplinario') || text.includes('multidisciplinary teams') || text.includes('multidisciplinary team') || text.includes('multidisciplinaryteams')) return 'multidisciplinaryteams';
   if (text.includes('strategy performance') || text.includes('estrategia y desempeno') || text.includes('strategyperformance')) return 'strategyperformance';
   if (text.includes('dms') || text.includes('problem solving') || text.includes('dmsproblemsolving')) return 'dmsproblemsolving';
-  if (text.includes('knowledge management') || text.includes('gestion del conocimiento') || text.includes('knowledgemanagement')) return 'knowledgemanagement';
+  if (text.includes('Knowledge Management') || text.includes('gestion del conocimiento') || text.includes('knowledgemanagement')) return 'Knowledge Management';
   if (text.includes('lwa') || text.includes('lean waste') || text.includes('improvements') || text.includes('lwaimprovements')) return 'lwaimprovements';
 
   console.warn('Elemento One PSS no reconocido:', value);
