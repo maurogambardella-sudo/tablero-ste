@@ -188,7 +188,7 @@ function normalizeElemento(value) {
     s === 'knowledgemanagement' ||
     s.includes('knowledgemanagement') ||
     s.includes('Knowledge Management')
-  ) return 'Knowledge Management';
+  ) return 'knowledgemanagement';
 
   if (
     s === 'lwaimprovements' ||
