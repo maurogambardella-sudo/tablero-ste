@@ -37,8 +37,7 @@ function normalizeElemento(value) {
 
   if (
     s === 'knowledgemanagement' ||
-    s.includes('knowledgemanagement') ||
-    s.includes('Knowledge Management')
+    s.includes('knowledge management') 
   ) return 'knowledgemanagement';
 
   if (
