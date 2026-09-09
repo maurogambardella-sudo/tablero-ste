@@ -2,10 +2,13 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 function sbHeaders(extra) {
-  return Object.assign({
-    apikey: SUPABASE_KEY,
-    Authorization: `Bearer ${SUPABASE_KEY}`
-  }, extra || {});
+  return Object.assign(
+    {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    },
+    extra || {}
+  );
 }
 
 function normalizeElemento(value) {
@@ -37,7 +40,7 @@ function normalizeElemento(value) {
 
   if (
     s === 'knowledgemanagement' ||
-    s.includes('knowledge management') 
+    s.includes('knowledgemanagement')
   ) return 'knowledgemanagement';
 
   if (
@@ -48,29 +51,38 @@ function normalizeElemento(value) {
   throw new Error(`Elemento no reconocido: ${raw}`);
 }
 
-const normalizedElemento = normalizeElemento(elemento);
+function excelSerialToDate(serial) {
+  const n = Number(serial);
+  if (!Number.isFinite(n)) return '';
+  const utcDays = Math.floor(n - 25569);
+  const utcValue = utcDays * 86400;
+  const dateInfo = new Date(utcValue * 1000);
 
-const mapped = (rows || []).map(r => ({
-  id: r.ID ?? '',
-  nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
-  detalle: r['Detalle'] ?? '',
-  owner: r['Owner'] ?? '',
-  co_owner: r['Co Owner'] ?? '',
-  fecha_inicio: normalizeDate(r['Fecha inicio']),
-  estado: r['Estado'] ?? '',
-  dependencia: r['Dependencia'] ?? '',
-  deadline_fecha: normalizeDate(r['Deadline (fecha)']),
-  stopper: r['Stopper'] ?? '',
-  comentarios: r['Comentarios'] ?? '',
-  source_file: sourceFile || '',
-  elemento: normalizeElemento(elemento || '')
-})).filter(r => r.id && r.nombre_iniciativa);
+  const yyyy = dateInfo.getUTCFullYear();
+  const mm = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(dateInfo.getUTCDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-await upsert('one_pss', mapped);
-await deleteRemovedByElemento('one_pss', normalizedElemento, mapped.map(r => r.id));
-return res.status(200).json({ ok: true, count: mapped.length, elemento: normalizedElemento });
+function normalizeDate(value) {
+  if (value === null || value === undefined) return '';
+  const raw = String(value).trim();
+  if (!raw) return '';
 
+  if (/^\d+(\.\d+)?$/.test(raw)) {
+    return excelSerialToDate(raw);
+  }
 
+  const parsed = new Date(raw);
+  if (!isNaN(parsed.getTime())) {
+    const yyyy = parsed.getUTCFullYear();
+    const mm = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(parsed.getUTCDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  return raw;
+}
 
 async function upsert(table, rows) {
   if (!rows || !rows.length) return;
@@ -123,71 +135,38 @@ module.exports = async function handler(req, res) {
 
   try {
     const { sourceFile = '', elemento = '', rows = [] } = req.body || {};
-const normalizedElemento = normalizeElemento(elemento || '');
+    const normalizedElemento = normalizeElemento(elemento || '');
 
-const mapped = (rows || []).map(r => ({
-  id: r.ID ?? '',
-  nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
-  detalle: r['Detalle'] ?? '',
-  owner: r['Owner'] ?? '',
-  co_owner: r['Co Owner'] ?? '',
-  fecha_inicio: normalizeDate(r['Fecha inicio']),
-  estado: r['Estado'] ?? '',
-  dependencia: r['Dependencia'] ?? '',
-  deadline_fecha: normalizeDate(r['Deadline (fecha)']),
-  stopper: r['Stopper'] ?? '',
-  comentarios: r['Comentarios'] ?? '',
-  source_file: sourceFile || '',
-  elemento: normalizedElemento
-})).filter(r => r.id && r.nombre_iniciativa);
+    const mapped = (rows || [])
+      .map(r => ({
+        id: r.ID ?? '',
+        nombre_iniciativa: r['Nombre Iniciativa'] ?? '',
+        detalle: r['Detalle'] ?? '',
+        owner: r['Owner'] ?? '',
+        co_owner: r['Co Owner'] ?? '',
+        fecha_inicio: normalizeDate(r['Fecha inicio']),
+        estado: r['Estado'] ?? '',
+        dependencia: r['Dependencia'] ?? '',
+        deadline_fecha: normalizeDate(r['Deadline (fecha)']),
+        stopper: r['Stopper'] ?? '',
+        comentarios: r['Comentarios'] ?? '',
+        source_file: sourceFile || '',
+        elemento: normalizedElemento
+      }))
+      .filter(r => r.id && r.nombre_iniciativa);
 
-await upsert('one_pss', mapped);
-await deleteRemovedByElemento('one_pss', normalizedElemento, mapped.map(r => r.id));
+    await upsert('one_pss', mapped);
+    await deleteRemovedByElemento('one_pss', normalizedElemento, mapped.map(r => r.id));
 
-return res.status(200).json({ ok: true, count: mapped.length, elemento: normalizedElemento });
-    } catch (error) {
+    return res.status(200).json({
+      ok: true,
+      count: mapped.length,
+      elemento: normalizedElemento
+    });
+  } catch (error) {
     console.error('sync-one-pss error:', error);
     return res.status(500).json({
       error: error.message || 'Internal server error'
     });
-  }
-};
-
-    function excelSerialToDate(serial) {
-  const n = Number(serial);
-  if (!Number.isFinite(n)) return '';
-  const utcDays = Math.floor(n - 25569);
-  const utcValue = utcDays * 86400;
-  const dateInfo = new Date(utcValue * 1000);
-
-  const yyyy = dateInfo.getUTCFullYear();
-  const mm = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
-  const dd = String(dateInfo.getUTCDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function normalizeDate(value) {
-  if (value === null || value === undefined) return '';
-  const raw = String(value).trim();
-  if (!raw) return '';
-
-  if (/^\d+(\.\d+)?$/.test(raw)) {
-    return excelSerialToDate(raw);
-  }
-
-  const parsed = new Date(raw);
-  if (!isNaN(parsed.getTime())) {
-    const yyyy = parsed.getUTCFullYear();
-    const mm = String(parsed.getUTCMonth() + 1).padStart(2, '0');
-    const dd = String(parsed.getUTCDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  return raw;
-}
-
-    return res.status(200).json({ ok: true, count: mapped.length, elemento });
-  } catch (e) {
-    return res.status(500).json({ error: e.message });
   }
 };
