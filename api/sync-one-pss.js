@@ -145,6 +145,13 @@ await upsert('one_pss', mapped);
 await deleteRemovedByElemento('one_pss', normalizedElemento, mapped.map(r => r.id));
 
 return res.status(200).json({ ok: true, count: mapped.length, elemento: normalizedElemento });
+    } catch (error) {
+    console.error('sync-one-pss error:', error);
+    return res.status(500).json({
+      error: error.message || 'Internal server error'
+    });
+  }
+};
 
     function excelSerialToDate(serial) {
   const n = Number(serial);
