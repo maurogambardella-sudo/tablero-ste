@@ -695,7 +695,7 @@ tbody tr:hover { background: var(--bayer-light); }
       oninput="renderOnePss()"
     >
 
-    <select id="onePssFilterElemento" onchange="renderOnePss()">
+    <select id="onePssFilterElemento" onchange="onOnePssElementChange()">
       <option value="">Todos los elementos</option>
     </select>
 
@@ -2005,7 +2005,7 @@ function fillOnePssFilters(rows) {
 
   if (!elementoSelect || !ownerSelect) return;
 
-  const currentElemento = elementoSelect.value;
+  const currentElemento = elementoSelect.value || '';
   const currentOwner = ownerSelect.value;
 
   const elementos = [...new Set(
@@ -2032,7 +2032,10 @@ function fillOnePssFilters(rows) {
       `<option value="${escHtml(v)}">${escHtml(v)}</option>`
     ).join('');
 
-  elementoSelect.value = elementos.includes(currentElemento) ? currentElemento : '';
+  elementoSelect.value =
+  currentElemento === '' || elementos.includes(currentElemento)
+    ? currentElemento
+    : '';
   ownerSelect.value = owners.includes(currentOwner) ? currentOwner : '';
 }
 
@@ -2061,14 +2064,17 @@ function renderOnePss() {
   fillOnePssFilters(scopedRows);
 
   if (elementoSelect) {
-    if (onePssActiveView === "all") {
-      elementoSelect.disabled = false;
-      elementoSelect.value = "";
-    } else {
-      elementoSelect.disabled = true;
-      elementoSelect.value = "";
-    }
+  const isGeneralView = onePssActiveView === 'all';
+
+  elementoSelect.disabled = !isGeneralView;
+
+  if (isGeneralView) {
+    // No resetear el valor al renderizar:
+    // así el usuario puede elegir y conservar la selección.
+  } else {
+    elementoSelect.value = onePssActiveView;
   }
+}
 
   const elemento = onePssActiveView === "all"
     ? (elementoSelect?.value || "")
@@ -2172,6 +2178,13 @@ function renderOnePss() {
     </tr>
   `).join("");
 }
+
+
+ function onOnePssElementChange() {
+  if (onePssActiveView !== 'all') return;
+  renderOnePss();
+} 
+  
 
 function openOnePssDetail(id) {
   const r = (state.onePss || []).find(x => x.id === id);
