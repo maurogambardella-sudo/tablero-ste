@@ -695,9 +695,14 @@ tbody tr:hover { background: var(--bayer-light); }
       oninput="renderOnePss()"
     >
 
-    <select id="onePssFilterElemento" onchange="onOnePssElementChange()">
-      <option value="">Todos los elementos</option>
-    </select>
+    <select id="onePssFilterElemento" onchange="renderOnePss()">
+  <option value="">Todos los elementos</option>
+  <option value="multidisciplinaryteams">Equipos Multidisciplinarios</option>
+  <option value="strategyperformance">Strategy &amp; Performance</option>
+  <option value="dmsproblemsolving">DMS Problem Solving</option>
+  <option value="knowledgemanagement">Knowledge Management</option>
+  <option value="lwaimprovements">LWA Improvements</option>
+</select>
 
     <select id="onePssFilterEstado" onchange="renderOnePss()">
       <option value="">Todos los estados</option>
