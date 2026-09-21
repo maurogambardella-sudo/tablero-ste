@@ -2044,6 +2044,31 @@ function fillOnePssFilters(rows) {
   ownerSelect.value = owners.includes(currentOwner) ? currentOwner : '';
 }
 
+  function fillOnePssOwnerFilter(rows) {
+  const ownerSelect = document.getElementById('onePssFilterOwner');
+  if (!ownerSelect) return;
+
+  const currentOwner = ownerSelect.value || '';
+
+  const owners = [...new Set(
+    rows
+      .map(row => String(row.owner || '').trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'es'));
+
+  ownerSelect.innerHTML =
+    '<option value="">Todos los responsables</option>' +
+    owners.map(owner =>
+      `<option value="${escHtml(owner)}">${escHtml(owner)}</option>`
+    ).join('');
+
+  ownerSelect.value = owners.includes(currentOwner)
+    ? currentOwner
+    : '';
+}
+
+  
+
 function renderOnePss() {
   const allRows = Array.isArray(state.onePss) ? state.onePss : [];
 
@@ -2066,7 +2091,7 @@ function renderOnePss() {
       : `Vista de ${onePssElementoLabel(onePssActiveView)} · Iniciativas sincronizadas desde su registro semanal`;
   }
 
-  fillOnePssFilters(scopedRows);
+  fillOnePssOwnerFilter(scopedRows);
 
   if (elementoSelect) {
   const isGeneralView = onePssActiveView === 'all';
@@ -2083,7 +2108,7 @@ function renderOnePss() {
 
   const elemento = onePssActiveView === "all"
     ? (elementoSelect?.value || "")
-    : "";
+    : onePssActiveView;
 
   const estado = estadoSelect?.value || "";
   const owner = ownerSelect?.value || "";
