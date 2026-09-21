@@ -2008,8 +2008,12 @@ function fillOnePssFilters(rows) {
   const currentOwner = ownerSelect.value;
 
   const elementos = [...new Set(
-    rows.map(r => r.elemento).filter(Boolean)
-  )].sort((a, b) => a.localeCompare(b, 'es'));
+  rows
+    .map(r => normalizeOnePssElemento(r.elemento))
+    .filter(key => key && key !== 'all' && key !== 'general')
+)].sort((a, b) => {
+  return onePssElementoLabel(a).localeCompare(onePssElementoLabel(b), 'es');
+});
 
   const owners = [...new Set(
     rows.map(r => r.owner).filter(Boolean)
