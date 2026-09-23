@@ -306,24 +306,65 @@ tbody tr:hover { background: var(--bayer-light); }
 
 
 /* =========================================================
-   ONE PSS: tarjetas secundarias por estado.
-   Estilos exclusivos; no afectan otros módulos.
+   ONE PSS — KPIs exclusivos del módulo
+   Dos filas separadas:
+   - Principales: cuatro tarjetas
+   - Secundarias: estados restantes
    ========================================================= */
 
+/* Fila superior: 4 tarjetas principales */
+.onepss-main-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  margin: 0 0 12px;
+  align-items: stretch;
+}
+
+.onepss-main-kpi-card {
+  min-height: 104px;
+  height: auto;
+  box-sizing: border-box;
+}
+
+/* Colores laterales de los KPIs principales */
+.onepss-main-total {
+  border-left-color: #0091DF;
+}
+
+.onepss-main-en-curso {
+  border-left-color: #66B512;
+}
+
+.onepss-main-completo {
+  border-left-color: #163A4D;
+}
+
+.onepss-main-elementos {
+  border-left-color: #F5A400;
+}
+
+/* Fila inferior: tarjetas de estado compactas */
 .onepss-status-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(115px, 1fr));
-  gap: 12px;
-  margin: 12px 0 18px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 18px;
+  align-items: stretch;
 }
 
 .onepss-status-kpi-card {
-  min-height: 94px;
-  padding: 14px 15px;
+  min-height: 88px;
+  height: auto;
+  padding: 12px 13px;
+  box-sizing: border-box;
+  overflow: hidden;
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-left: 4px solid #9CA3AF;
-  border-radius: 10px;
+  border-left: 4px solid #94A3B8;
+  border-radius: 9px;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
 }
 
@@ -331,64 +372,72 @@ tbody tr:hover { background: var(--bayer-light); }
   color: #64748B;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.05em;
   line-height: 1.2;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .onepss-status-kpi-value {
   margin-top: 7px;
   color: #163A4D;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1;
 }
 
 .onepss-status-kpi-help {
-  margin-top: 8px;
+  margin-top: 7px;
   color: #64748B;
   font-size: 10px;
   line-height: 1.25;
 }
 
-/* Colores propios de cada estado One PSS */
-.onepss-status-kpi-card.status-no-iniciado {
+/* Colores de las tarjetas secundarias */
+.onepss-kpi-no-iniciado {
   border-left-color: #EF4444;
 }
 
-.onepss-status-kpi-card.status-iniciado {
+.onepss-kpi-iniciado {
   border-left-color: #F59E0B;
 }
 
-.onepss-status-kpi-card.status-planificado {
+.onepss-kpi-planificado {
   border-left-color: #06B6D4;
 }
 
-.onepss-status-kpi-card.status-por-definir {
+.onepss-kpi-por-definir {
   border-left-color: #8B5CF6;
 }
 
-.onepss-status-kpi-card.status-on-hold {
+.onepss-kpi-on-hold {
   border-left-color: #F97316;
 }
 
-.onepss-status-kpi-card.status-sin-estado {
+.onepss-kpi-sin-estado {
   border-left-color: #94A3B8;
 }
 
-/* Ajuste responsivo: evita tarjetas demasiado angostas */
-@media (max-width: 1400px) {
+/* Pantallas medianas: mantiene proporción y dos filas ordenadas */
+@media (max-width: 1280px) {
+  .onepss-main-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .onepss-status-kpi-grid {
-    grid-template-columns: repeat(3, minmax(145px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 760px) {
+/* Móviles */
+@media (max-width: 700px) {
+  .onepss-main-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
   .onepss-status-kpi-grid {
-    grid-template-columns: repeat(2, minmax(130px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
 </style>
 </head>
 <body>
@@ -833,45 +882,75 @@ tbody tr:hover { background: var(--bayer-light); }
       <div class="label">Elementos</div>
       <div class="value" id="onePssKpiElementos">0</div>
       <div class="sub">Con iniciativas cargadas</div>
-    </div>
-    
+    </div>    
+</div>
+
+<!-- KPIs principales de One PSS -->
+<div class="onepss-main-kpi-grid">
+  <div class="kpi-card onepss-main-kpi-card onepss-main-total">
+    <div class="kpi-label">Iniciativas</div>
+    <div class="kpi-value" id="onePssKpiTotal">0</div>
+    <div class="kpi-help">Registros visibles</div>
+  </div>
+
+  <div class="kpi-card onepss-main-kpi-card onepss-main-en-curso">
+    <div class="kpi-label">En curso</div>
+    <div class="kpi-value" id="onePssKpiIniciado">0</div>
+    <div class="kpi-help">Estado en curso</div>
+  </div>
+
+  <div class="kpi-card onepss-main-kpi-card onepss-main-completo">
+    <div class="kpi-label">Completas</div>
+    <div class="kpi-value" id="onePssKpiCompleto">0</div>
+    <div class="kpi-help">Estado completo</div>
+  </div>
+
+  <div class="kpi-card onepss-main-kpi-card onepss-main-elementos">
+    <div class="kpi-label">Elementos</div>
+    <div class="kpi-value" id="onePssKpiElementos">0</div>
+    <div class="kpi-help">Con iniciativas cargadas</div>
+  </div>
+</div>
+
+<!-- KPIs secundarios por estado -->
 <div class="onepss-status-kpi-grid">
-  <div class="onepss-status-kpi-card status-no-iniciado">
+  <div class="onepss-status-kpi-card onepss-kpi-no-iniciado">
     <div class="onepss-status-kpi-label">No iniciadas</div>
     <div class="onepss-status-kpi-value" id="onePssKpiNoIniciado">0</div>
     <div class="onepss-status-kpi-help">Pendientes de comenzar</div>
   </div>
 
-  <div class="onepss-status-kpi-card status-iniciado">
+  <div class="onepss-status-kpi-card onepss-kpi-iniciado">
     <div class="onepss-status-kpi-label">Iniciadas</div>
     <div class="onepss-status-kpi-value" id="onePssKpiSoloIniciado">0</div>
     <div class="onepss-status-kpi-help">Con inicio registrado</div>
   </div>
 
-  <div class="onepss-status-kpi-card status-planificado">
+  <div class="onepss-status-kpi-card onepss-kpi-planificado">
     <div class="onepss-status-kpi-label">Planificadas</div>
     <div class="onepss-status-kpi-value" id="onePssKpiPlanificado">0</div>
     <div class="onepss-status-kpi-help">Previstas a futuro</div>
   </div>
 
-  <div class="onepss-status-kpi-card status-por-definir">
+  <div class="onepss-status-kpi-card onepss-kpi-por-definir">
     <div class="onepss-status-kpi-label">Por definir</div>
     <div class="onepss-status-kpi-value" id="onePssKpiPorDefinir">0</div>
     <div class="onepss-status-kpi-help">Requieren definición</div>
   </div>
 
-  <div class="onepss-status-kpi-card status-on-hold">
+  <div class="onepss-status-kpi-card onepss-kpi-on-hold">
     <div class="onepss-status-kpi-label">On hold</div>
     <div class="onepss-status-kpi-value" id="onePssKpiOnHold">0</div>
     <div class="onepss-status-kpi-help">Pausadas o bloqueadas</div>
   </div>
 
-  <div class="onepss-status-kpi-card status-sin-estado">
+  <div class="onepss-status-kpi-card onepss-kpi-sin-estado">
     <div class="onepss-status-kpi-label">Sin estado</div>
     <div class="onepss-status-kpi-value" id="onePssKpiSinEstado">0</div>
     <div class="onepss-status-kpi-help">Pendientes de clasificar</div>
   </div>
 </div>
+  
 
   <div class="filters">
     <input
