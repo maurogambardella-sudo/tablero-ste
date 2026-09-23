@@ -240,6 +240,63 @@ tbody tr:hover { background: var(--bayer-light); }
 .required-star{color:#DC2626;font-weight:700;margin-left:2px;}
 .field-error{border-color:#DC2626 !important; box-shadow:0 0 0 1px rgba(220,38,38,.15);}
 
+/* =========================================================
+   ONE PSS: etiquetas de estado exclusivas.
+   No modifica Outputs, Tasks ni otros módulos.
+   ========================================================= */
+
+.onepss-pill {
+  min-width: 78px;
+}
+
+/* Completo / Completado */
+.onepss-pill.onepss-status-completo {
+  background-color: #DCFCE7;
+  color: #166534;
+}
+
+/* En curso / En proceso / Ongoing */
+.onepss-pill.onepss-status-en-curso {
+  background-color: #DBEAFE;
+  color: #1D4ED8;
+}
+
+/* Iniciado */
+.onepss-pill.onepss-status-iniciado {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+/* No iniciado / Pendiente / Not started */
+.onepss-pill.onepss-status-no-iniciado {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+}
+
+/* Planificado */
+.onepss-pill.onepss-status-planificado {
+  background-color: #CFFAFE;
+  color: #0E7490;
+}
+
+/* Por definir */
+.onepss-pill.onepss-status-por-definir {
+  background-color: #EDE9FE;
+  color: #6D28D9;
+}
+
+/* On hold / Pausado / Bloqueado */
+.onepss-pill.onepss-status-bloqueado {
+  background-color: #FFEDD5;
+  color: #C2410C;
+}
+
+/* Sin estado o valor no reconocido */
+.onepss-pill.onepss-status-sin-estado {
+  background-color: #F3F4F6;
+  color: #4B5563;
+}
+
 </style>
 </head>
 <body>
@@ -2001,37 +2058,42 @@ function onePssPillClass(status) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ");
 
-  // El orden importa:
-  // "No iniciado" debe evaluarse antes de "Iniciado".
+  // El orden es importante:
+  // "No iniciado" debe evaluarse antes que "Iniciado".
   if (s.includes("no iniciado") || s.includes("not started") || s.includes("pendiente")) {
-    return "pill-no-iniciado";
+    return "onepss-status-no-iniciado";
   }
 
   if (s.includes("completo") || s.includes("completado")) {
-    return "pill-completado";
+    return "onepss-status-completo";
   }
 
   if (s.includes("en curso") || s.includes("en proceso") || s.includes("ongoing")) {
-    return "pill-en-curso";
+    return "onepss-status-en-curso";
   }
 
   if (s.includes("iniciado")) {
-    return "pill-iniciado";
+    return "onepss-status-iniciado";
   }
 
   if (s.includes("planificado")) {
-    return "pill-planificado";
+    return "onepss-status-planificado";
   }
 
   if (s.includes("por definir")) {
-    return "pill-por-definir";
+    return "onepss-status-por-definir";
   }
 
-  if (s.includes("on hold") || s.includes("hold") || s.includes("pausado") || s.includes("bloqueado")) {
-    return "pill-bloqueada";
+  if (
+    s.includes("on hold") ||
+    s.includes("hold") ||
+    s.includes("pausado") ||
+    s.includes("bloqueado")
+  ) {
+    return "onepss-status-bloqueado";
   }
 
-  return "pill-sin-estado";
+  return "onepss-status-sin-estado";
 }
 
 function fillOnePssFilters(rows) {
@@ -2219,11 +2281,11 @@ function renderOnePss() {
       <td>${escHtml(row.nombreIniciativa)}</td>
       <td>${escHtml(row.owner)}</td>
       <td>${escHtml(row.coOwner)}</td>
-      <td>
-        <span class="pill ${onePssPillClass(row.estado)}">
-          ${escHtml(row.estado || "Sin estado")}
-        </span>
-      </td>
+     <td>
+  <span class="pill onepss-pill ${onePssPillClass(row.estado)}">
+    ${escHtml(row.estado || "Sin estado")}
+  </span>
+</td>
       <td>${escHtml(row.dependencia)}</td>
       <td>${escHtml(row.deadlineFecha)}</td>
       <td>${escHtml(row.stopper)}</td>
