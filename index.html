@@ -2070,6 +2070,10 @@ function onePssPillClass(status) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ");
 
+  if (!s) {
+  return "onepss-status-sin-estado";
+}
+
   // El orden es importante:
   // "No iniciado" debe evaluarse antes que "Iniciado".
   if (s.includes("no iniciado") || s.includes("not started") || s.includes("pendiente")) {
@@ -2116,6 +2120,10 @@ function normalizeOnePssStatus(value) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ");
+
+  if (!s) {
+  return "Sin estado";
+}
 
   if (s.includes("no iniciado") || s.includes("not started") || s.includes("pendiente")) {
     return "No iniciado";
