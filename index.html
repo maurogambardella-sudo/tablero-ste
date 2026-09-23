@@ -769,12 +769,17 @@ tbody tr:hover { background: var(--bayer-light); }
 </select>
 
     <select id="onePssFilterEstado" onchange="renderOnePss()">
-      <option value="">Todos los estados</option>
-      <option value="No iniciado">No iniciado</option>
-      <option value="Iniciado">Iniciado</option>
-      <option value="Completo">Completo</option>
-      <option value="On hold">On hold</option>
-    </select>
+  <option value="">Todos los estados</option>
+  <option value="No iniciado">No iniciado</option>
+  <option value="Iniciado">Iniciado</option>
+  <option value="En curso">En curso</option>
+  <option value="Planificado">Planificado</option>
+  <option value="Por definir">Por definir</option>
+  <option value="Completo">Completo</option>
+  <option value="On hold">On hold</option>
+  <option value="Atrasado">Atrasado</option>
+  <option value="Sin estado">Sin estado</option>
+</select>
 
     <select id="onePssFilterOwner" onchange="renderOnePss()">
       <option value="">Todos los responsables</option>
