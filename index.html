@@ -2108,6 +2108,55 @@ function onePssPillClass(status) {
   return "onepss-status-sin-estado";
 }
 
+
+function normalizeOnePssStatus(value) {
+  const s = String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+
+  if (s.includes("no iniciado") || s.includes("not started") || s.includes("pendiente")) {
+    return "No iniciado";
+  }
+
+  if (s.includes("completo") || s.includes("completado")) {
+    return "Completo";
+  }
+
+  if (s.includes("en curso") || s.includes("en proceso") || s.includes("ongoing")) {
+    return "En curso";
+  }
+
+  if (s.includes("iniciado")) {
+    return "Iniciado";
+  }
+
+  if (s.includes("planificado")) {
+    return "Planificado";
+  }
+
+  if (s.includes("por definir")) {
+    return "Por definir";
+  }
+
+  if (
+    s.includes("on hold") ||
+    s.includes("hold") ||
+    s.includes("pausado") ||
+    s.includes("bloqueado")
+  ) {
+    return "On hold";
+  }
+
+  return String(value || "").trim();
+}
+
+  
+
+  
+
 function fillOnePssFilters(rows) {
   const elementoSelect = document.getElementById('onePssFilterElemento');
   const ownerSelect = document.getElementById('onePssFilterOwner');
@@ -2219,7 +2268,7 @@ function renderOnePss() {
 
   const rows = scopedRows
     .filter(row => !elemento || normalizeOnePssElemento(row.elemento) === elemento)
-    .filter(row => !estado || row.estado === estado)
+    .filter(row => !estado || normalizeOnePssStatus(row.estado) === estado)
     .filter(row => !owner || row.owner === owner)
     .filter(row => {
       if (!search) return true;
