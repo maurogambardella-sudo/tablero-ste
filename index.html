@@ -2096,6 +2096,16 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     const page=link.dataset.page;
     if (page === "onepss") {
   onePssActiveView = link.dataset.onepssView || "all";
+
+  // Al volver a General, elimina el filtro heredado
+  // del último submenú de One PSS visitado.
+  if (onePssActiveView === "all") {
+    const elementoSelect = document.getElementById("onePssFilterElemento");
+
+    if (elementoSelect) {
+      elementoSelect.value = "";
+    }     
+      
       renderOnePss();
 }
     document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
