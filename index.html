@@ -438,6 +438,179 @@ tbody tr:hover { background: var(--bayer-light); }
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ONE PSS: visión ejecutiva y ayudas */
+#page-onepss-kpis .opx-scope {
+  margin: 0 0 14px;
+  color: #64748B;
+  font-size: 12px;
+}
+
+#page-onepss-kpis .opx-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+#page-onepss-kpis .opx-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  min-width: 0;
+  padding: 20px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-left: 4px solid #0091DF;
+  border-radius: 12px;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+#page-onepss-kpis .opx-card-blue {
+  border-left-color: #0091DF;
+}
+
+#page-onepss-kpis .opx-card-green {
+  border-left-color: #66B512;
+}
+
+#page-onepss-kpis .opx-card-red {
+  border-left-color: #EF4444;
+}
+
+#page-onepss-kpis .opx-card-purple {
+  border-left-color: #8B5CF6;
+}
+
+#page-onepss-kpis .opx-title {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  align-self: center;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+#page-onepss-kpis .opx-help {
+  display: contents;
+}
+
+#page-onepss-kpis .opx-help > summary {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: #163A4D;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 50%;
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#page-onepss-kpis .opx-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+#page-onepss-kpis .opx-help > summary:hover {
+  background: #E0F2FE;
+}
+
+#page-onepss-kpis .opx-help > summary:focus-visible {
+  outline: 2px solid #0091DF;
+  outline-offset: 3px;
+}
+
+#page-onepss-kpis .opx-help[open] > summary {
+  color: #FFFFFF;
+  background: #163A4D;
+}
+
+#page-onepss-kpis .opx-value {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  color: #163A4D;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#page-onepss-kpis .opx-caption {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#page-onepss-kpis .opx-base {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  margin: 0;
+  color: #64748B;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+#page-onepss-kpis .opx-help-content {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  margin-top: 4px;
+  padding: 12px;
+  color: #334155;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+#page-onepss-kpis .opx-help:not([open]) > .opx-help-content {
+  display: none;
+}
+
+#page-onepss-kpis .opx-help-content p {
+  margin: 0 0 9px;
+}
+
+#page-onepss-kpis .opx-help-content p:last-child {
+  margin-bottom: 0;
+}
+
+#page-onepss-kpis .opx-stage-note {
+  margin-top: 18px;
+  padding: 14px 16px;
+  color: #475569;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1250px) {
+  #page-onepss-kpis .opx-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  #page-onepss-kpis .opx-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+ 
 </style>
 </head>
 <body>
@@ -537,6 +710,7 @@ tbody tr:hover { background: var(--bayer-light); }
   </a>
   <div class="nav-sub" id="navSubOnePss">
    <a class="nav-link all-teams" data-page="onepss" data-onepss-view="all">General</a>
+   <a class="nav-link" data-page="onepss-kpis">KPIs y seguimiento</a> 
 <a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinaryteams">Equipos Multidisciplinarios</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="strategyperformance">Strategy & Performance</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="dmsproblemsolving">DMS Problem Solving</a>
@@ -979,6 +1153,181 @@ tbody tr:hover { background: var(--bayer-light); }
       </thead>
       <tbody id="onePssTbody"></tbody>
     </table>
+  </div>
+</section>
+
+  <!-- ONE PSS: KPIs Y SEGUIMIENTO -->
+<section class="page" id="page-onepss-kpis">
+  <div class="page-header">
+    <div>
+      <h2>KPIs y seguimiento</h2>
+      <p class="meta">
+        Visión ejecutiva del plan One PSS:
+        puesta en marcha, cierre, plazos y calidad del seguimiento.
+      </p>
+    </div>
+  </div>
+
+  <p class="opx-scope" id="opxScope">
+    Consolidado One PSS · Cálculos pendientes de conectar
+  </p>
+
+  <div class="opx-grid">
+
+    <!-- AVANCE DEL PLAN -->
+    <article class="opx-card opx-card-blue">
+      <h3 class="opx-title">Avance del plan</h3>
+
+      <details class="opx-help">
+        <summary aria-label="Ayuda sobre avance del plan">?</summary>
+        <div class="opx-help-content">
+          <p>
+            Indica qué proporción del plan ya comenzó o finalizó.
+          </p>
+          <p>
+            Fórmula: (completas + iniciadas sin completar)
+            ÷ total de iniciativas × 100.
+          </p>
+          <p>
+            Según la regla acordada, incluye Iniciado, En curso,
+            En progreso, En proceso y Atrasado, junto con sus
+            variantes reconocidas.
+          </p>
+          <p>
+            No incluye No iniciado, Planificado, Por definir,
+            Sin estado ni On hold sin evidencia de inicio.
+          </p>
+          <p>
+            Un 100% significa que todo el plan se puso en marcha;
+            no significa que todo esté terminado.
+          </p>
+        </div>
+      </details>
+
+      <div class="opx-value" id="opxActivationValue">—</div>
+      <p class="opx-caption">Porcentaje iniciado o completado</p>
+      <p class="opx-base" id="opxActivationBase">
+        Pendiente de cálculo
+      </p>
+    </article>
+
+    <!-- EFECTIVIDAD DE CIERRE -->
+    <article class="opx-card opx-card-green">
+      <h3 class="opx-title">Efectividad de cierre</h3>
+
+      <details class="opx-help">
+        <summary aria-label="Ayuda sobre efectividad de cierre">?</summary>
+        <div class="opx-help-content">
+          <p>
+            Indica cuánto del trabajo puesto en marcha ya finalizó.
+          </p>
+          <p>
+            Fórmula: completas ÷
+            (completas + iniciadas sin completar) × 100.
+          </p>
+          <p>
+            Usa el mismo grupo de iniciativas iniciadas que
+            el indicador Avance del plan.
+          </p>
+          <p>
+            Si no hay iniciativas puestas en marcha, se muestra
+            “—”: no existe una base para calcular el porcentaje.
+          </p>
+          <p>
+            No mide por sí solo la calidad del resultado
+            ni el cumplimiento de fechas.
+          </p>
+        </div>
+      </details>
+
+      <div class="opx-value" id="opxClosureValue">—</div>
+      <p class="opx-caption">Completas sobre lo puesto en marcha</p>
+      <p class="opx-base" id="opxClosureBase">
+        Pendiente de cálculo
+      </p>
+    </article>
+
+    <!-- PENDIENTES VENCIDAS -->
+    <article class="opx-card opx-card-red">
+      <h3 class="opx-title">Pendientes vencidas</h3>
+
+      <details class="opx-help">
+        <summary aria-label="Ayuda sobre pendientes vencidas">?</summary>
+        <div class="opx-help-content">
+          <p>
+            Indica qué proporción de las iniciativas no completas
+            tiene su fecha límite superada.
+          </p>
+          <p>
+            Fórmula: pendientes con fecha límite anterior a hoy
+            ÷ total de pendientes × 100.
+          </p>
+          <p>
+            Una iniciativa completa no se cuenta como vencida.
+            Una fecha que vence hoy todavía no está vencida.
+          </p>
+          <p>
+            Las pendientes sin fecha válida permanecen en el total,
+            pero no se cuentan como vencidas. Su cantidad se
+            informará aparte para no interpretarlas como “en plazo”.
+          </p>
+          <p>
+            El estado Atrasado, sin una fecha válida, no alcanza
+            para integrar el numerador de este indicador.
+          </p>
+        </div>
+      </details>
+
+      <div class="opx-value" id="opxOverdueValue">—</div>
+      <p class="opx-caption">Fuera de plazo sobre las pendientes</p>
+      <p class="opx-base" id="opxOverdueBase">
+        Pendiente de cálculo
+      </p>
+    </article>
+
+    <!-- COBERTURA DE GESTIÓN -->
+    <article class="opx-card opx-card-purple">
+      <h3 class="opx-title">Cobertura de gestión</h3>
+
+      <details class="opx-help">
+        <summary aria-label="Ayuda sobre cobertura de gestión">?</summary>
+        <div class="opx-help-content">
+          <p>
+            Indica si contamos con la información mínima
+            para gestionar las iniciativas pendientes.
+          </p>
+          <p>
+            Una pendiente tiene cobertura cuando informa
+            responsable, fecha límite válida y estado reconocido.
+          </p>
+          <p>
+            Fórmula: pendientes con los tres datos válidos
+            ÷ total de pendientes × 100.
+          </p>
+          <p>
+            Tener cobertura no significa estar en plazo
+            ni tener buen desempeño: significa que la iniciativa
+            cuenta con datos mínimos de seguimiento.
+          </p>
+          <p>
+            Si no hay pendientes, se muestra “—”
+            y se indica que no existe una base de cálculo.
+          </p>
+        </div>
+      </details>
+
+      <div class="opx-value" id="opxCoverageValue">—</div>
+      <p class="opx-caption">Pendientes con datos mínimos de seguimiento</p>
+      <p class="opx-base" id="opxCoverageBase">
+        Pendiente de cálculo
+      </p>
+    </article>
+
+  </div>
+
+  <div class="opx-stage-note">
+    Pantalla en implementación. Las ayudas ya están disponibles.
+    Los indicadores se conectarán en la siguiente etapa.
   </div>
 </section>
     
