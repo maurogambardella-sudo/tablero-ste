@@ -2440,6 +2440,317 @@ function isOverdue(t){return t.end&&t.end<todayStr()&&t.status!=='Completada';}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}
 
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
+
+// =========================================================
+// ONE PSS — KPIs ejecutivos
+// Lectura y cálculo. No modifica state ni guarda datos.
+// =========================================================
+
+function opxNormalizeText(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function opxNormalizeStatus(value) {
+  const text = opxNormalizeText(value);
+
+  const aliases = {
+    "": "Sin estado",
+    "sin estado": "Sin estado",
+
+    "no iniciado": "No iniciado",
+    "no iniciada": "No iniciado",
+    "not started": "No iniciado",
+    "pendiente": "No iniciado",
+
+    "iniciado": "Iniciado",
+    "iniciada": "Iniciado",
+
+    "en curso": "En curso",
+    "en progreso": "En curso",
+    "en proceso": "En curso",
+    "ongoing": "En curso",
+    "on going": "En curso",
+    "in progress": "En curso",
+
+    "completo": "Completo",
+    "completa": "Completo",
+    "completado": "Completo",
+    "completada": "Completo",
+    "finalizado": "Completo",
+    "finalizada": "Completo",
+    "completed": "Completo",
+    "done": "Completo",
+
+    "atrasado": "Atrasado",
+    "atrasada": "Atrasado",
+
+    "planificado": "Planificado",
+    "planificada": "Planificado",
+
+    "por definir": "Por definir",
+
+    "on hold": "On hold",
+    "onhold": "On hold",
+    "pausado": "On hold",
+    "pausada": "On hold",
+    "bloqueado": "On hold",
+    "bloqueada": "On hold"
+  };
+
+  return Object.prototype.hasOwnProperty.call(aliases, text)
+    ? aliases[text]
+    : "No reconocido";
+}
+
+function opxParseDeadline(value) {
+  // Acepta YYYY-MM-DD o DD/MM/YYYY.
+  // No convierte Q4, textos libres ni fechas ambiguas.
+  const raw = String(value ?? "").trim();
+
+  let year;
+  let month;
+  let day;
+
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const local = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+  if (iso) {
+    year = Number(iso[1]);
+    month = Number(iso[2]);
+    day = Number(iso[3]);
+  } else if (local) {
+    day = Number(local[1]);
+    month = Number(local[2]);
+    year = Number(local[3]);
+  } else {
+    return null;
+  }
+
+  if (year < 1900 || year > 9999) return null;
+
+  const date = new Date(year, month - 1, day);
+
+  // Evita aceptar fechas imposibles, como 31/02/2026.
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+function opxHasOwner(value) {
+  const text = opxNormalizeText(value);
+
+  const emptyValues = [
+    "",
+    "-",
+    "—",
+    "sin asignar",
+    "sin responsable",
+    "por definir",
+    "pendiente",
+    "n/a",
+    "na",
+    "null",
+    "undefined"
+  ];
+
+  return !emptyValues.includes(text);
+}
+
+function opxGetRows() {
+  return Array.isArray(state.onePss)
+    ? state.onePss.filter(row => row && typeof row === "object")
+    : [];
+}
+
+function opxCalculate(rows) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startedStatuses = new Set([
+    "Iniciado",
+    "En curso",
+    "Atrasado"
+  ]);
+
+  const result = {
+    total: rows.length,
+    complete: 0,
+    started: 0,
+    pending: 0,
+    overdue: 0,
+    pendingWithoutDate: 0,
+    covered: 0,
+    unknownStatuses: []
+  };
+
+  const unknown = new Set();
+
+  rows.forEach(row => {
+    const status = opxNormalizeStatus(row.estado);
+    const complete = status === "Completo";
+
+    if (status === "No reconocido") {
+      unknown.add(String(row.estado ?? "").trim());
+    }
+
+    if (complete) {
+      result.complete++;
+      return;
+    }
+
+    result.pending++;
+
+    if (startedStatuses.has(status)) {
+      result.started++;
+    }
+
+    const deadline = opxParseDeadline(row.deadlineFecha);
+
+    if (!deadline) {
+      result.pendingWithoutDate++;
+    } else if (deadline.getTime() < today.getTime()) {
+      result.overdue++;
+    }
+
+    const validStatus =
+      status !== "Sin estado" &&
+      status !== "No reconocido";
+
+    if (
+      opxHasOwner(row.owner) &&
+      deadline !== null &&
+      validStatus
+    ) {
+      result.covered++;
+    }
+  });
+
+  result.unknownStatuses = [...unknown];
+  return result;
+}
+
+function opxFormatPercent(numerator, denominator) {
+  if (denominator === 0) return "—";
+
+  return (
+    new Intl.NumberFormat("es-AR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    }).format((numerator / denominator) * 100) + "%"
+  );
+}
+
+function opxSetText(id, text) {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.textContent = String(text);
+  }
+}
+
+function renderOnePssKpis() {
+  const page = document.getElementById("page-onepss-kpis");
+  if (!page) return;
+
+  const rows = opxGetRows();
+  const data = opxCalculate(rows);
+  const activated = data.complete + data.started;
+
+  opxSetText(
+    "opxScope",
+    `Consolidado One PSS · ${data.total} iniciativas · ` +
+    "Sin aplicar filtros de General"
+  );
+
+  opxSetText(
+    "opxActivationValue",
+    opxFormatPercent(activated, data.total)
+  );
+
+  opxSetText(
+    "opxActivationBase",
+    data.total === 0
+      ? "Sin iniciativas disponibles"
+      : `${activated} de ${data.total} iniciativas: ` +
+        `${data.complete} completas + ${data.started} iniciadas sin completar`
+  );
+
+  opxSetText(
+    "opxClosureValue",
+    opxFormatPercent(data.complete, activated)
+  );
+
+  opxSetText(
+    "opxClosureBase",
+    activated === 0
+      ? "Sin iniciativas puestas en marcha"
+      : `${data.complete} completas de ${activated} puestas en marcha`
+  );
+
+  opxSetText(
+    "opxOverdueValue",
+    opxFormatPercent(data.overdue, data.pending)
+  );
+
+  opxSetText(
+    "opxOverdueBase",
+    data.pending === 0
+      ? "Sin iniciativas pendientes"
+      : `${data.overdue} de ${data.pending} pendientes · ` +
+        `${data.pendingWithoutDate} sin fecha válida`
+  );
+
+  opxSetText(
+    "opxCoverageValue",
+    opxFormatPercent(data.covered, data.pending)
+  );
+
+  opxSetText(
+    "opxCoverageBase",
+    data.pending === 0
+      ? "Sin iniciativas pendientes"
+      : `${data.covered} de ${data.pending} pendientes con ` +
+        "responsable, fecha y estado válidos"
+  );
+
+  const note = page.querySelector(".opx-stage-note");
+
+  if (note) {
+    let message =
+      "Indicadores calculados sobre los datos cargados en el tablero. " +
+      "Avance representa puesta en marcha, no ejecución física. " +
+      "Los vencimientos se comparan con la fecha local del navegador.";
+
+    if (data.total === 0) {
+      message =
+        "No hay iniciativas disponibles para calcular los indicadores. " +
+        "Revisá la carga de datos de One PSS.";
+    }
+
+    if (data.unknownStatuses.length > 0) {
+      message +=
+        " Atención: estados no reconocidos: " +
+        data.unknownStatuses.join(", ") +
+        ". No suman al avance ni a la cobertura de gestión.";
+    }
+
+    note.textContent = message;
+  }
+}
+
+
+  
 document.querySelectorAll('.nav-link').forEach(link=>{
   link.addEventListener('click',()=>{
     const page=link.dataset.page;
@@ -2462,6 +2773,9 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     link.classList.add('active');
     document.getElementById('page-'+page).classList.add('active');
+    if (page === "onepss-kpis") {
+  renderOnePssKpis();
+}
     if (page === 'admin') {
   if (!isAdmin()) {
     toast('Solo el administrador puede acceder a Administración.');
@@ -4495,6 +4809,7 @@ function renderAll() {
   renderTeam();
   renderRecognitions();
   renderOnePss();
+  renderOnePssKpis();
 
   requests = state.requests || [];
 
