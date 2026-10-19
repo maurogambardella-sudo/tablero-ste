@@ -610,6 +610,69 @@ tbody tr:hover { background: var(--bayer-light); }
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ONE PSS ejecutivo: filtro exclusivo por elemento */
+#page-onepss-kpis .opx-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) auto;
+  gap: 14px;
+  align-items: end;
+  justify-content: start;
+  margin-bottom: 16px;
+}
+
+#page-onepss-kpis .opx-filter-field {
+  min-width: 0;
+}
+
+#page-onepss-kpis .opx-filter-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#page-onepss-kpis .opx-filter-field select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 12px;
+  color: #163A4D;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 7px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+#page-onepss-kpis .opx-clear-filters {
+  min-height: 42px;
+  padding: 9px 16px;
+  color: #163A4D;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#page-onepss-kpis .opx-clear-filters:hover {
+  background: #F1F5F9;
+}
+
+#page-onepss-kpis .opx-filter-field select:focus-visible,
+#page-onepss-kpis .opx-clear-filters:focus-visible {
+  outline: 2px solid #0091DF;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  #page-onepss-kpis .opx-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
  
 </style>
 </head>
@@ -1171,6 +1234,18 @@ tbody tr:hover { background: var(--bayer-light); }
   <p class="opx-scope" id="opxScope">
     Consolidado One PSS · Cálculos pendientes de conectar
   </p>
+
+  <div class="opx-filters">
+  <div class="opx-filter-field">
+    <label for="opxFilterElemento">Elemento</label>
+
+    <select
+      id="opxFilterElemento"
+      onchange="renderOnePssKpis()"
+    >
+      <option value="">Todos los elementos</option>
+    </select>
+  </div>
 
   <div class="opx-grid">
 
@@ -2645,8 +2720,8 @@ function opxFormatPercent(numerator, denominator) {
 
   return (
     new Intl.NumberFormat("es-AR", {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format((numerator / denominator) * 100) + "%"
   );
 }
@@ -2659,20 +2734,84 @@ function opxSetText(id, text) {
   }
 }
 
+function opxFillFilters(allRows) {
+  const elementoSelect = document.getElementById("opxFilterElemento");
+
+  if (!elementoSelect) return;
+
+  const previousElemento = elementoSelect.value;
+
+  const elementos = [...new Set(
+    allRows.map(row => normalizeOnePssElemento(row.elemento))
+  )]
+    .filter(value => value && value !== "all")
+    .sort((a, b) =>
+      onePssElementoLabel(a).localeCompare(
+        onePssElementoLabel(b),
+        "es"
+      )
+    );
+
+  elementoSelect.replaceChildren(
+    new Option("Todos los elementos", "")
+  );
+
+  elementos.forEach(value => {
+    elementoSelect.add(
+      new Option(onePssElementoLabel(value), value)
+    );
+  });
+
+  elementoSelect.value = elementos.includes(previousElemento)
+    ? previousElemento
+    : "";
+}
+
+function opxApplyFilters(allRows) {
+  const elemento =
+    document.getElementById("opxFilterElemento")?.value || "";
+
+  return allRows.filter(row =>
+    !elemento ||
+    normalizeOnePssElemento(row.elemento) === elemento
+  );
+}
+
+function opxClearFilters() {
+  const elementoSelect = document.getElementById("opxFilterElemento");
+
+  if (elementoSelect) {
+    elementoSelect.value = "";
+  }
+
+  renderOnePssKpis();
+}
+
 function renderOnePssKpis() {
   const page = document.getElementById("page-onepss-kpis");
   if (!page) return;
 
-  const rows = opxGetRows();
+  const allRows = opxGetRows();
+
+  opxFillFilters(allRows);
+
+  const rows = opxApplyFilters(allRows);
   const data = opxCalculate(rows);
   const activated = data.complete + data.started;
 
+  const selectedElemento =
+    document.getElementById("opxFilterElemento")?.value || "";
+
+  const scopeLabel = selectedElemento
+    ? onePssElementoLabel(selectedElemento)
+    : "Todos los elementos";
+
   opxSetText(
     "opxScope",
-    `Consolidado One PSS · ${data.total} iniciativas · ` +
-    "Sin aplicar filtros de General"
+    `${scopeLabel} · ${data.total} de ${allRows.length} iniciativas`
   );
 
+  // Avance del plan.
   opxSetText(
     "opxActivationValue",
     opxFormatPercent(activated, data.total)
@@ -2686,6 +2825,7 @@ function renderOnePssKpis() {
         `${data.complete} completas + ${data.started} iniciadas sin completar`
   );
 
+  // Efectividad de cierre.
   opxSetText(
     "opxClosureValue",
     opxFormatPercent(data.complete, activated)
@@ -2698,6 +2838,7 @@ function renderOnePssKpis() {
       : `${data.complete} completas de ${activated} puestas en marcha`
   );
 
+  // Pendientes vencidas.
   opxSetText(
     "opxOverdueValue",
     opxFormatPercent(data.overdue, data.pending)
@@ -2711,6 +2852,7 @@ function renderOnePssKpis() {
         `${data.pendingWithoutDate} sin fecha válida`
   );
 
+  // Cobertura de gestión.
   opxSetText(
     "opxCoverageValue",
     opxFormatPercent(data.covered, data.pending)
@@ -2728,14 +2870,14 @@ function renderOnePssKpis() {
 
   if (note) {
     let message =
-      "Indicadores calculados sobre los datos cargados en el tablero. " +
+      "Indicadores calculados sobre las iniciativas del alcance seleccionado. " +
       "Avance representa puesta en marcha, no ejecución física. " +
       "Los vencimientos se comparan con la fecha local del navegador.";
 
     if (data.total === 0) {
-      message =
-        "No hay iniciativas disponibles para calcular los indicadores. " +
-        "Revisá la carga de datos de One PSS.";
+      message = allRows.length === 0
+        ? "No hay iniciativas disponibles. Revisá la carga de datos de One PSS."
+        : "No hay iniciativas para el elemento seleccionado. Probá limpiar el filtro.";
     }
 
     if (data.unknownStatuses.length > 0) {
