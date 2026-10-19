@@ -613,15 +613,18 @@ tbody tr:hover { background: var(--bayer-light); }
 
 /* ONE PSS ejecutivo: filtro exclusivo por elemento */
 #page-onepss-kpis .opx-filters {
-  display: grid;
-  grid-template-columns: minmax(0, 420px) auto;
-  gap: 14px;
-  align-items: end;
-  justify-content: start;
-  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 12px;
+  box-sizing: border-box;
 }
 
 #page-onepss-kpis .opx-filter-field {
+  flex: 0 1 420px;
+  width: 100%;
   min-width: 0;
 }
 
@@ -669,8 +672,12 @@ tbody tr:hover { background: var(--bayer-light); }
 }
 
 @media (max-width: 700px) {
-  #page-onepss-kpis .opx-filters {
-    grid-template-columns: minmax(0, 1fr);
+  #page-onepss-kpis .opx-filter-field {
+    flex-basis: 100%;
+  }
+
+  #page-onepss-kpis .opx-clear-filters {
+    width: 100%;
   }
 }
  
@@ -1231,22 +1238,34 @@ tbody tr:hover { background: var(--bayer-light); }
     </div>
   </div>
 
-  <p class="opx-scope" id="opxScope">
-    Consolidado One PSS · Cálculos pendientes de conectar
-  </p>
-
+  <!-- Filtro: fuera de la grilla de tarjetas -->
   <div class="opx-filters">
-  <div class="opx-filter-field">
-    <label for="opxFilterElemento">Elemento</label>
+    <div class="opx-filter-field">
+      <label for="opxFilterElemento">Elemento</label>
 
-    <select
-      id="opxFilterElemento"
-      onchange="renderOnePssKpis()"
+      <select
+        id="opxFilterElemento"
+        onchange="renderOnePssKpis()"
+      >
+        <option value="">Todos los elementos</option>
+      </select>
+    </div>
+
+    <button
+      type="button"
+      class="opx-clear-filters"
+      onclick="opxClearFilters()"
     >
-      <option value="">Todos los elementos</option>
-    </select>
+      Limpiar filtros
+    </button>
   </div>
 
+  <!-- Alcance seleccionado -->
+  <p class="opx-scope" id="opxScope">
+    Todos los elementos
+  </p>
+
+  <!-- Esta grilla contiene únicamente las cuatro tarjetas -->
   <div class="opx-grid">
 
     <!-- AVANCE DEL PLAN -->
