@@ -1419,6 +1419,74 @@ tbody tr:hover { background: var(--bayer-light); }
 
   </div>
 
+<!-- Gráficos ejecutivos: fuera de la grilla de indicadores -->
+<div class="opx-charts-grid">
+
+  <article class="opx-chart-card">
+    <h3>Activación y cierre por elemento</h3>
+
+    <details class="opx-chart-help">
+      <summary>¿Qué muestra este gráfico?</summary>
+      <div>
+        Cada barra representa el 100% de las iniciativas del elemento.
+        Se divide en completas, iniciadas sin completar y sin inicio
+        confirmado. El grupo de iniciadas incluye Atrasado, según la
+        regla acordada para Avance del plan. On hold no se considera
+        iniciado automáticamente.
+        La base n indica cuántas iniciativas tiene cada elemento.
+      </div>
+    </details>
+
+    <p class="opx-chart-description">
+      Composición del plan · Porcentajes sobre el total de cada elemento
+    </p>
+
+    <div class="opx-chart-container" id="opxActivationContainer">
+      <canvas
+        id="opxActivationChart"
+        role="img"
+        aria-label="Activación y cierre de iniciativas por elemento"
+      ></canvas>
+    </div>
+
+    <p class="opx-chart-message" id="opxActivationMessage"></p>
+  </article>
+
+  <article class="opx-chart-card">
+    <h3>Pendientes vencidas por elemento</h3>
+
+    <details class="opx-chart-help">
+      <summary>¿Qué muestra este gráfico?</summary>
+      <div>
+        Compara la cantidad de pendientes vencidas contra todas las
+        pendientes de cada elemento. Las completas quedan excluidas.
+        Las pendientes sin fecha válida permanecen en el denominador,
+        pero no se consideran vencidas: su cantidad se informa al
+        pasar el cursor o tocar una barra. Un 0% no demuestra que todo
+        esté en plazo si faltan fechas. No es un ranking de desempeño.
+      </div>
+    </details>
+
+    <p class="opx-chart-description">
+      Porcentaje de pendientes con fecha límite anterior a hoy
+    </p>
+
+    <div class="opx-chart-container" id="opxOverdueContainer">
+      <canvas
+        id="opxOverdueChart"
+        role="img"
+        aria-label="Porcentaje de iniciativas pendientes vencidas por elemento"
+      ></canvas>
+    </div>
+
+    <p class="opx-chart-message" id="opxOverdueMessage"></p>
+  </article>
+
+</div>
+
+
+  
+
   <div class="opx-stage-note">
     Pantalla en implementación. Las ayudas ya están disponibles.
     Los indicadores se conectarán en la siguiente etapa.
