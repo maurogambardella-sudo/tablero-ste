@@ -3307,6 +3307,229 @@ function opxRenderCharts(rows) {
       : "")
   );
 }
+
+// =========================================================
+// ONE PSS ejecutivo: próximos 28 días
+// =========================================================
+
+function opxAddLocalDays(date, days) {
+  const result = new Date(date.getTime());
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function opxShortDate(date) {
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "2-digit"
+  }).format(date);
+}
+
+function opxBuildUpcoming(rows, referenceDate = new Date()) {
+  const start = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+
+  const endExclusive = opxAddLocalDays(start, 28);
+
+  const buckets = Array.from({ length: 4 }, (_, index) => {
+    const from = opxAddLocalDays(start, index * 7);
+    const until = opxAddLocalDays(start, (index + 1) * 7);
+    const lastDay = opxAddLocalDays(until, -1);
+
+    return {
+      label: `Semana ${index + 1}`,
+      range: `${opxShortDate(from)} al ${opxShortDate(lastDay)}`,
+      from,
+      until,
+      count: 0
+    };
+  });
+
+  const result = {
+    start,
+    end: opxAddLocalDays(endExclusive, -1),
+    buckets,
+    total: 0,
+    overdue: 0,
+    withoutDate: 0,
+    later: 0
+  };
+
+  rows.forEach(row => {
+    if (opxNormalizeStatus(row.estado) === "Completo") {
+      return;
+    }
+
+    const deadline = opxParseDeadline(row.deadlineFecha);
+
+    if (!deadline) {
+      result.withoutDate++;
+      return;
+    }
+
+    if (deadline < start) {
+      result.overdue++;
+      return;
+    }
+
+    if (deadline >= endExclusive) {
+      result.later++;
+      return;
+    }
+
+    const bucket = buckets.find(item =>
+      deadline >= item.from && deadline < item.until
+    );
+
+    if (bucket) {
+      bucket.count++;
+      result.total++;
+    }
+  });
+
+  return result;
+}
+
+function opxRenderUpcoming(rows) {
+  const page = document.getElementById("page-onepss-kpis");
+  const container = document.getElementById("opxUpcomingContainer");
+
+  if (
+    !page ||
+    !page.classList.contains("active") ||
+    !container
+  ) {
+    return;
+  }
+
+  const data = opxBuildUpcoming(rows);
+
+  const longDate = new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+
+  opxSetText(
+    "opxUpcomingPeriod",
+    `Del ${longDate.format(data.start)} al ${longDate.format(data.end)} ` +
+    "· Cuatro períodos móviles de siete días"
+  );
+
+  opxSetText(
+    "opxUpcomingSummary",
+    data.buckets
+      .map(item =>
+        `${item.label} (${item.range}): ${item.count}`
+      )
+      .join(" · ")
+  );
+
+  opxSetText(
+    "opxUpcomingMessage",
+    `${data.total} compromisos en los próximos 28 días. ` +
+    `Fuera de las barras: ${data.overdue} pendientes ya vencidas, ` +
+    `${data.withoutDate} pendientes sin fecha válida y ` +
+    `${data.later} pendientes con fecha posterior al período.`
+  );
+
+  if (typeof Chart === "undefined") {
+    container.hidden = true;
+
+    opxSetText(
+      "opxUpcomingMessage",
+      "No se pudo cargar el gráfico. " +
+      "Los conteos por semana están disponibles en el resumen de texto."
+    );
+
+    return;
+  }
+
+  if (rows.length === 0 || data.total === 0) {
+    opxReplaceChart("opxUpcomingChart", null);
+    container.hidden = true;
+
+    if (rows.length === 0) {
+      opxSetText(
+        "opxUpcomingMessage",
+        "No hay iniciativas en el alcance seleccionado."
+      );
+    }
+
+    return;
+  }
+
+  container.hidden = false;
+
+  opxReplaceChart("opxUpcomingChart", {
+    type: "bar",
+    data: {
+      labels: data.buckets.map(item => [
+        item.label,
+        item.range
+      ]),
+      datasets: [{
+        label: "Compromisos pendientes",
+        data: data.buckets.map(item => item.count),
+        backgroundColor: "#0091DF",
+        borderRadius: 6,
+        maxBarThickness: 75
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            title(items) {
+              if (!items.length) return "";
+
+              const bucket = data.buckets[items[0].dataIndex];
+
+              return `${bucket.label}: ${bucket.range}`;
+            },
+            label(context) {
+              return `${context.parsed.y} iniciativas pendientes`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            font: {
+              size: 11
+            }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0
+          },
+          title: {
+            display: true,
+            text: "Cantidad de iniciativas"
+          }
+        }
+      }
+    }
+  });
+}
+
+  
+
+  
 function renderOnePssKpis() {
   const page = document.getElementById("page-onepss-kpis");
   if (!page) return;
@@ -3319,6 +3542,7 @@ function renderOnePssKpis() {
   const data = opxCalculate(rows);
   const activated = data.complete + data.started;
 opxRenderCharts(rows);
+opxRenderUpcoming(rows); 
   const selectedElemento =
     document.getElementById("opxFilterElemento")?.value || "";
 
