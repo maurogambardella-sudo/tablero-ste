@@ -758,7 +758,40 @@ tbody tr:hover { background: var(--bayer-light); }
   }
 }
 
-  
+/* ONE PSS ejecutivo: compromisos de las próximas semanas */
+#page-onepss-kpis .opx-upcoming-card {
+  margin-top: 18px;
+}
+
+#page-onepss-kpis .opx-upcoming-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#page-onepss-kpis #opxUpcomingContainer {
+  height: 290px;
+}
+
+#page-onepss-kpis .opx-upcoming-summary {
+  margin: 14px 0 0;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+#page-onepss-kpis .opx-upcoming-card .opx-chart-help summary span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  border: 1px solid #CBD5E1;
+  border-radius: 50%;
+  font-weight: 700;
+}  
 
 
   
@@ -1566,7 +1599,45 @@ tbody tr:hover { background: var(--bayer-light); }
 
 </div>
 
+<!-- Compromisos próximos: bloque independiente -->
+<article class="opx-chart-card opx-upcoming-card">
+  <div class="opx-upcoming-heading">
+    <h3>Compromisos de las próximas cuatro semanas</h3>
+  </div>
 
+  <details class="opx-chart-help">
+    <summary>
+      <span aria-hidden="true">?</span>
+      ¿Qué muestra este gráfico?
+    </summary>
+
+    <div>
+      Cuenta iniciativas no completas según su fecha límite,
+      en cuatro períodos consecutivos de siete días desde hoy.
+      Incluye hoy y excluye los compromisos ya vencidos.
+      Las iniciativas sin fecha válida no se ubican en las barras.
+      No representa esfuerzo ni capacidad disponible:
+      cada iniciativa cuenta como un compromiso.
+    </div>
+  </details>
+
+  <p class="opx-chart-description" id="opxUpcomingPeriod">
+    Ventana de análisis pendiente de calcular
+  </p>
+
+  <div class="opx-chart-container" id="opxUpcomingContainer">
+    <canvas
+      id="opxUpcomingChart"
+      role="img"
+      aria-label="Cantidad de iniciativas pendientes con vencimiento en los próximos veintiocho días"
+      aria-describedby="opxUpcomingSummary"
+    ></canvas>
+  </div>
+
+  <p class="opx-upcoming-summary" id="opxUpcomingSummary"></p>
+
+  <p class="opx-chart-message" id="opxUpcomingMessage"></p>
+</article>
   
 
   <div class="opx-stage-note">
