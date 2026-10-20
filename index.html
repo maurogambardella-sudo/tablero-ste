@@ -794,6 +794,147 @@ tbody tr:hover { background: var(--bayer-light); }
 }  
 
 
+/* ONE PSS ejecutivo: foco y alertas */
+#page-onepss-kpis .opx-focus {
+  margin-top: 18px;
+  padding: 20px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.05);
+}
+
+#page-onepss-kpis .opx-focus-heading h3 {
+  margin: 0 0 6px;
+  color: #163A4D;
+  font-size: 16px;
+}
+
+#page-onepss-kpis .opx-focus-heading p {
+  margin: 0 0 12px;
+  color: #64748B;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#page-onepss-kpis .opx-focus-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+#page-onepss-kpis .opx-focus-item {
+  min-width: 0;
+  border: 1px solid #E2E8F0;
+  border-left: 4px solid var(--opx-focus-color, #94A3B8);
+  border-radius: 8px;
+}
+
+#page-onepss-kpis .opx-focus-item > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  color: #163A4D;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+#page-onepss-kpis .opx-focus-item > summary::-webkit-details-marker {
+  display: none;
+}
+
+#page-onepss-kpis .opx-focus-item > summary::before {
+  content: "▶";
+  color: #64748B;
+  font-size: 10px;
+}
+
+#page-onepss-kpis .opx-focus-item[open] > summary::before {
+  content: "▼";
+}
+
+#page-onepss-kpis .opx-focus-item > summary:focus-visible {
+  outline: 2px solid #0091DF;
+  outline-offset: 2px;
+}
+
+#page-onepss-kpis .opx-focus-count {
+  margin-left: auto;
+  padding: 3px 10px;
+  color: #163A4D;
+  background: #F1F5F9;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+#page-onepss-kpis .opx-focus-body {
+  padding: 0 14px 14px;
+}
+
+#page-onepss-kpis .opx-focus-description {
+  margin: 0 0 12px;
+  color: #64748B;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#page-onepss-kpis .opx-focus-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#page-onepss-kpis .opx-focus-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+#page-onepss-kpis .opx-focus-table th {
+  padding: 10px;
+  color: #FFFFFF;
+  background: #163A4D;
+  text-align: left;
+  font-size: 11px;
+}
+
+#page-onepss-kpis .opx-focus-table td {
+  padding: 10px;
+  border-bottom: 1px solid #E5E7EB;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.5;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+#page-onepss-kpis .opx-focus-table td:nth-child(2) {
+  min-width: 200px;
+}
+
+#page-onepss-kpis .opx-focus-empty {
+  margin: 0;
+  padding: 8px 0;
+  color: #64748B;
+  font-size: 12px;
+}
+
+#page-onepss-kpis .opx-focus-open {
+  padding: 5px 10px;
+  color: #163A4D;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#page-onepss-kpis .opx-focus-open:hover {
+  background: #EFF6FF;
+}
+
+  
   
  
 </style>
@@ -1638,6 +1779,38 @@ tbody tr:hover { background: var(--bayer-light); }
 
   <p class="opx-chart-message" id="opxUpcomingMessage"></p>
 </article>
+
+
+<!-- ONE PSS: foco ejecutivo -->
+<section class="opx-focus" aria-labelledby="opxFocusTitle">
+  <div class="opx-focus-heading">
+    <h3 id="opxFocusTitle">Foco ejecutivo</h3>
+    <p id="opxFocusScope">
+      Alertas del alcance seleccionado
+    </p>
+  </div>
+
+  <details class="opx-chart-help">
+    <summary>
+      <span aria-hidden="true">?</span>
+      ¿Cómo interpretar estas alertas?
+    </summary>
+
+    <div>
+      Se analizan únicamente iniciativas no completas del elemento
+      seleccionado. Una iniciativa puede aparecer en varias alertas;
+      sus cantidades no deben sumarse como iniciativas únicas.
+      Próximos vencimientos incluye hoy y los próximos seis días,
+      igual que la Semana 1 del gráfico.
+      Pausadas o bloqueadas se identifica por el estado explícito,
+      no por palabras aisladas en los comentarios.
+      Abrí una categoría para consultar sus iniciativas.
+    </div>
+  </details>
+
+  <div class="opx-focus-list" id="opxFocusList"></div>
+</section>
+  
   
 
   <div class="opx-stage-note">
@@ -3527,7 +3700,284 @@ function opxRenderUpcoming(rows) {
   });
 }
 
-  
+// =========================================================
+// ONE PSS ejecutivo: alertas y acceso al detalle
+// =========================================================
+
+function opxBuildFocus(rows, referenceDate = new Date()) {
+  const today = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+
+  const nextWeek = opxAddLocalDays(today, 7);
+
+  const groups = [
+    {
+      key: "overdue",
+      title: "Pendientes vencidas",
+      color: "#EF4444",
+      description:
+        "No completas con fecha límite anterior a hoy. " +
+        "El estado Atrasado sin fecha válida no alcanza " +
+        "para incluir una iniciativa en esta alerta.",
+      rows: []
+    },
+    {
+      key: "upcoming",
+      title: "Próximos vencimientos — 7 días",
+      color: "#F59E0B",
+      description:
+        "No completas que vencen entre hoy y los próximos seis días. " +
+        "Coincide con la Semana 1 del gráfico de compromisos.",
+      rows: []
+    },
+    {
+      key: "noOwner",
+      title: "Pendientes sin responsable",
+      color: "#8B5CF6",
+      description:
+        "No completas cuyo responsable está vacío " +
+        "o informado con un valor como Sin asignar o Por definir.",
+      rows: []
+    },
+    {
+      key: "noDate",
+      title: "Pendientes sin fecha válida",
+      color: "#64748B",
+      description:
+        "No completas sin fecha límite interpretable. " +
+        "Incluye campos vacíos y textos como Q4. " +
+        "No significa necesariamente que estén vencidas.",
+      rows: []
+    },
+    {
+      key: "onHold",
+      title: "Pausadas o bloqueadas",
+      color: "#F97316",
+      description:
+        "No completas con estado normalizado On hold. " +
+        "Se identifica por el estado explícito, " +
+        "no por el texto de los comentarios.",
+      rows: []
+    }
+  ];
+
+  const byKey = Object.fromEntries(
+    groups.map(group => [group.key, group])
+  );
+
+  let pendingCount = 0;
+  let attentionCount = 0;
+
+  rows.forEach(row => {
+    const status = opxNormalizeStatus(row.estado);
+
+    if (status === "Completo") return;
+
+    pendingCount++;
+
+    const deadline = opxParseDeadline(row.deadlineFecha);
+    let needsAttention = false;
+
+    const add = key => {
+      byKey[key].rows.push(row);
+      needsAttention = true;
+    };
+
+    if (deadline && deadline < today) {
+      add("overdue");
+    }
+
+    if (
+      deadline &&
+      deadline >= today &&
+      deadline < nextWeek
+    ) {
+      add("upcoming");
+    }
+
+    if (!opxHasOwner(row.owner)) {
+      add("noOwner");
+    }
+
+    if (!deadline) {
+      add("noDate");
+    }
+
+    if (status === "On hold") {
+      add("onHold");
+    }
+
+    if (needsAttention) {
+      attentionCount++;
+    }
+  });
+
+  groups.forEach(group => {
+    group.rows.sort((a, b) => {
+      const dateA = opxParseDeadline(a.deadlineFecha);
+      const dateB = opxParseDeadline(b.deadlineFecha);
+
+      if (dateA && dateB) {
+        const difference = dateA.getTime() - dateB.getTime();
+        if (difference !== 0) return difference;
+      } else if (dateA) {
+        return -1;
+      } else if (dateB) {
+        return 1;
+      }
+
+      return String(a.nombreIniciativa ?? "").localeCompare(
+        String(b.nombreIniciativa ?? ""),
+        "es"
+      );
+    });
+  });
+
+  return {
+    groups,
+    pendingCount,
+    attentionCount
+  };
+}
+
+function opxRenderFocus(rows) {
+  const host = document.getElementById("opxFocusList");
+  if (!host) return;
+
+  const previouslyOpen = new Set(
+    [...host.querySelectorAll("details[open]")]
+      .map(element => element.dataset.focusKey)
+  );
+
+  const data = opxBuildFocus(rows);
+
+  opxSetText(
+    "opxFocusScope",
+    rows.length === 0
+      ? "Sin iniciativas en el alcance seleccionado."
+      : `${data.attentionCount} de ${data.pendingCount} pendientes ` +
+        "presentan al menos una de estas condiciones. " +
+        "Cada iniciativa se cuenta una sola vez en este resumen."
+  );
+
+  host.replaceChildren();
+
+  data.groups.forEach(group => {
+    const details = document.createElement("details");
+    details.className = "opx-focus-item";
+    details.dataset.focusKey = group.key;
+    details.open = previouslyOpen.has(group.key);
+    details.style.setProperty("--opx-focus-color", group.color);
+
+    const summary = document.createElement("summary");
+
+    const title = document.createElement("span");
+    title.textContent = group.title;
+
+    const count = document.createElement("span");
+    count.className = "opx-focus-count";
+    count.textContent = String(group.rows.length);
+
+    summary.append(title, count);
+
+    const body = document.createElement("div");
+    body.className = "opx-focus-body";
+
+    const description = document.createElement("p");
+    description.className = "opx-focus-description";
+    description.textContent = group.description;
+    body.append(description);
+
+    if (group.rows.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "opx-focus-empty";
+      empty.textContent =
+        "No hay iniciativas en esta categoría para el alcance seleccionado.";
+
+      body.append(empty);
+    } else {
+      const wrap = document.createElement("div");
+      wrap.className = "opx-focus-table-wrap";
+
+      const table = document.createElement("table");
+      table.className = "opx-focus-table";
+
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+
+      [
+        "ID",
+        "Iniciativa",
+        "Elemento",
+        "Responsable",
+        "Fecha límite",
+        "Estado",
+        "Detalle"
+      ].forEach(label => {
+        const th = document.createElement("th");
+        th.scope = "col";
+        th.textContent = label;
+        headerRow.append(th);
+      });
+
+      thead.append(headerRow);
+
+      const tbody = document.createElement("tbody");
+
+      group.rows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const values = [
+          row.id ?? "—",
+          row.nombreIniciativa || "Sin título",
+          onePssElementoLabel(
+            normalizeOnePssElemento(row.elemento)
+          ),
+          opxHasOwner(row.owner)
+            ? row.owner
+            : "Sin responsable",
+          String(row.deadlineFecha ?? "").trim() || "Sin fecha",
+          String(row.estado ?? "").trim() || "Sin estado"
+        ];
+
+        values.forEach(value => {
+          const td = document.createElement("td");
+          td.textContent = String(value);
+          tr.append(td);
+        });
+
+        const actionCell = document.createElement("td");
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "opx-focus-open";
+        button.textContent = "Ver";
+        button.disabled = row.id === null || row.id === undefined;
+
+        button.addEventListener("click", () => {
+          openOnePssDetail(row.id);
+        });
+
+        actionCell.append(button);
+        tr.append(actionCell);
+        tbody.append(tr);
+      });
+
+      table.append(thead, tbody);
+      wrap.append(table);
+      body.append(wrap);
+    }
+
+    details.append(summary, body);
+    host.append(details);
+  });
+}
+
+
+        
 
   
 function renderOnePssKpis() {
@@ -3542,7 +3992,8 @@ function renderOnePssKpis() {
   const data = opxCalculate(rows);
   const activated = data.complete + data.started;
 opxRenderCharts(rows);
-opxRenderUpcoming(rows); 
+opxRenderUpcoming(rows);
+opxRenderFocus(rows);
   const selectedElemento =
     document.getElementById("opxFilterElemento")?.value || "";
 
