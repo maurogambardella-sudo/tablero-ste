@@ -2955,7 +2955,287 @@ function opxClearFilters() {
 
   renderOnePssKpis();
 }
+// =========================================================
+// ONE PSS ejecutivo: gráficos independientes del Dashboard
+// =========================================================
 
+function opxBuildElementStats(rows) {
+  const groups = new Map();
+
+  rows.forEach(row => {
+    const key = normalizeOnePssElemento(row.elemento);
+
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+
+    groups.get(key).push(row);
+  });
+
+  return [...groups.entries()]
+    .map(([key, elementRows]) => ({
+      key,
+      label: onePssElementoLabel(key),
+      ...opxCalculate(elementRows)
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label, "es"));
+}
+
+function opxReplaceChart(id, config) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+
+  // Instancias propias: no utiliza el objeto charts del Dashboard.
+  if (!opxReplaceChart.instances) {
+    opxReplaceChart.instances = {};
+  }
+
+  const previous = opxReplaceChart.instances[id];
+
+  if (previous) {
+    previous.destroy();
+    delete opxReplaceChart.instances[id];
+  }
+
+  if (config) {
+    opxReplaceChart.instances[id] = new Chart(canvas, config);
+  }
+}
+
+function opxRenderCharts(rows) {
+  const page = document.getElementById("page-onepss-kpis");
+
+  // No crear gráficos mientras la pantalla está oculta.
+  if (!page || !page.classList.contains("active")) return;
+
+  if (typeof Chart === "undefined") {
+    opxSetText(
+      "opxActivationMessage",
+      "No se pudo cargar Chart.js. Los indicadores siguen disponibles."
+    );
+    opxSetText(
+      "opxOverdueMessage",
+      "No se pudo cargar Chart.js. Probá recargar la página."
+    );
+    return;
+  }
+
+  const elements = opxBuildElementStats(rows);
+
+  const activationContainer =
+    document.getElementById("opxActivationContainer");
+
+  const overdueContainer =
+    document.getElementById("opxOverdueContainer");
+
+  if (!activationContainer || !overdueContainer) return;
+
+  if (elements.length === 0) {
+    opxReplaceChart("opxActivationChart", null);
+    opxReplaceChart("opxOverdueChart", null);
+
+    activationContainer.hidden = true;
+    overdueContainer.hidden = true;
+
+    opxSetText("opxActivationMessage", "Sin iniciativas para graficar.");
+    opxSetText("opxOverdueMessage", "Sin iniciativas para graficar.");
+    return;
+  }
+
+  activationContainer.hidden = false;
+
+  activationContainer.style.height =
+    `${Math.max(260, elements.length * 54 + 100)}px`;
+
+  const percentage = (value, total) =>
+    total > 0 ? (value / total) * 100 : 0;
+
+  const notStarted = elements.map(item =>
+    item.total - item.complete - item.started
+  );
+
+  const activationCounts = [
+    elements.map(item => item.complete),
+    elements.map(item => item.started),
+    notStarted
+  ];
+
+  opxReplaceChart("opxActivationChart", {
+    type: "bar",
+    data: {
+      labels: elements.map(item =>
+        `${item.label} (n=${item.total})`
+      ),
+      datasets: [
+        {
+          label: "Completas",
+          data: elements.map(item =>
+            percentage(item.complete, item.total)
+          ),
+          backgroundColor: "#22C55E"
+        },
+        {
+          label: "Iniciadas sin completar",
+          data: elements.map(item =>
+            percentage(item.started, item.total)
+          ),
+          backgroundColor: "#3B82F6"
+        },
+        {
+          label: "Sin inicio confirmado",
+          data: elements.map((item, index) =>
+            percentage(notStarted[index], item.total)
+          ),
+          backgroundColor: "#CBD5E1"
+        }
+      ]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            boxWidth: 12,
+            font: { size: 11 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const item = elements[context.dataIndex];
+
+              const count =
+                activationCounts[context.datasetIndex][context.dataIndex];
+
+              return `${context.dataset.label}: ` +
+                `${count} de ${item.total} ` +
+                `(${opxFormatPercent(count, item.total)})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          min: 0,
+          max: 100,
+          ticks: {
+            callback: value => `${value}%`
+          }
+        },
+        y: {
+          stacked: true,
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  opxSetText(
+    "opxActivationMessage",
+    "Cada iniciativa pertenece a un solo grupo. " +
+    "Pasá el cursor o tocá una barra para ver cantidades y porcentajes."
+  );
+
+  // Excluye del gráfico de atraso los elementos sin pendientes:
+  // no tienen denominador para calcular el porcentaje.
+  const pendingElements = elements
+    .filter(item => item.pending > 0)
+    .sort((a, b) =>
+      (b.overdue / b.pending) - (a.overdue / a.pending) ||
+      a.label.localeCompare(b.label, "es")
+    );
+
+  if (pendingElements.length === 0) {
+    opxReplaceChart("opxOverdueChart", null);
+    overdueContainer.hidden = true;
+
+    opxSetText(
+      "opxOverdueMessage",
+      "No hay iniciativas pendientes en el alcance seleccionado."
+    );
+    return;
+  }
+
+  overdueContainer.hidden = false;
+
+  overdueContainer.style.height =
+    `${Math.max(260, pendingElements.length * 54 + 100)}px`;
+
+  opxReplaceChart("opxOverdueChart", {
+    type: "bar",
+    data: {
+      labels: pendingElements.map(item =>
+        `${item.label} (${item.overdue}/${item.pending})`
+      ),
+      datasets: [{
+        label: "Pendientes vencidas",
+        data: pendingElements.map(item =>
+          percentage(item.overdue, item.pending)
+        ),
+        backgroundColor: "#EF4444",
+        borderRadius: 4,
+        maxBarThickness: 30
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const item = pendingElements[context.dataIndex];
+
+              return `${item.overdue} de ${item.pending} pendientes ` +
+                `(${opxFormatPercent(item.overdue, item.pending)})`;
+            },
+            afterLabel(context) {
+              const item = pendingElements[context.dataIndex];
+
+              return `${item.pendingWithoutDate} pendientes sin fecha válida`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0,
+          max: 100,
+          ticks: {
+            callback: value => `${value}%`
+          }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  const missingDates = pendingElements.reduce(
+    (sum, item) => sum + item.pendingWithoutDate,
+    0
+  );
+
+  const withoutPending = elements.length - pendingElements.length;
+
+  opxSetText(
+    "opxOverdueMessage",
+    `Base: pendientes de cada elemento. ` +
+    `${missingDates} pendientes sin fecha válida en este alcance. ` +
+    (withoutPending > 0
+      ? `${withoutPending} elementos sin pendientes no se muestran.`
+      : "")
+  );
+}
 function renderOnePssKpis() {
   const page = document.getElementById("page-onepss-kpis");
   if (!page) return;
@@ -2967,7 +3247,7 @@ function renderOnePssKpis() {
   const rows = opxApplyFilters(allRows);
   const data = opxCalculate(rows);
   const activated = data.complete + data.started;
-
+opxRenderCharts(rows);
   const selectedElemento =
     document.getElementById("opxFilterElemento")?.value || "";
 
