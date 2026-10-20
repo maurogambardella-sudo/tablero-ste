@@ -680,6 +680,88 @@ tbody tr:hover { background: var(--bayer-light); }
     width: 100%;
   }
 }
+
+
+/* ONE PSS ejecutivo: gráficos exclusivos */
+#page-onepss-kpis .opx-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+#page-onepss-kpis .opx-chart-card {
+  min-width: 0;
+  padding: 20px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.05);
+}
+
+#page-onepss-kpis .opx-chart-card h3 {
+  margin: 0 0 10px;
+  color: #163A4D;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+#page-onepss-kpis .opx-chart-description {
+  margin: 12px 0;
+  color: #64748B;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+#page-onepss-kpis .opx-chart-help {
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#page-onepss-kpis .opx-chart-help summary {
+  width: fit-content;
+  color: #0369A1;
+  cursor: pointer;
+}
+
+#page-onepss-kpis .opx-chart-help summary:focus-visible {
+  outline: 2px solid #0091DF;
+  outline-offset: 3px;
+}
+
+#page-onepss-kpis .opx-chart-help[open] > div {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 7px;
+}
+
+#page-onepss-kpis .opx-chart-container {
+  position: relative;
+  width: 100%;
+  height: 320px;
+}
+
+#page-onepss-kpis .opx-chart-message {
+  margin: 10px 0 0;
+  color: #64748B;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  #page-onepss-kpis .opx-charts-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+  
+
+
+  
  
 </style>
 </head>
