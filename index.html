@@ -1037,7 +1037,7 @@ tbody tr:hover { background: var(--bayer-light); }
   <div class="nav-sub" id="navSubOnePss">
    <a class="nav-link all-teams" data-page="onepss" data-onepss-view="all">General</a>
    <a class="nav-link" data-page="onepss-kpis">KPIs y seguimiento</a> 
-<a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinaryteams">Equipos Multidisciplinarios</a>
+<a class="nav-link" data-page="onepss" data-onepss-view="multidisciplinaryteams">Equipos Autonomos</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="strategyperformance">Strategy & Performance</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="dmsproblemsolving">DMS Problem Solving</a>
 <a class="nav-link" data-page="onepss" data-onepss-view="knowledgemanagement">Knowledge Management</a>
@@ -1436,7 +1436,7 @@ tbody tr:hover { background: var(--bayer-light); }
 
     <select id="onePssFilterElemento" onchange="renderOnePss()">
   <option value="">Todos los elementos</option>
-  <option value="multidisciplinaryteams">Equipos Multidisciplinarios</option>
+  <option value="multidisciplinaryteams">Equipos Autonomos</option>
   <option value="strategyperformance">Strategy &amp; Performance</option>
   <option value="dmsproblemsolving">DMS Problem Solving</option>
   <option value="knowledgemanagement">Knowledge Management</option>
@@ -4236,7 +4236,7 @@ function normalizeOnePssElemento(value) {
 function onePssElementoLabel(v) {
   const map = {
     general: 'General',
-    multidisciplinaryteams: 'Equipos Multidisciplinarios',
+    multidisciplinaryteams: 'Equipos Autonomos',
     strategyperformance: 'Strategy & Performance',
     dmsproblemsolving: 'DMS Problem Solving',
     knowledgemanagement: 'Knowledge Management',
